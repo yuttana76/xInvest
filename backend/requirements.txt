@@ -1,0 +1,16 @@
+Django>=5.2,<5.3
+djangorestframework
+dj-database-url
+django-cors-headers
+djangorestframework-simplejwt
+pandas
+numpy
+PyPortfolioOpt
+psycopg2-binary
+celery
+redis
+yfinance
+gunicorn
+uvicorn
+whitenoise
+pyotp
