@@ -23,14 +23,12 @@ bash
 docker compose -f docker-compose.dev.yml up -d --build
 docker compose -f docker-compose.dev.yml up -d
 docker compose -f docker-compose.dev.yml down
-docker exec xinvest-backend-1 python manage.py migrate
-
-docker stop xinvest-backend-1
-docker compose -f docker-compose.dev.yml up -d --build backend
 
 docker exec -it xinvest-backend-1 python manage.py makemigrations
 docker exec -it xinvest-backend-1 python manage.py migrate
 
+docker stop xinvest-backend-1
+docker compose -f docker-compose.dev.yml up -d --build backend
 docker logs -f xinvest-backend-1
 
 Access Points

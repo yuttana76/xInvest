@@ -1,20 +1,16 @@
-# OS Files
+# Python (Backend)
+backend/__pycache__/
+backend/*.py[cod]
+backend/venv/
+backend/.env
+
+# Node (Frontend)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+
+# Docker & OS
 .DS_Store
-Thumbs.db
-
-# IDE Files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Project Specific
+.env
 .env.production
-.env.local
-backups/
-node_modules/
-__pycache__/
-*.pyc
-
-# Docker
-.docker_tmp/

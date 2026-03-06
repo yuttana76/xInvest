@@ -53,7 +53,7 @@ class APIVerifyOTPView(APIView):
         serializer = VerifyOTPSerializer(data=request.data)
         if serializer.is_valid():
             username = serializer.validated_data['username']
-            otp_ref = serializer.validated_data['otp_ref']
+            # otp_ref = serializer.validated_data['otp_ref']
             otp_code = serializer.validated_data['otp_code']
             
             try:

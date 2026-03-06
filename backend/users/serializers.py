@@ -6,7 +6,6 @@ class LoginSerializer(serializers.Serializer):
 
 class VerifyOTPSerializer(serializers.Serializer):
     username = serializers.CharField()
-    otp_ref = serializers.CharField(max_length=100)
     otp_code = serializers.CharField(max_length=6)
 
 class TokenRefreshSerializer(serializers.Serializer):

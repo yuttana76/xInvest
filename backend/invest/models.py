@@ -20,6 +20,8 @@ class Investor(models.Model):
     fullNameTh = models.CharField(max_length=100)
     mobile = models.CharField(max_length=10, null=True, blank=True)
     email = models.CharField(max_length=100)
+    projects = models.CharField(max_length=100)
+    status = models.CharField(max_length=10)
 
     class Meta:
         unique_together = ('compCode', 'custCode')
