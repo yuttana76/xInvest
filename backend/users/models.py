@@ -71,14 +71,20 @@ class generateKey:
         for i in range(6):
             random_str.append(choice(seeds))
         return "".join(random_str)
-class LoginLog(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="login_logs")
+class UserActivityLog(models.Model):
+    ACTIVITY_CHOICES = [
+        ('LOGIN', 'Login'),
+        ('PASSWORD_RESET_REQUEST', 'Password Reset Request'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="activity_logs")
+    activity_type = models.CharField(max_length=30, choices=ACTIVITY_CHOICES)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(null=True, blank=True)
-    login_at = models.DateTimeField(auto_now_add=True)
+    os = models.CharField(max_length=50, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-login_at']
+        ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.username} logged in from {self.ip_address} at {self.login_at}"
+        return f"{self.user.username} - {self.activity_type} at {self.created_at}"

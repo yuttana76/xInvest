@@ -5,10 +5,49 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import OTP, LoginLog
-from .serializers import LoginSerializer, VerifyOTPSerializer
+from .models import OTP, UserActivityLog
+from .serializers import LoginSerializer, VerifyOTPSerializer, TokenRefreshSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.tokens import default_token_generator
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+def get_os_from_ua(user_agent):
+    if not user_agent:
+        return "Unknown"
+    ua = user_agent.lower()
+    if "windows" in ua:
+        return "Windows"
+    elif "macintosh" in ua or "mac os x" in ua:
+        return "Mac OS"
+    elif "linux" in ua:
+        return "Linux"
+    elif "android" in ua:
+        return "Android"
+    elif "iphone" in ua or "ipad" in ua:
+        return "iOS"
+    return "Other"
+
+def log_activity(user, request, activity_type):
+    ip = get_client_ip(request)
+    ua = request.META.get('HTTP_USER_AGENT')
+    os = get_os_from_ua(ua)
+    UserActivityLog.objects.create(
+        user=user,
+        activity_type=activity_type,
+        ip_address=ip,
+        user_agent=ua,
+        os=os
+    )
 
 class APILoginView(APIView):
     permission_classes = [AllowAny]
@@ -80,19 +119,7 @@ class APIVerifyOTPView(APIView):
                         role = "guest" # Or some other default
                     
                     # Log the login
-                    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-                    if x_forwarded_for:
-                        ip = x_forwarded_for.split(',')[0]
-                    else:
-                        ip = request.META.get('REMOTE_ADDR')
-                    
-                    user_agent = request.META.get('HTTP_USER_AGENT')
-                    
-                    LoginLog.objects.create(
-                        user=user,
-                        ip_address=ip,
-                        user_agent=user_agent
-                    )
+                    log_activity(user, request, 'LOGIN')
                     
                     return Response({
                         "refresh": str(refresh),
@@ -112,47 +139,80 @@ class TokenRefreshView(APIView):
     permission_classes = [AllowAny]
     def post(self, request, *args, **kwargs):
         try:
-
             serializer = TokenRefreshSerializer(data=request.data)
             if serializer.is_valid():
                 refresh_token = serializer.validated_data['refresh']
-                print("***",refresh_token)
-
-                request.data['refresh'] = refresh_token
-                response = super().post(request, *args, **kwargs)
-                tokens = response.data
-                access_token = tokens['access']
-                res = Response()
-
-
+                # In a real scenario, you'd use rest_framework_simplejwt.views.TokenRefreshView
+                # but for simplicity in this custom view:
+                from rest_framework_simplejwt.tokens import RefreshToken
+                refresh = RefreshToken(refresh_token)
                 return Response({
-                    "access": str(access_token),
+                    "access": str(refresh.access_token),
                 }, status=status.HTTP_200_OK)
-
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-            # print("***",request.data)
-            # refresh_token = request.COOKIES.get('refresh_token')
-
-            # request.data['refresh'] = refresh_token
-            # response = super().post(request, *args, **kwargs)
-            # tokens = response.data
-            # access_token = tokens['access']
-            # res = Response()
-
-            # res.data = {'refreshed': True}
-
-            # res.set_cookie(
-            #     key='access_token',
-            #     value=access_token,
-            #     httponly=True,
-            #     secure=True,
-            #     samesite='None',
-            #     path='/'
-            # )
-            # return res
-
         except Exception as e:
-            print(e)
-            return Response({'refreshed': False})
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
+            email = serializer.validated_data['email']
+            try:
+                user = User.objects.get(username=username, email=email)
+                token = default_token_generator.make_token(user)
+                uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+                
+                from django.conf import settings
+                reset_link = f"{settings.FRONTEND_URL}/reset-password?uidb64={uidb64}&token={token}"
+                
+                print("Password reset link sent to your email. Link: %s", reset_link)
+                print("User email: %s", user.email)
+                
+                # Log the forgot password request
+                log_activity(user, request, 'PASSWORD_RESET_REQUEST')
+                
+                # Send email (Console for now)
+                send_mail(
+                    "Password Reset Request for xInvest",
+                    f"Hi {user.username},\n\nYou requested a password reset. Click the link below to set a new password:\n\n{reset_link}\n\nIf you didn't request this, please ignore this email.",
+                    "noreply@xinvest.com",
+                    [user.email],
+                    fail_silently=False,
+                )
+                
+                return Response({"message": "Password reset link sent to your email."}, status=status.HTTP_200_OK)
+            except User.DoesNotExist:
+                # Don't leak if user exists or not
+                return Response({"message": "Password reset link sent to your email."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        if serializer.is_valid():
+            uidb64 = serializer.validated_data['uidb64']
+            token = serializer.validated_data['token']
+            new_password = serializer.validated_data['new_password']
+            
+            try:
+                uid = force_str(urlsafe_base64_decode(uidb64))
+                user = User.objects.get(pk=uid)
+                
+                print("User found: %s", user)
+
+                if default_token_generator.check_token(user, token):
+                    user.set_password(new_password)
+                    user.save()
+                    return Response({"message": "Password has been reset successfully."}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+            except (UnicodeDecodeError, User.DoesNotExist, ValueError):
+                return Response({"error": "Invalid request."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

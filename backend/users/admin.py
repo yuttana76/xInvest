@@ -11,9 +11,9 @@ class otpAdmin(admin.ModelAdmin):
     ordering = ['created_at']
     search_fields = ['user']
 
-@admin.register(LoginLog)
-class LoginLogAdmin(admin.ModelAdmin):
-    list_display = ('user', 'ip_address', 'login_at')
-    list_filter = ('login_at',)
-    search_fields = ('user__username', 'ip_address', 'user_agent')
-    readonly_fields = ('user', 'ip_address', 'user_agent', 'login_at')
+@admin.register(UserActivityLog)
+class UserActivityLogAdmin(admin.ModelAdmin):
+    list_display = ('user', 'activity_type', 'ip_address', 'os', 'created_at')
+    list_filter = ('activity_type', 'created_at', 'os')
+    search_fields = ('user__username', 'ip_address', 'user_agent', 'os')
+    readonly_fields = ('user', 'activity_type', 'ip_address', 'user_agent', 'os', 'created_at')
