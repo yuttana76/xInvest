@@ -13,4 +13,5 @@ yfinance
 gunicorn
 uvicorn
 whitenoise
+django-import-export
 pyotp

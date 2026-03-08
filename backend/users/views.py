@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import OTP
+from .models import OTP, LoginLog
 from .serializers import LoginSerializer, VerifyOTPSerializer
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -19,6 +19,7 @@ class APILoginView(APIView):
             username = serializer.validated_data['username']
             password = serializer.validated_data['password']
 
+        
             user = authenticate(username=username, password=password)
             
             if user:
@@ -70,11 +71,35 @@ class APIVerifyOTPView(APIView):
                     otp.otpSuccess_DT = timezone.now()
                     otp.save()
                     
+                    # Determine role
+                    if user.is_staff or user.is_superuser:
+                        role = "admin"
+                    elif hasattr(user, 'investor_profile'):
+                        role = "investor"
+                    else:
+                        role = "guest" # Or some other default
+                    
+                    # Log the login
+                    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+                    if x_forwarded_for:
+                        ip = x_forwarded_for.split(',')[0]
+                    else:
+                        ip = request.META.get('REMOTE_ADDR')
+                    
+                    user_agent = request.META.get('HTTP_USER_AGENT')
+                    
+                    LoginLog.objects.create(
+                        user=user,
+                        ip_address=ip,
+                        user_agent=user_agent
+                    )
+                    
                     return Response({
                         "refresh": str(refresh),
                         "access": str(refresh.access_token),
                         "username": user.username,
-                        "email": user.email
+                        "email": user.email,
+                        "role": role
                     }, status=status.HTTP_200_OK)
                 
                 return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_401_UNAUTHORIZED)

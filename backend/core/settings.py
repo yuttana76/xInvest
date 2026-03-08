@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "users.apps.UsersConfig",
     "rest_framework_simplejwt",
+    "import_export",
     "rest_framework_simplejwt.token_blacklist",
     "invest",
 ]

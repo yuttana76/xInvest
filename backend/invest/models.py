@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class ICLicense(models.Model):
     compCode = models.CharField(max_length=15)
@@ -14,6 +15,7 @@ class ICLicense(models.Model):
         return f"{self.IC_license} - {self.fullName}"
 
 class Investor(models.Model):
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, related_name='investor_profile', null=True, blank=True)
     compCode = models.CharField(max_length=13)
     custCode = models.CharField(max_length=13)
     fullNameEn = models.CharField(max_length=100)

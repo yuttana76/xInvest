@@ -71,3 +71,14 @@ class generateKey:
         for i in range(6):
             random_str.append(choice(seeds))
         return "".join(random_str)
+class LoginLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="login_logs")
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    login_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-login_at']
+
+    def __str__(self):
+        return f"{self.user.username} logged in from {self.ip_address} at {self.login_at}"

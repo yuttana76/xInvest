@@ -9,13 +9,26 @@ class InvestorDetailView(generics.RetrieveAPIView):
     serializer_class = InvestorSerializer
     queryset = Investor.objects.all()
     lookup_field = 'custCode'
+    
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff or user.is_superuser:
+            return Investor.objects.all()
+        return Investor.objects.filter(user=user)
 
 class InvestorAccountListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = InvestorAccountSerializer
 
     def get_queryset(self):
+        user = self.request.user
         cust_code = self.kwargs['custCode']
+        
+        # Security check: Does this cust_code belong to the user?
+        if not (user.is_staff or user.is_superuser):
+            if not hasattr(user, 'investor_profile') or user.investor_profile.custCode != cust_code:
+                return InvestorAccount.objects.none()
+                
         return InvestorAccount.objects.filter(custCode__custCode=cust_code)
 
 class AccountBalanceListView(generics.ListAPIView):
@@ -23,7 +36,14 @@ class AccountBalanceListView(generics.ListAPIView):
     serializer_class = AccountBalanceSerializer
 
     def get_queryset(self):
+        user = self.request.user
         cust_code = self.kwargs['custCode']
+        
+        # Security check
+        if not (user.is_staff or user.is_superuser):
+            if not hasattr(user, 'investor_profile') or user.investor_profile.custCode != cust_code:
+                return AccountBalance.objects.none()
+
         return AccountBalance.objects.filter(accountID__custCode__custCode=cust_code)
 
 class InvestorListView(generics.ListAPIView):
@@ -41,6 +61,11 @@ class InvestorInquiryView(APIView):
         if not comp_code or not cust_code:
             return Response({"error": "compCode and custCode are required"}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Security check: Does this cust_code belong to the user?
+        if not (request.user.is_staff or request.user.is_superuser):
+            if not hasattr(request.user, 'investor_profile') or request.user.investor_profile.custCode != cust_code:
+                return Response({"error": "You do not have permission to access this investor's data"}, status=status.HTTP_403_FORBIDDEN)
+
         try:
             investor = Investor.objects.get(compCode=comp_code, custCode=cust_code)
             accounts = investor.accounts.all()
@@ -53,3 +78,20 @@ class InvestorInquiryView(APIView):
             }, status=status.HTTP_200_OK)
         except Investor.DoesNotExist:
             return Response({"error": "Investor not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class InvestorMeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if not hasattr(request.user, 'investor_profile'):
+            return Response({"error": "No investor profile associated with this user"}, status=status.HTTP_404_NOT_FOUND)
+            
+        investor = request.user.investor_profile
+        accounts = investor.accounts.all()
+        balances = AccountBalance.objects.filter(accountID__in=accounts)
+
+        return Response({
+            "profile": InvestorSerializer(investor).data,
+            "accounts": InvestorAccountSerializer(accounts, many=True).data,
+            "balances": AccountBalanceSerializer(balances, many=True).data
+        }, status=status.HTTP_200_OK)
