@@ -9,6 +9,8 @@ from .models import OTP, UserActivityLog
 from .serializers import LoginSerializer, VerifyOTPSerializer, TokenRefreshSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer
 from django.contrib.auth.models import User
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
+from drf_spectacular.types import OpenApiTypes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
@@ -52,6 +54,13 @@ def log_activity(user, request, activity_type):
 class APILoginView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        summary="User Login (Phase 1)",
+        description="Authenticates user and sends OTP to email. Returns otp_ref for phase 2. ",
+        request=LoginSerializer,
+        responses={200: OpenApiTypes.OBJECT},
+        tags=["Authentication"]
+    )
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -117,6 +126,11 @@ class APIVerifyOTPView(APIView):
                         role = "investor"
                     else:
                         role = "guest" # Or some other default
+
+                    # Add custom claims to the token payload
+                    refresh['username'] = user.username
+                    refresh['email'] = user.email
+                    refresh['role'] = role
                     
                     # Log the login
                     log_activity(user, request, 'LOGIN')

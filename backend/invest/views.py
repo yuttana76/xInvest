@@ -3,9 +3,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Investor, InvestorAccount, AccountBalance, ICLicense
 from .serializers import InvestorSerializer, InvestorAccountSerializer, AccountBalanceSerializer, ICLicenseSerializer
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
+from drf_spectacular.types import OpenApiTypes
 
 class InvestorDetailView(generics.RetrieveAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]
     serializer_class = InvestorSerializer
     queryset = Investor.objects.all()
     lookup_field = 'custCode'
@@ -17,7 +19,7 @@ class InvestorDetailView(generics.RetrieveAPIView):
         return Investor.objects.filter(user=user)
 
 class InvestorAccountListView(generics.ListAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]
     serializer_class = InvestorAccountSerializer
 
     def get_queryset(self):
@@ -32,7 +34,7 @@ class InvestorAccountListView(generics.ListAPIView):
         return InvestorAccount.objects.filter(custCode__custCode=cust_code)
 
 class AccountBalanceListView(generics.ListAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]
     serializer_class = AccountBalanceSerializer
 
     def get_queryset(self):
@@ -47,13 +49,29 @@ class AccountBalanceListView(generics.ListAPIView):
         return AccountBalance.objects.filter(accountID__custCode__custCode=cust_code)
 
 class InvestorListView(generics.ListAPIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAdminUser,permissions.IsAuthenticated]
     serializer_class = InvestorSerializer
     queryset = Investor.objects.all()
 
 class InvestorInquiryView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser,permissions.IsAuthenticated]
 
+    @extend_schema(
+        summary="Inquiry Investor Data",
+        description="Get full investor profile, accounts, and balances using compCode and custCode.",
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "compCode": {"type": "string", "example": "COMP001"},
+                    "custCode": {"type": "string", "example": "CUST001"}
+                },
+                "required": ["compCode", "custCode"]
+            }
+        },
+        responses={200: InvestorSerializer}, # You can improve this with a custom response serializer
+        tags=["Investments"]
+    )
     def post(self, request):
         comp_code = request.data.get('compCode')
         cust_code = request.data.get('custCode')

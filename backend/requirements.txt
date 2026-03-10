@@ -15,3 +15,5 @@ uvicorn
 whitenoise
 django-import-export
 pyotp
+drf-spectacular
+google-generativeai
