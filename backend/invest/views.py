@@ -1,8 +1,12 @@
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Investor, InvestorAccount, AccountBalance, ICLicense
-from .serializers import InvestorSerializer, InvestorAccountSerializer, AccountBalanceSerializer, ICLicenseSerializer
+from .models import Investor, InvestorAccount, AccountBalance, ICLicense, BondAccount, PrivateFundAccount, PrivateFundBalance
+from .serializers import (
+    InvestorSerializer, InvestorAccountSerializer, AccountBalanceSerializer, 
+    ICLicenseSerializer, BondAccountSerializer, PrivateFundAccountSerializer, 
+    PrivateFundBalanceSerializer
+)
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
 
@@ -86,13 +90,15 @@ class InvestorInquiryView(APIView):
 
         try:
             investor = Investor.objects.get(compCode=comp_code, custCode=cust_code)
-            accounts = investor.accounts.all()
-            balances = AccountBalance.objects.filter(accountID__in=accounts)
+            mf_accounts = investor.accounts.prefetch_related('balances').all()
+            pf_accounts = investor.private_fund_accounts.prefetch_related('private_fund_balances').all()
+            bond_accounts = investor.bond_accounts.all()
 
             return Response({
                 "profile": InvestorSerializer(investor).data,
-                "accounts": InvestorAccountSerializer(accounts, many=True).data,
-                "balances": AccountBalanceSerializer(balances, many=True).data
+                "mfAccounts": InvestorAccountSerializer(mf_accounts, many=True).data,
+                "privateFundAccounts": PrivateFundAccountSerializer(pf_accounts, many=True).data,
+                "bondAccounts": BondAccountSerializer(bond_accounts, many=True).data
             }, status=status.HTTP_200_OK)
         except Investor.DoesNotExist:
             return Response({"error": "Investor not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -105,11 +111,13 @@ class InvestorMeView(APIView):
             return Response({"error": "No investor profile associated with this user"}, status=status.HTTP_404_NOT_FOUND)
             
         investor = request.user.investor_profile
-        accounts = investor.accounts.all()
-        balances = AccountBalance.objects.filter(accountID__in=accounts)
+        mf_accounts = investor.accounts.prefetch_related('balances').all()
+        pf_accounts = investor.private_fund_accounts.prefetch_related('private_fund_balances').all()
+        bond_accounts = investor.bond_accounts.all()
 
         return Response({
             "profile": InvestorSerializer(investor).data,
-            "accounts": InvestorAccountSerializer(accounts, many=True).data,
-            "balances": AccountBalanceSerializer(balances, many=True).data
+            "mfAccounts": InvestorAccountSerializer(mf_accounts, many=True).data,
+            "privateFundAccounts": PrivateFundAccountSerializer(pf_accounts, many=True).data,
+            "bondAccounts": BondAccountSerializer(bond_accounts, many=True).data
         }, status=status.HTTP_200_OK)
