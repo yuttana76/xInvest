@@ -124,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Bangkok"
 
 USE_I18N = True
 
@@ -163,6 +163,99 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
+
+# Cache Settings
+REDIS_CACHE_URL = os.environ.get("REDIS_CACHE_URL", "redis://redis:6379/1")
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_CACHE_URL,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+# FundConnext API Settings
+FC_API_URL = os.environ.get("FC_API_URL", "https://api.fundconnext.com")
+FC_API_USER = os.environ.get("FC_API_USER", "default_user")
+FC_API_PASSWORD = os.environ.get("FC_API_PASSWORD", "default_password")
+
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    'daily-fundconnext-etl-trans': {
+        'task': 'invest.tasks.run_daily_fundconnext_etl_trans',
+        'schedule': crontab(hour=8, minute=0),
+    },
+    'daily-fundconnext-etl-performance-mf-balance': {
+        'task': 'invest.tasks.run_daily_fundconnext_etl_performance_mf_balance',
+        'schedule': crontab(hour=8, minute=0),
+    },
+    'daily-fundconnext-etl-current-mf-balance': {
+        'task': 'invest.tasks.run_daily_fundconnext_etl_current_mf_balance',
+        'schedule': crontab(hour=8, minute=0),
+    },
+}
+
+# --- LOGGING CONFIGURATION ---
+import os
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+os.makedirs(LOGS_DIR, exist_ok=True)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {module} - {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOGS_DIR, 'xinvest.log'),
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'system_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOGS_DIR, 'error.log'),
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'system_file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'invest': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'celery': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 # REST Framework Settings
 REST_FRAMEWORK = {

@@ -2,7 +2,7 @@ from django.contrib import admin
 from import_export import resources, fields
 from import_export.widgets import ForeignKeyWidget
 from import_export.admin import ImportExportModelAdmin
-from .models import Investor, InvestorAccount, AccountBalance, ICLicense, BondAccount, PrivateFundAccount, PrivateFundBalance
+from .models import Investor, InvestorAccount, AccountBalance, ICLicense, BondAccount, PrivateFundAccount, PrivateFundBalance, MFTransaction
 
 class BaseResource(resources.ModelResource):
     def before_import_row(self, row, **kwargs):
@@ -112,3 +112,19 @@ class PrivateFundBalanceAdmin(ImportExportModelAdmin):
     list_display = ('compCode', 'accountID', 'fundCode', 'unitBalance', 'amount', 'NAV', 'NAVdate')
     list_filter = ('compCode', 'fundCode', 'NAVdate')
     search_fields = ('compCode', 'accountID__accountID', 'fundCode')
+
+class MFTransactionResource(BaseResource):
+    AccountID = fields.Field(
+        column_name='AccountID',
+        attribute='AccountID',
+        widget=ForeignKeyWidget(InvestorAccount, field='accountID')
+    )
+    class Meta:
+        model = MFTransaction
+
+@admin.register(MFTransaction)
+class MFTransactionAdmin(ImportExportModelAdmin):
+    resource_class = MFTransactionResource
+    list_display = ('transactionID', 'accountID', 'transactionCode', 'fundCode', 'amount', 'unit', 'status', 'effectiveDate')
+    list_filter = ('transactionCode', 'status', 'fundCode', 'effectiveDate')
+    search_fields = ('transactionID', 'accountID__accountID', 'fundCode', )

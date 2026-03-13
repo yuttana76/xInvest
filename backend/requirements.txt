@@ -17,3 +17,5 @@ django-import-export
 pyotp
 drf-spectacular
 google-generativeai
+flower
+django-redis

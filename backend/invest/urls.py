@@ -1,5 +1,9 @@
 from django.urls import path
-from .views import InvestorDetailView, InvestorAccountListView, AccountBalanceListView, InvestorListView, InvestorInquiryView, InvestorMeView
+from .views import (
+    InvestorListView, InvestorInquiryView, InvestorMeView, 
+    ETLManualTriggerViewTrans, ETLManualTriggerViewCurrentBalance, 
+    ETLManualTriggerViewPerformanceBalance, MFPortfolioPerformanceAPIView, PFPortfolioPerformanceAPIView
+)
 
 urlpatterns = [
     # Investor
@@ -9,8 +13,16 @@ urlpatterns = [
     path('investors/', InvestorListView.as_view(), name='investor_list'),
     path('inquiry/', InvestorInquiryView.as_view(), name='investor_inquiry'),
 
-#     path('investor/<str:custCode>/', InvestorDetailView.as_view(), name='investor_detail'),
-#     path('investor/accounts/<str:custCode>/', InvestorAccountListView.as_view(), name='investor_accounts'),
-#     path('investor/balances/<str:custCode>/', AccountBalanceListView.as_view(), name='account_balances'),
- 
+    #AllottedTransactions
+    #Current-UnitholderBalance
+    #Performance-UnitholderBalance
+
+    path('etl/trigger-fconnext-transaction/', ETLManualTriggerViewTrans.as_view(), name='etl_trigger_transaction'),
+    path('etl/trigger-fconnext-current-balance/', ETLManualTriggerViewCurrentBalance.as_view(), name='etl_trigger_current_balance'),
+    path('etl/trigger-fconnext-performance-balance/', ETLManualTriggerViewPerformanceBalance.as_view(), name='etl_trigger_performance_balance'),
+
+    #Performance api
+    path('mf/portfolio-performance/', MFPortfolioPerformanceAPIView.as_view(), name='portfolio_performance'),
+    path('pf/portfolio-performance/', PFPortfolioPerformanceAPIView.as_view(), name='portfolio_performance'),
+
 ]

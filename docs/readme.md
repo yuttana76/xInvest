@@ -28,13 +28,25 @@ docker exec -it xinvest-backend-1 python manage.py makemigrations
 docker exec -it xinvest-backend-1 python manage.py migrate
 
 docker stop xinvest-backend-1
-docker compose -f docker-compose.dev.yml up -d --build backend
+docker restart xinvest-backend-1
 docker logs -f xinvest-backend-1
+
+docker compose -f docker-compose.dev.yml up -d --build backend
+
+# Celery-Worker
+
+docker restart xinvest-celery_worker-1
+docker logs -f xinvest-celery_worker-1
+
+docker stop xinvest-celery_worker-1
+docker compose -f docker-compose.dev.yml up -d --build celery_worker
 
 Access Points
 Django Backend: http://localhost:8000
 Next.js Frontend: http://localhost:3000
 PostgREST API: http://localhost:3001
+Celery Flower: http://localhost:5555/tasks
+
 PostgreSQL: localhost:5432
 Redis: localhost:6379
 Next Steps for You

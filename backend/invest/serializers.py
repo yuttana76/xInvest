@@ -41,3 +41,8 @@ class PrivateFundAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = PrivateFundAccount
         fields = '__all__'
+
+class PerformanceChartSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    total_market_value = serializers.FloatField()
+    total_gain = serializers.FloatField()

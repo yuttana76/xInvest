@@ -30,6 +30,8 @@ services:
       - ./backend:/app
     env_file:
       - .env.dev
+    environment:
+      - TZ=Asia/Bangkok
     depends_on:
       db:
         condition: service_healthy
@@ -44,6 +46,8 @@ services:
       - ./backend:/app
     env_file:
       - .env.dev
+    environment:
+      - TZ=Asia/Bangkok
     depends_on:
       db:
         condition: service_healthy
@@ -58,10 +62,28 @@ services:
       - ./backend:/app
     env_file:
       - .env.dev
+    environment:
+      - TZ=Asia/Bangkok
     depends_on:
       db:
         condition: service_healthy
       redis:
+        condition: service_started
+    restart: always
+
+  flower:
+    build: ./backend
+    command: celery -A core flower --port=5555
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env.dev
+    environment:
+      - TZ=Asia/Bangkok
+    depends_on:
+      redis:
+        condition: service_started
+      celery_worker:
         condition: service_started
     restart: always
 
