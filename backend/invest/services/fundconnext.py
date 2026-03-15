@@ -147,7 +147,7 @@ class FundConnextService:
                 paymentType=parts[16].strip(),
                 bankCode=parts[17].strip(),
                 bankAccount=parts[18].strip(),
-                iCLicense=parts[21].strip(),
+                marketingCode=parts[21].strip(),
                 branchNo=parts[22].strip(),
                 channel=parts[23].strip(),
                 transactionID=trans_id,

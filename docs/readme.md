@@ -27,13 +27,15 @@ docker compose -f docker-compose.dev.yml down
 docker exec -it xinvest-backend-1 python manage.py makemigrations
 docker exec -it xinvest-backend-1 python manage.py migrate
 
+## backend
+
 docker stop xinvest-backend-1
 docker restart xinvest-backend-1
 docker logs -f xinvest-backend-1
 
 docker compose -f docker-compose.dev.yml up -d --build backend
 
-# Celery-Worker
+## Celery-Worker
 
 docker restart xinvest-celery_worker-1
 docker logs -f xinvest-celery_worker-1

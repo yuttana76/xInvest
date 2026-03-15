@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "invest",
     "drf_spectacular",
-    "smartNews.apps.SmartnewsConfig",
+    "fundDecision.apps.FunddecisionConfig",
 ]
 
 MIDDLEWARE = [
@@ -136,6 +136,9 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "static"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",

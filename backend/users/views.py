@@ -122,6 +122,12 @@ class APIVerifyOTPView(APIView):
                     # Determine role
                     if user.is_staff or user.is_superuser:
                         role = "admin"
+                    elif user.groups.filter(name="operator").exists():
+                        role = "operator"
+                    elif user.groups.filter(name="marketing").exists():
+                        role = "marketing"
+                    elif user.groups.filter(name="agent").exists():
+                        role = "agent"
                     elif hasattr(user, 'investor_profile'):
                         role = "investor"
                     else:

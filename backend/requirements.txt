@@ -19,3 +19,4 @@ drf-spectacular
 google-generativeai
 flower
 django-redis
+openpyxl
