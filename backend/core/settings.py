@@ -319,6 +319,18 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
-# Email Settings (Console for development/debugging)
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "noreply@xinvest.com"
+# Email Settings
+# ถ้า EMAIL_HOST_USER ถูกตั้งค่าไว้ → ใช้ Gmail SMTP
+# ถ้าไม่มี → fallback เป็น Console (สำหรับ dev/debug)
+_email_host_user = os.environ.get("EMAIL_HOST_USER", "")
+if _email_host_user:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.gmail.com"
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = _email_host_user
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+    DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", _email_host_user)
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    DEFAULT_FROM_EMAIL = "noreply@xinvest.com"

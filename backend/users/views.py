@@ -1,5 +1,5 @@
 from django.contrib.auth import authenticate
-from django.core.mail import send_mail
+from .tasks import task_send_otp_email, task_send_password_reset_email
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -74,13 +74,13 @@ class APILoginView(APIView):
                 otp, created = OTP.objects.get_or_create(user=user)
                 otp_ref, otp_code = otp.generate_code()
                 
-                # Send OTP via email (Console for now)
-                send_mail(
-                    "Your xInvest Verification Code",
-                    f"Your otp code is: {otp_code} for {otp_ref}. It will expire in 10 minutes.",
-                    "noreply@xinvest.com",
-                    [user.email],
-                    fail_silently=False,
+                # ส่ง OTP email ผ่าน Celery Queue (async)
+                # → API ตอบกลับทันที ไม่รอ SMTP
+                task_send_otp_email.delay(
+                    user_email=user.email,
+                    username=user.username,
+                    otp_code=otp_code,
+                    otp_ref=otp_ref,
                 )
                 
                 print("OTP sent to your email.OTP Code: %s Ref: %s", otp_code, otp_ref)
@@ -196,13 +196,12 @@ class PasswordResetRequestView(APIView):
                 # Log the forgot password request
                 log_activity(user, request, 'PASSWORD_RESET_REQUEST')
                 
-                # Send email (Console for now)
-                send_mail(
-                    "Password Reset Request for xInvest",
-                    f"Hi {user.username},\n\nYou requested a password reset. Click the link below to set a new password:\n\n{reset_link}\n\nIf you didn't request this, please ignore this email.",
-                    "noreply@xinvest.com",
-                    [user.email],
-                    fail_silently=False,
+                # ส่ง Password Reset email ผ่าน Celery Queue (async)
+                # → API ตอบกลับทันที ไม่รอ SMTP
+                task_send_password_reset_email.delay(
+                    user_email=user.email,
+                    username=user.username,
+                    reset_link=reset_link,
                 )
                 
                 return Response({"message": "Password reset link sent to your email."}, status=status.HTTP_200_OK)

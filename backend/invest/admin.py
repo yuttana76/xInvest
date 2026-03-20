@@ -85,7 +85,7 @@ class ExternalAgentAdmin(ImportExportModelAdmin):
 class AccountBalanceAdmin(ImportExportModelAdmin):
     resource_class = AccountBalanceResource
     list_display = ('compCode', 'accountID', 'fundCode', 'unitBalance', 'amount', 'NAV', 'NAVdate', 'redis_monitor_shortcut')
-    list_filter = ('compCode', 'fundCode', 'NAVdate')
+    list_filter = ('compCode', 'fundCode', 'NAVdate','accountID')
     search_fields = ('compCode', 'accountID__accountID', 'fundCode')
     change_list_template = None # Use default
 

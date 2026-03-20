@@ -49,9 +49,19 @@ class MarketingInvestorSerializer(serializers.ModelSerializer):
 class AccountBalanceSerializer(serializers.ModelSerializer):
     AccountID = serializers.CharField(source='accountID.accountID', read_only=True)
     accountID = serializers.CharField(source='accountID.accountID', read_only=True)
+    fund_analysis = serializers.SerializerMethodField()
+
     class Meta:
         model = AccountBalance
         fields = '__all__'
+
+    def get_fund_analysis(self, obj):
+        from fundDecision.models import FundAnalysis
+        from fundDecision.serializers import FundAnalysisSerializer
+        analysis = FundAnalysis.objects.filter(fund__fundCode=obj.fundCode,status='ACTIVE').order_by('-created_at').first()
+        if analysis:
+            return FundAnalysisSerializer(analysis).data
+        return None
 
 class InvestorAccountSerializer(serializers.ModelSerializer):
     balances = AccountBalanceSerializer(many=True, read_only=True)
@@ -71,9 +81,19 @@ class BondAccountSerializer(serializers.ModelSerializer):
 class PrivateFundBalanceSerializer(serializers.ModelSerializer):
     AccountID = serializers.CharField(source='accountID.accountID', read_only=True)
     accountID = serializers.CharField(source='accountID.accountID', read_only=True)
+    fund_analysis = serializers.SerializerMethodField()
+
     class Meta:
         model = PrivateFundBalance
         fields = '__all__'
+
+    def get_fund_analysis(self, obj):
+        from fundDecision.models import FundAnalysis
+        from fundDecision.serializers import FundAnalysisSerializer
+        analysis = FundAnalysis.objects.filter(fund__fundCode=obj.fundCode).order_by('-created_at').first()
+        if analysis:
+            return FundAnalysisSerializer(analysis).data
+        return None
 
 class PrivateFundAccountSerializer(serializers.ModelSerializer):
     privateFundBalances = PrivateFundBalanceSerializer(many=True, read_only=True, source='private_fund_balances')

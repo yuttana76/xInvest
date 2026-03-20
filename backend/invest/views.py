@@ -23,7 +23,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExampl
 from drf_spectacular.types import OpenApiTypes
 from .tasks import run_daily_fundconnext_etl_trans, run_daily_fundconnext_etl_performance_mf_balance,run_daily_fundconnext_etl_current_mf_balance
 from datetime import datetime, timedelta
-from django.db.models import Sum, Q, Value, DecimalField
+from django.db.models import Sum, Q, Value, DecimalField, Subquery, OuterRef, F
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.core.cache import cache
@@ -345,6 +345,42 @@ class MarketingInvestorListView(generics.ListAPIView):
     def get_queryset(self):
         try:
             marketing_profile = Marketing.objects.get(user=self.request.user)
+            
+            # Subqueries for accurate sums without Cartesian products
+            mf_amount_sub = AccountBalance.objects.filter(
+                accountID__custCode=OuterRef('pk'),
+                accountID__status='Active',
+                accountID__marketing=marketing_profile
+            ).values('accountID__custCode').annotate(total=Sum('amount')).values('total')
+
+            bond_amount_sub = BondAccount.objects.filter(
+                custCode=OuterRef('pk'),
+                status='Active',
+                marketing=marketing_profile
+            ).values('custCode').annotate(total=Sum('amount')).values('total')
+
+            pf_amount_sub = PrivateFundBalance.objects.filter(
+                accountID__custCode=OuterRef('pk'),
+                accountID__status='Active',
+                accountID__marketing=marketing_profile
+            ).values('accountID__custCode').annotate(total=Sum('amount')).values('total')
+
+            mf_profit_sub = AccountBalance.objects.filter(
+                accountID__custCode=OuterRef('pk'),
+                accountID__status='Active',
+                accountID__marketing=marketing_profile
+            ).annotate(
+                profit=F('amount') - (F('unitBalance') * F('averageCost'))
+            ).values('accountID__custCode').annotate(total_profit=Sum('profit')).values('total_profit')
+
+            pf_profit_sub = PrivateFundBalance.objects.filter(
+                accountID__custCode=OuterRef('pk'),
+                accountID__status='Active',
+                accountID__marketing=marketing_profile
+            ).annotate(
+                profit=F('amount') - (F('unitBalance') * F('averageCost'))
+            ).values('accountID__custCode').annotate(total_profit=Sum('profit')).values('total_profit')
+
             # Filter investors who have at least one account assigned to this marketing profile
             queryset = Investor.objects.filter(
                 Q(accounts__marketing=marketing_profile) | 
@@ -352,19 +388,16 @@ class MarketingInvestorListView(generics.ListAPIView):
                 Q(private_fund_accounts__marketing=marketing_profile)
             ).distinct().order_by('-created_at', '-updated_at')
             
-            # Annnotate with aggregate amounts for Active accounts belonging to this marketing
+            # Annnotate with aggregate amounts using Subqueries
             queryset = queryset.annotate(
-                mf_amount=Coalesce(Sum('accounts__balances__amount', filter=Q(accounts__status='Active', accounts__marketing=marketing_profile)), Value(0, output_field=DecimalField())),
-                bond_amount=Coalesce(Sum('bond_accounts__amount', filter=Q(bond_accounts__status='Active', bond_accounts__marketing=marketing_profile)), Value(0, output_field=DecimalField())),
-                pf_amount=Coalesce(Sum('private_fund_accounts__private_fund_balances__amount', filter=Q(private_fund_accounts__status='Active', private_fund_accounts__marketing=marketing_profile)), Value(0, output_field=DecimalField()))
+                mf_amount=Coalesce(Subquery(mf_amount_sub), Value(0, output_field=DecimalField())),
+                bond_amount=Coalesce(Subquery(bond_amount_sub), Value(0, output_field=DecimalField())),
+                pf_amount=Coalesce(Subquery(pf_amount_sub), Value(0, output_field=DecimalField())),
+                mf_profit=Coalesce(Subquery(mf_profit_sub), Value(0, output_field=DecimalField())),
+                pf_profit=Coalesce(Subquery(pf_profit_sub), Value(0, output_field=DecimalField()))
             ).annotate(
-                total_amount=Coalesce(Sum('accounts__balances__amount', filter=Q(accounts__status='Active', accounts__marketing=marketing_profile)), Value(0, output_field=DecimalField())) + 
-                             Coalesce(Sum('bond_accounts__amount', filter=Q(bond_accounts__status='Active', bond_accounts__marketing=marketing_profile)), Value(0, output_field=DecimalField())) + 
-                             Coalesce(Sum('private_fund_accounts__private_fund_balances__amount', filter=Q(private_fund_accounts__status='Active', private_fund_accounts__marketing=marketing_profile)), Value(0, output_field=DecimalField())),
-                mf_profit=Coalesce(Sum(models.F('accounts__balances__amount') - (models.F('accounts__balances__unitBalance') * models.F('accounts__balances__averageCost')), filter=Q(accounts__status='Active', accounts__marketing=marketing_profile)), Value(0, output_field=DecimalField())),
-                pf_profit=Coalesce(Sum(models.F('private_fund_accounts__private_fund_balances__amount') - (models.F('private_fund_accounts__private_fund_balances__unitBalance') * models.F('private_fund_accounts__private_fund_balances__averageCost')), filter=Q(private_fund_accounts__status='Active', private_fund_accounts__marketing=marketing_profile)), Value(0, output_field=DecimalField()))
-            ).annotate(
-                total_profit=models.F('mf_profit') + models.F('pf_profit')
+                total_amount=F('mf_amount') + F('bond_amount') + F('pf_amount'),
+                total_profit=F('mf_profit') + F('pf_profit')
             )
             
             status_filter = self.request.query_params.get('status')
@@ -390,6 +423,42 @@ class AgentInvestorListView(generics.ListAPIView):
     def get_queryset(self):
         try:
             agent_profile = ExternalAgent.objects.get(user=self.request.user)
+            
+            # Subqueries for accurate sums without Cartesian products
+            mf_amount_sub = AccountBalance.objects.filter(
+                accountID__custCode=OuterRef('pk'),
+                accountID__status='Active',
+                accountID__referred_by_agent=agent_profile
+            ).values('accountID__custCode').annotate(total=Sum('amount')).values('total')
+
+            bond_amount_sub = BondAccount.objects.filter(
+                custCode=OuterRef('pk'),
+                status='Active',
+                referred_by_agent=agent_profile
+            ).values('custCode').annotate(total=Sum('amount')).values('total')
+
+            pf_amount_sub = PrivateFundBalance.objects.filter(
+                accountID__custCode=OuterRef('pk'),
+                accountID__status='Active',
+                accountID__referred_by_agent=agent_profile
+            ).values('accountID__custCode').annotate(total=Sum('amount')).values('total')
+
+            mf_profit_sub = AccountBalance.objects.filter(
+                accountID__custCode=OuterRef('pk'),
+                accountID__status='Active',
+                accountID__referred_by_agent=agent_profile
+            ).annotate(
+                profit=F('amount') - (F('unitBalance') * F('averageCost'))
+            ).values('accountID__custCode').annotate(total_profit=Sum('profit')).values('total_profit')
+
+            pf_profit_sub = PrivateFundBalance.objects.filter(
+                accountID__custCode=OuterRef('pk'),
+                accountID__status='Active',
+                accountID__referred_by_agent=agent_profile
+            ).annotate(
+                profit=F('amount') - (F('unitBalance') * F('averageCost'))
+            ).values('accountID__custCode').annotate(total_profit=Sum('profit')).values('total_profit')
+
             # Filter investors who have at least one account referred by this agent
             queryset = Investor.objects.filter(
                 Q(accounts__referred_by_agent=agent_profile) | 
@@ -397,18 +466,16 @@ class AgentInvestorListView(generics.ListAPIView):
                 Q(private_fund_accounts__referred_by_agent=agent_profile)
             ).distinct().order_by('-created_at', '-updated_at')
             
+            # Annnotate with aggregate amounts using Subqueries
             queryset = queryset.annotate(
-                mf_amount=Coalesce(Sum('accounts__balances__amount', filter=Q(accounts__status='Active', accounts__referred_by_agent=agent_profile)), Value(0, output_field=DecimalField())),
-                bond_amount=Coalesce(Sum('bond_accounts__amount', filter=Q(bond_accounts__status='Active', bond_accounts__referred_by_agent=agent_profile)), Value(0, output_field=DecimalField())),
-                pf_amount=Coalesce(Sum('private_fund_accounts__private_fund_balances__amount', filter=Q(private_fund_accounts__status='Active', private_fund_accounts__referred_by_agent=agent_profile)), Value(0, output_field=DecimalField()))
+                mf_amount=Coalesce(Subquery(mf_amount_sub), Value(0, output_field=DecimalField())),
+                bond_amount=Coalesce(Subquery(bond_amount_sub), Value(0, output_field=DecimalField())),
+                pf_amount=Coalesce(Subquery(pf_amount_sub), Value(0, output_field=DecimalField())),
+                mf_profit=Coalesce(Subquery(mf_profit_sub), Value(0, output_field=DecimalField())),
+                pf_profit=Coalesce(Subquery(pf_profit_sub), Value(0, output_field=DecimalField()))
             ).annotate(
-                total_amount=Coalesce(Sum('accounts__balances__amount', filter=Q(accounts__status='Active', accounts__referred_by_agent=agent_profile)), Value(0, output_field=DecimalField())) + 
-                             Coalesce(Sum('bond_accounts__amount', filter=Q(bond_accounts__status='Active', bond_accounts__referred_by_agent=agent_profile)), Value(0, output_field=DecimalField())) + 
-                             Coalesce(Sum('private_fund_accounts__private_fund_balances__amount', filter=Q(private_fund_accounts__status='Active', private_fund_accounts__referred_by_agent=agent_profile)), Value(0, output_field=DecimalField())),
-                mf_profit=Coalesce(Sum(models.F('accounts__balances__amount') - (models.F('accounts__balances__unitBalance') * models.F('accounts__balances__averageCost')), filter=Q(accounts__status='Active', accounts__referred_by_agent=agent_profile)), Value(0, output_field=DecimalField())),
-                pf_profit=Coalesce(Sum(models.F('private_fund_accounts__private_fund_balances__amount') - (models.F('private_fund_accounts__private_fund_balances__unitBalance') * models.F('private_fund_accounts__private_fund_balances__averageCost')), filter=Q(private_fund_accounts__status='Active', private_fund_accounts__referred_by_agent=agent_profile)), Value(0, output_field=DecimalField()))
-            ).annotate(
-                total_profit=models.F('mf_profit') + models.F('pf_profit')
+                total_amount=F('mf_amount') + F('bond_amount') + F('pf_amount'),
+                total_profit=F('mf_profit') + F('pf_profit')
             )
             
             status_filter = self.request.query_params.get('status')

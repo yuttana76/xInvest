@@ -128,6 +128,7 @@ class AccountBalance(models.Model):
     averageCost = models.DecimalField(max_digits=13, decimal_places=4, null=True, blank=True)
     NAV = models.DecimalField(max_digits=13, decimal_places=4)
     NAVdate = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('compCode', 'accountID', 'fundCode')
@@ -242,6 +243,9 @@ class PerformanceMFAccountBalance(models.Model):
     marketValue = models.DecimalField(max_digits=18, decimal_places=2,null=True,blank=True)
     unrealizedGain = models.DecimalField(max_digits=18, decimal_places=2,null=True,blank=True)
     roi_percent = models.DecimalField(max_digits=10, decimal_places=4,null=True,blank=True)
+    business_date_str = models.CharField(max_length=10, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
     class Meta:
         unique_together = ('compCode', 'accountID', 'fundCode','NAVdate')
 
@@ -264,7 +268,6 @@ class PerformancePrivateFundBalance(models.Model):
     marketValue = models.DecimalField(max_digits=18, decimal_places=2,null=True,blank=True)
     unrealizedGain = models.DecimalField(max_digits=18, decimal_places=2,null=True,blank=True)
     roi_percent = models.DecimalField(max_digits=10, decimal_places=4,null=True,blank=True)
-    business_date_str = models.CharField(max_length=10, null=True, blank=True)
 
     #SIS Capital Value
     sis_capital_value = models.DecimalField(max_digits=18, decimal_places=2,null=True,blank=True)
@@ -300,7 +303,7 @@ class MFTransaction(models.Model):
     marketingCode = models.CharField(max_length=10, blank=True, null=True)
     branchNo = models.CharField(max_length=5)
     channel = models.CharField(max_length=3)
-    transactionID = models.CharField(max_length=17, unique=True)
+    transactionID = models.CharField(max_length=17)
     status = models.CharField(max_length=10)
     aMCOrderReferenceNo = models.CharField(max_length=30, null=True, blank=True)
     allotmentDate = models.DateField(null=True, blank=True)
@@ -317,6 +320,7 @@ class MFTransaction(models.Model):
     brokerageFeeVAT = models.DecimalField(max_digits=18, decimal_places=2, null=True, blank=True)
     navDate = models.DateField(null=True, blank=True)
     collateralAccount = models.CharField(max_length=20, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.transactionDateTime} - {self.fundCode} - {self.transactionCode} - {self.status}"

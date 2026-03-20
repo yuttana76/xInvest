@@ -1,26 +1,54 @@
 from django.shortcuts import render
-
-# Create your views here.
 from rest_framework import viewsets
-from .models import Fund, NewsArticle
-from .serializers import FundDetailSerializer, NewsArticleSerializer
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from .models import FundInfo, NewsArticle
+from .serializers import FundDetailSerializer, FundListSerializer, NewsArticleSerializer
 
-class FundViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Fund.objects.all().prefetch_related('ai_insights')
-    serializer_class = FundDetailSerializer
+class FundInfoViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for FundInfo with separate serializers for list and detail views.
+    List returns basic info + sentiment analysis.
+    Detail returns all info + holdings + analysis + all insights.
+    """
+    lookup_field = 'fundCode'
+    
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return FundListSerializer
+        return FundDetailSerializer
 
-    # เพิ่มระบบ Search/Filter เบื้องต้น
     def get_queryset(self):
-        queryset = Fund.objects.all().prefetch_related('ai_insights')
+        queryset = FundInfo.objects.all().prefetch_related(
+            'ai_insights', 'holdings', 'related_news','fund_analysis'
+        )
+
         category = self.request.query_params.get('category')
-        ticker = self.request.query_params.get('ticker')
-        
+        ticker = self.request.query_params.get('')
+
+
         if category:
             queryset = queryset.filter(fund_category=category)
         if ticker:
             queryset = queryset.filter(fundCode=ticker)
-            
+
         return queryset
+
+    # แคชหน้า List เป็นเวลา 2 ชั่วโมง (7200 วินาที)
+    @method_decorator(cache_page(60 * 60 * 2, key_prefix="fund_list"))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    # แคชหน้า Detail เป็นเวลา 2 ชั่วโมง (7200 วินาที)
+    # 1 minute
+    # @method_decorator(cache_page(60, key_prefix="fund_detail"))
+    # 1 hour
+    # @method_decorator(cache_page(60 * 60, key_prefix="fund_detail"))
+    # 1 day
+    # @method_decorator(cache_page(60 * 60 * 24, key_prefix="fund_detail"))
+    
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
 
 class NewsArticleViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = NewsArticle.objects.all().prefetch_related('related_funds')

@@ -10,6 +10,7 @@ from django.db import transaction
 from invest.models import MFTransaction, PerformanceMFAccountBalance, InvestorAccount, AccountBalance
 from invest.services import util
 
+from django.utils import timezone
 import logging
 logger = logging.getLogger(__name__)
 
@@ -166,6 +167,7 @@ class FundConnextService:
                 brokerageFeeVAT=self.safe_decimal(parts[52]) if len(parts) > 52 else None,
                 navDate=self.safe_date(parts[54]) if len(parts) > 54 else None,
                 collateralAccount=parts[55].strip() if len(parts) > 55 else '',
+                created_at=timezone.now(),
             )
             transactions_to_create.append(trans)
 
@@ -307,8 +309,8 @@ class FundConnextService:
             nav_val = parts[12]
             nav_date_val = parts[13]
 
-            if account_id_val=="M1901362":
-                logger.info(f"Processing UnitholderBalance: {account_id_val} - F:{fund_code_val} - U:{unit_balance_val} - A:{amount_val}")
+            # if account_id_val=="M1901362":
+            #     logger.info(f"Processing UnitholderBalance: {account_id_val} - F:{fund_code_val} - U:{unit_balance_val} - A:{amount_val}")
 
             # Skip if account ID is empty or unit balance is 0
             if not account_id_val or  int(float(unit_balance_val)) <= 0:
@@ -334,17 +336,23 @@ class FundConnextService:
             )
             balances_to_create.append(bal)
 
+
         if skipped_missing_account > 0:
             logger.warning(f"Skipped {skipped_missing_account} UnitholderBalance records because InvestorAccount does not exist in DB.")
 
+        # logger.info(f"*Processing {len(balances_to_create)} Unitholder Balances.")
         if balances_to_create:
+
+            
             target_comp_codes = [b.compCode for b in balances_to_create]
             target_account_ids = [b.accountID for b in balances_to_create]
+            target_fund_codes = [b.fundCode for b in balances_to_create]
             with transaction.atomic():
                 # 2. ลบเฉพาะรายการที่ตรงกับ compCode และ accountID ในชุดข้อมูลใหม่
                 AccountBalance.objects.filter(
                     compCode__in=target_comp_codes,
-                    accountID__in=target_account_ids
+                    accountID__in=target_account_ids,
+                    fundCode__in=target_fund_codes,
                 ).delete()
 
                 # 2. บันทึกข้อมูลชุดใหม่เข้าไปแบบ Bulk

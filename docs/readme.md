@@ -1,8 +1,24 @@
+# Initial project
+
 ```
 docker compose up -d --build
 docker compose exec backend python manage.py migrate
 docker compose exec backend python manage.py collectstatic --noinput
 ```
+
+## Create super user
+
+docker compose exec backend python manage.py createsuperuser
+
+Users
+root:Mps@2026
+
+Groups
+operator
+marketing
+agent
+
+      role: 'admin' | 'investor' | 'operator' | 'marketing' | 'agent' | 'guest';
 
 You can verify the pages at:
 Investor: http://localhost/dashboard
@@ -24,6 +40,7 @@ docker compose -f docker-compose.dev.yml up -d --build
 docker compose -f docker-compose.dev.yml up -d
 docker compose -f docker-compose.dev.yml down
 
+docker exec -it xinvest-backend-1 sh
 docker exec -it xinvest-backend-1 python manage.py makemigrations
 docker exec -it xinvest-backend-1 python manage.py migrate
 
@@ -32,6 +49,7 @@ docker exec -it xinvest-backend-1 python manage.py migrate
 docker stop xinvest-backend-1
 docker restart xinvest-backend-1
 docker logs -f xinvest-backend-1
+docker exec -it xinvest-backend-1 sh
 
 docker compose -f docker-compose.dev.yml up -d --build backend
 
@@ -40,8 +58,12 @@ docker compose -f docker-compose.dev.yml up -d --build backend
 docker restart xinvest-celery_worker-1
 docker logs -f xinvest-celery_worker-1
 
-docker stop xinvest-celery_worker-1
-docker compose -f docker-compose.dev.yml up -d --build celery_worker
+docker stop xinvest-celery_worker-1 xinvest-celery_beat-1
+docker compose -f docker-compose.dev.yml up -d --build celery_worker celery_beat
+
+docker stop xinvest-celery_worker-1 xinvest-celery_beat-1 xinvest-backend-1
+
+docker compose -f docker-compose.dev.yml up -d --build celery_worker celery_beat backend
 
 Access Points
 Django Backend: http://localhost:8000

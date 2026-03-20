@@ -34,9 +34,9 @@ urlpatterns = [
     path('operator/dashboard/', OperatorDashboardView.as_view(), name='operator_dashboard'),
     path('operator/investors/export/', OperatorInvestorExportView.as_view(), name='operator_investor_export'),
     
-    path('marketing/investors/', MarketingInvestorListView.as_view(), name='marketing_investor_list'),
     path('marketing/dashboard/', MarketingDashboardView.as_view(), name='marketing_dashboard'),
+    path('marketing/investors/', MarketingInvestorListView.as_view(), name='marketing_investor_list'),
     
-    path('agent/investors/', AgentInvestorListView.as_view(), name='agent_investor_list'),
     path('agent/dashboard/', AgentDashboardView.as_view(), name='agent_dashboard'),
+    path('agent/investors/', AgentInvestorListView.as_view(), name='agent_investor_list'),
 ]

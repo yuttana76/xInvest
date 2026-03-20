@@ -5,9 +5,10 @@ import time
 def run_performance_etl(year, month):
     # --- ตั้งค่าตรงนี้ ---
     base_url = "http://localhost:8000"  # เปลี่ยนเป็น URL ของ Server คุณ
-    api_path = "/api/v1/invest/etl/trigger-fconnext-performance-balance/"
+    #api_path = "/api/v1/invest/etl/trigger-fconnext-performance-balance/"
+    api_path = "/api/v1/invest/etl/trigger-fconnext-transaction/"
     url = f"{base_url}{api_path}"
-    token ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzczMzE3MTY5LCJpYXQiOjE3NzMzMTM1NjksImp0aSI6IjI0Y2JkY2I3NGRlOTQ4NmFiNTg1NzZmZmMxMDQ1YmIzIiwidXNlcl9pZCI6IjEiLCJ1c2VybmFtZSI6InJvb3QiLCJlbWFpbCI6InJvb3RAeGludmVzdC5jb20iLCJyb2xlIjoiYWRtaW4ifQ.haj3miVyIWm6bw3Vu_UeNrtVwswdbOdVJ-Jmhs3V7is'
+    token ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc0MDA3OTE1LCJpYXQiOjE3NzQwMDQzMTUsImp0aSI6IjRkMWNmOGUzOWYxOTRhMGY5ZTg1ZGVmZDE3YWRkZDUzIiwidXNlcl9pZCI6IjEiLCJ1c2VybmFtZSI6InJvb3QiLCJlbWFpbCI6Inl1dHRhbmE3NkBnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4ifQ.0lz1yST1BZzI4h54K2C1K96Ab_gXYWN4pnfNUh0ui6Q'
     
     headers = {
         "Content-Type": "application/json",
@@ -64,4 +65,5 @@ if __name__ == "__main__":
     run_performance_etl(TARGET_YEAR, TARGET_MONTH)
 
     # --- วิธีใช้งาน ---
-    # python callAPI_script.py
+    #cd ./backend/scripts/
+    #python ./backend/scripts/callAPI_script.py
