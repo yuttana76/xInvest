@@ -1,0 +1,159 @@
+# Development xInvest Compose
+services:
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env.dev
+    environment:
+      - TZ=UTC
+    ports: # Production to remove
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - xinvest_net
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes # ป้องกันข้อมูลเงินใน Cache หาย
+    volumes:
+      - redis_data:/data
+    environment:
+      - TZ=Asia/Bangkok
+    networks:
+      - xinvest_net
+    ports: # Production to remove
+      - "6379:6379"
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env.dev
+    environment:
+      - TZ=Asia/Bangkok
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: always
+    networks:
+      - xinvest_net
+
+  go_trading: # เพิ่ม Go Gin สำหรับ Trading Engine
+    build: ./go-trading
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./go-trading:/app
+    env_file:
+      - .env.dev
+    environment:
+      - TZ=Asia/Bangkok
+    depends_on:
+      redis:
+        condition: service_started
+    networks:
+      - xinvest_net
+
+  celery_worker:
+    build: ./backend
+    command: celery -A core worker -l info
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env.dev
+    environment:
+      - TZ=Asia/Bangkok
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - xinvest_net
+    restart: always
+
+  celery_beat:
+    build: ./backend
+    command: celery -A core beat -l info
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env.dev
+    environment:
+      - TZ=Asia/Bangkok
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - xinvest_net
+    restart: always
+
+  flower:
+    build: ./backend
+    command: celery -A core flower --port=5555
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env.dev
+    environment:
+      - TZ=Asia/Bangkok
+    depends_on:
+      redis:
+        condition: service_started
+      celery_worker:
+        condition: service_started
+    restart: always
+    networks:
+      - xinvest_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    env_file:
+      - .env.dev
+    restart: always
+    networks:
+      - xinvest_net
+
+  postgrest:
+    image: postgrest/postgrest:v12.0.2
+    ports:
+      - "3001:3000"
+    env_file:
+      - .env.dev
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+
+networks:
+  xinvest_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  frontend_node_modules:

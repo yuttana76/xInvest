@@ -88,3 +88,17 @@ class UserActivityLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.activity_type} at {self.created_at}"
+
+class Department(models.Model):
+    name = models.CharField(max_length=100)
+    manager = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='managed_departments')
+
+    def __str__(self):
+        return self.name
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='members')
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"

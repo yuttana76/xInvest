@@ -33,18 +33,15 @@ docker rmi $(docker images -f "dangling=true" -q)
 
 To start the services in development mode, use the following command:
 
-## docker command
-
-bash
 docker compose -f docker-compose.dev.yml up -d --build
 docker compose -f docker-compose.dev.yml up -d
 docker compose -f docker-compose.dev.yml down
 
+## backend
+
 docker exec -it xinvest-backend-1 sh
 docker exec -it xinvest-backend-1 python manage.py makemigrations
 docker exec -it xinvest-backend-1 python manage.py migrate
-
-## backend
 
 docker stop xinvest-backend-1
 docker restart xinvest-backend-1
@@ -52,6 +49,24 @@ docker logs -f xinvest-backend-1
 docker exec -it xinvest-backend-1 sh
 
 docker compose -f docker-compose.dev.yml up -d --build backend
+
+## go-trading
+
+docker compose -f docker-compose.dev-trade.yml up -d --build
+docker compose -f docker-compose.dev-trade.yml up -d
+docker compose -f docker-compose.dev-trade.yml down
+
+docker restart xinvest-go_trading-1
+docker stop xinvest-go_trading-1
+docker logs -f xinvest-go_trading-1
+
+docker compose -f docker-compose.dev-trade.yml up -d --build go_trading
+
+2. Verify Health
+
+curl http://localhost:8080/health
+
+http://localhost:8080/api/v1/invesInfo
 
 ## Celery-Worker
 

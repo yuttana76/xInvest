@@ -8,7 +8,7 @@ def run_performance_etl(year, month):
     #api_path = "/api/v1/invest/etl/trigger-fconnext-performance-balance/"
     api_path = "/api/v1/invest/etl/trigger-fconnext-transaction/"
     url = f"{base_url}{api_path}"
-    token ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc0MDA3OTE1LCJpYXQiOjE3NzQwMDQzMTUsImp0aSI6IjRkMWNmOGUzOWYxOTRhMGY5ZTg1ZGVmZDE3YWRkZDUzIiwidXNlcl9pZCI6IjEiLCJ1c2VybmFtZSI6InJvb3QiLCJlbWFpbCI6Inl1dHRhbmE3NkBnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4ifQ.0lz1yST1BZzI4h54K2C1K96Ab_gXYWN4pnfNUh0ui6Q'
+    token ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc0MjQ5ODYxLCJpYXQiOjE3NzQyNDYyNjEsImp0aSI6IjJkNDE0ZjViOTE2ZDQ3MzBiNWIxNjhlMmQ3NWQ2YWViIiwidXNlcl9pZCI6IjEiLCJ1c2VybmFtZSI6InJvb3QiLCJlbWFpbCI6Inl1dHRhbmE3NkBnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4ifQ.MYi-VEu9meY4YPaaE6UbqXhi1tlqoDAAdenC2KFHCFs'
     
     headers = {
         "Content-Type": "application/json",
@@ -60,7 +60,7 @@ def run_performance_etl(year, month):
 if __name__ == "__main__":
     # คุณสามารถเปลี่ยน ปี และ เดือน ที่ต้องการตรงนี้
     TARGET_YEAR = 2026
-    TARGET_MONTH = 3
+    TARGET_MONTH = 1
     
     run_performance_etl(TARGET_YEAR, TARGET_MONTH)
 

@@ -3,6 +3,7 @@ backend/__pycache__/
 backend/*.py[cod]
 backend/venv/
 backend/.env
+backend/logs/*
 
 # Node (Frontend)
 frontend/node_modules/

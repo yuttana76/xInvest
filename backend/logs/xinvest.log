@@ -40489,3 +40489,453 @@ INFO 2026-03-21 00:25:51,413 views 23 281471487046016 Cache miss for MF performa
 INFO 2026-03-21 00:32:49,146 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_30
 INFO 2026-03-21 00:32:50,644 views 23 281471487046016 Cache miss for PF performance: performance_pf_2_all_30. Data cached.
 INFO 2026-03-21 00:32:54,642 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 00:35:57,031 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 00:35:58,411 views 23 281471487046016 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 00:35:59,617 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 00:45:03,957 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 00:46:29,160 views 23 281471487046016 Cache miss for MF performance: performance_mf_2_M1901362_30. Data cached.
+INFO 2026-03-21 00:46:36,269 views 23 281471487046016 Cache miss for MF performance: performance_mf_2_P2504103_30. Data cached.
+INFO 2026-03-21 00:46:47,878 views 23 281471487046016 Cache miss for MF performance: performance_mf_2_P2504103_90. Data cached.
+INFO 2026-03-21 00:46:49,454 views 23 281471487046016 Cache miss for MF performance: performance_mf_2_P2504103_365. Data cached.
+INFO 2026-03-21 00:46:54,588 views 23 281471487046016 Cache miss for MF performance: performance_mf_2_M1901362_365. Data cached.
+INFO 2026-03-21 00:47:27,741 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_P2504103_365
+INFO 2026-03-21 00:47:33,178 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_M1901362_365
+INFO 2026-03-21 00:47:39,331 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_P2504103_365
+INFO 2026-03-21 00:47:42,949 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_M1901362_365
+INFO 2026-03-21 00:47:55,880 views 23 281471487046016 Cache miss for MF performance: performance_mf_2_all_365. Data cached.
+INFO 2026-03-21 00:48:38,801 views 23 281471487046016 Cache miss for PF performance: performance_pf_2_all_365. Data cached.
+INFO 2026-03-21 00:50:56,913 views 23 281472328200576 Cache hit for MF performance: performance_mf_2_all_365
+INFO 2026-03-21 00:51:06,996 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_M1901362_365
+INFO 2026-03-21 00:51:19,409 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_P2504103_365
+INFO 2026-03-21 00:51:25,249 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_365
+INFO 2026-03-21 00:51:36,615 views 23 281471487046016 Cache hit for PF performance: performance_pf_2_all_365
+INFO 2026-03-21 00:51:39,679 views 23 281471487046016 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 00:51:40,464 views 23 281471487046016 Cache miss for PF performance: performance_pf_2_all_90. Data cached.
+INFO 2026-03-21 00:51:41,082 views 23 281471487046016 Cache hit for PF performance: performance_pf_2_all_365
+INFO 2026-03-21 00:51:47,283 views 23 281471487046016 Cache hit for PF performance: performance_pf_2_all_365
+INFO 2026-03-21 00:53:45,792 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_365
+INFO 2026-03-21 00:53:46,660 views 23 281471487046016 Cache hit for PF performance: performance_pf_2_all_365
+INFO 2026-03-21 00:53:47,869 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_365
+INFO 2026-03-21 00:53:55,830 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_365
+INFO 2026-03-21 00:53:56,590 views 23 281471487046016 Cache hit for PF performance: performance_pf_2_all_365
+INFO 2026-03-21 00:53:58,851 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_365
+INFO 2026-03-21 00:54:51,898 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_365
+INFO 2026-03-21 08:17:10,102 tasks 21 281473703093440 Starting FundConnext ETL for business date: 20260320
+INFO 2026-03-21 08:17:10,112 fundconnext 21 281473703093440 FC_API_USER: API_MPS01
+INFO 2026-03-21 08:17:10,113 tasks 21 281473703093440 Authenticating with FundConnext...
+INFO 2026-03-21 08:17:10,137 tasks 22 281473703093440 Starting FundConnext ETL for business date: 20260320
+INFO 2026-03-21 08:17:10,145 fundconnext 22 281473703093440 FC_API_USER: API_MPS01
+INFO 2026-03-21 08:17:10,150 tasks 22 281473703093440 Authenticating with FundConnext...
+INFO 2026-03-21 08:17:10,155 tasks 15 281473703093440 Starting FundConnext ETL for business date: 20260320
+INFO 2026-03-21 08:17:10,166 fundconnext 15 281473703093440 FC_API_USER: API_MPS01
+INFO 2026-03-21 08:17:10,167 tasks 15 281473703093440 Authenticating with FundConnext...
+ERROR 2026-03-21 08:17:10,355 fundconnext 21 281473703093440 FundConnext Login Failed: 503 Server Error: Service Temporarily Unavailable for url: https://www.fundconnext.com/api/auth
+ERROR 2026-03-21 08:17:10,355 tasks 21 281473703093440 FundConnext ETL process failed: 503 Server Error: Service Temporarily Unavailable for url: https://www.fundconnext.com/api/auth
+ERROR 2026-03-21 08:17:10,381 fundconnext 22 281473703093440 FundConnext Login Failed: 503 Server Error: Service Temporarily Unavailable for url: https://www.fundconnext.com/api/auth
+ERROR 2026-03-21 08:17:10,383 tasks 22 281473703093440 FundConnext ETL process failed: 503 Server Error: Service Temporarily Unavailable for url: https://www.fundconnext.com/api/auth
+ERROR 2026-03-21 08:17:10,427 fundconnext 15 281473703093440 FundConnext Login Failed: 503 Server Error: Service Temporarily Unavailable for url: https://www.fundconnext.com/api/auth
+ERROR 2026-03-21 08:17:10,483 tasks 15 281473703093440 FundConnext ETL process failed: 503 Server Error: Service Temporarily Unavailable for url: https://www.fundconnext.com/api/auth
+INFO 2026-03-21 21:46:01,168 views 23 281471487046016 Cache miss for MF performance: performance_mf_2_all_30. Data cached.
+INFO 2026-03-21 21:46:04,355 views 23 281471487046016 Cache miss for PF performance: performance_pf_2_all_30. Data cached.
+INFO 2026-03-21 21:47:14,593 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 21:47:51,701 views 23 281471487046016 Cache miss for MF performance: performance_mf_2_M1901362_30. Data cached.
+INFO 2026-03-21 21:51:18,797 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 21:57:44,673 views 23 281471487046016 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 21:57:46,793 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 21:57:49,079 views 23 281471487046016 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 21:57:53,731 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 21:57:57,313 views 23 281471487046016 Cache hit for MF performance: performance_mf_2_M1901362_30
+INFO 2026-03-21 22:03:44,996 views 23 281472328200576 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 22:03:45,004 views 23 281471912702336 Cache miss for PF performance: performance_pf_2_M1901362_30. Data cached.
+INFO 2026-03-21 22:03:46,925 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:03:55,134 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:03:57,228 views 23 281471912702336 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 22:04:03,960 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:04:05,429 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:04:06,233 views 23 281471912702336 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 22:04:10,055 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:04:12,397 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:04:13,332 views 23 281471912702336 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 22:04:21,329 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:04:37,792 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:04:40,222 views 23 281471912702336 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 22:04:41,410 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:04:49,434 views 23 281471912702336 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 22:04:52,012 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:05:02,743 views 23 281471912702336 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 22:05:03,424 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:06:22,564 views 23 281471912702336 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 22:06:23,537 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:06:25,281 views 23 281471912702336 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 22:38:34,747 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:39:32,824 views 23 281471912702336 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 22:39:34,259 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-21 22:39:37,105 views 23 281471912702336 Cache hit for PF performance: performance_pf_2_all_30
+INFO 2026-03-21 22:39:55,410 views 23 281471912702336 Cache hit for MF performance: performance_mf_2_all_30
+INFO 2026-03-22 08:54:02,264 tasks 21 281473703093440 Starting FundConnext ETL for business date: 20260321
+INFO 2026-03-22 08:54:02,271 fundconnext 21 281473703093440 FC_API_USER: API_MPS01
+INFO 2026-03-22 08:54:02,272 tasks 21 281473703093440 Authenticating with FundConnext...
+INFO 2026-03-22 08:54:02,290 tasks 22 281473703093440 Starting FundConnext ETL for business date: 20260321
+INFO 2026-03-22 08:54:02,292 fundconnext 22 281473703093440 FC_API_USER: API_MPS01
+INFO 2026-03-22 08:54:02,292 tasks 22 281473703093440 Authenticating with FundConnext...
+INFO 2026-03-22 08:54:02,293 tasks 15 281473703093440 Starting FundConnext ETL for business date: 20260321
+INFO 2026-03-22 08:54:02,299 fundconnext 15 281473703093440 FC_API_USER: API_MPS01
+INFO 2026-03-22 08:54:02,301 tasks 15 281473703093440 Authenticating with FundConnext...
+INFO 2026-03-22 08:54:02,704 tasks 21 281473703093440 Downloading UnitholderBalance for 20260321...
+INFO 2026-03-22 08:54:02,739 tasks 15 281473703093440 Downloading CurrentUnitholderBalance for 20260321...
+INFO 2026-03-22 08:54:02,730 tasks 22 281473703093440 Downloading AllottedTransactions for 20260321...
+ERROR 2026-03-22 08:54:02,819 fundconnext 21 281473703093440 Failed to download UnitholderBalance for date 20260321: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260321/UnitholderBalance.zip
+ERROR 2026-03-22 08:54:02,819 tasks 21 281473703093440 Failed to process UnitholderBalance: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260321/UnitholderBalance.zip
+ERROR 2026-03-22 08:54:02,819 tasks 21 281473703093440 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260321/UnitholderBalance.zip
+ERROR 2026-03-22 08:54:02,841 fundconnext 15 281473703093440 Failed to download UnitholderBalance for date 20260321: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260321/UnitholderBalance.zip
+ERROR 2026-03-22 08:54:02,842 tasks 15 281473703093440 Failed to process CurrentUnitholderBalance: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260321/UnitholderBalance.zip
+ERROR 2026-03-22 08:54:02,842 tasks 15 281473703093440 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260321/UnitholderBalance.zip
+ERROR 2026-03-22 08:54:02,854 fundconnext 22 281473703093440 Failed to download AllottedTransactions for date 20260321: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260321/AllottedTransactions.zip
+ERROR 2026-03-22 08:54:02,855 tasks 22 281473703093440 Failed to process AllottedTransactions: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260321/AllottedTransactions.zip
+ERROR 2026-03-22 08:54:02,855 tasks 22 281473703093440 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260321/AllottedTransactions.zip
+ERROR 2026-03-22 14:59:52,738 redis 14 281473054601600 Connection to Redis lost: Retry (0/20) now.
+ERROR 2026-03-22 14:59:52,744 redis 14 281473054601600 Connection to Redis lost: Retry (1/20) in 1.00 second.
+ERROR 2026-03-22 14:59:53,757 redis 14 281473054601600 Connection to Redis lost: Retry (2/20) in 1.00 second.
+ERROR 2026-03-22 14:59:54,773 redis 14 281473054601600 Connection to Redis lost: Retry (3/20) in 1.00 second.
+ERROR 2026-03-22 14:59:55,779 redis 14 281473054601600 Connection to Redis lost: Retry (4/20) in 1.00 second.
+ERROR 2026-03-22 14:59:56,794 redis 14 281473054601600 Connection to Redis lost: Retry (5/20) in 1.00 second.
+ERROR 2026-03-22 14:59:57,808 redis 14 281473054601600 Connection to Redis lost: Retry (6/20) in 1.00 second.
+ERROR 2026-03-22 14:59:58,817 redis 14 281473054601600 Connection to Redis lost: Retry (7/20) in 1.00 second.
+ERROR 2026-03-22 14:59:59,832 redis 14 281473054601600 Connection to Redis lost: Retry (8/20) in 1.00 second.
+ERROR 2026-03-22 15:00:00,844 redis 14 281473054601600 Connection to Redis lost: Retry (9/20) in 1.00 second.
+ERROR 2026-03-22 15:00:01,854 redis 14 281473054601600 Connection to Redis lost: Retry (10/20) in 1.00 second.
+ERROR 2026-03-22 15:00:02,866 redis 14 281473054601600 Connection to Redis lost: Retry (11/20) in 1.00 second.
+ERROR 2026-03-22 15:00:03,879 redis 14 281473054601600 Connection to Redis lost: Retry (12/20) in 1.00 second.
+ERROR 2026-03-22 15:00:04,896 redis 14 281473054601600 Connection to Redis lost: Retry (13/20) in 1.00 second.
+ERROR 2026-03-22 15:00:05,909 redis 14 281473054601600 Connection to Redis lost: Retry (14/20) in 1.00 second.
+ERROR 2026-03-22 15:00:06,927 redis 14 281473054601600 Connection to Redis lost: Retry (15/20) in 1.00 second.
+ERROR 2026-03-22 15:00:07,945 redis 14 281473054601600 Connection to Redis lost: Retry (16/20) in 1.00 second.
+ERROR 2026-03-22 15:00:08,959 redis 14 281473054601600 Connection to Redis lost: Retry (17/20) in 1.00 second.
+ERROR 2026-03-22 15:00:09,972 redis 14 281473054601600 Connection to Redis lost: Retry (18/20) in 1.00 second.
+ERROR 2026-03-22 15:00:10,984 redis 14 281473054601600 Connection to Redis lost: Retry (19/20) in 1.00 second.
+CRITICAL 2026-03-22 15:00:12,001 redis 14 281473054601600 
+Retry limit exceeded while trying to reconnect to the Celery redis result store backend. The Celery application must be restarted.
+
+INFO 2026-03-23 08:51:46,665 tasks 21 281473694266560 Starting FundConnext ETL for business date: 20260322
+INFO 2026-03-23 08:51:46,672 fundconnext 21 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 08:51:46,673 tasks 21 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 08:51:46,714 tasks 22 281473694266560 Starting FundConnext ETL for business date: 20260322
+INFO 2026-03-23 08:51:46,722 fundconnext 22 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 08:51:46,723 tasks 22 281473694266560 Authenticating with FundConnext...
+ERROR 2026-03-23 08:51:46,726 fundconnext 21 281473694266560 FundConnext Login Failed: HTTPSConnectionPool(host='www.fundconnext.com', port=443): Max retries exceeded with url: /api/auth (Caused by NameResolutionError("HTTPSConnection(host='www.fundconnext.com', port=443): Failed to resolve 'www.fundconnext.com' ([Errno -2] Name or service not known)"))
+ERROR 2026-03-23 08:51:46,728 tasks 21 281473694266560 FundConnext ETL process failed: HTTPSConnectionPool(host='www.fundconnext.com', port=443): Max retries exceeded with url: /api/auth (Caused by NameResolutionError("HTTPSConnection(host='www.fundconnext.com', port=443): Failed to resolve 'www.fundconnext.com' ([Errno -2] Name or service not known)"))
+INFO 2026-03-23 08:51:46,726 tasks 15 281473694266560 Starting FundConnext ETL for business date: 20260322
+INFO 2026-03-23 08:51:46,738 fundconnext 15 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 08:51:46,740 tasks 15 281473694266560 Authenticating with FundConnext...
+ERROR 2026-03-23 08:51:46,799 fundconnext 22 281473694266560 FundConnext Login Failed: HTTPSConnectionPool(host='www.fundconnext.com', port=443): Max retries exceeded with url: /api/auth (Caused by NameResolutionError("HTTPSConnection(host='www.fundconnext.com', port=443): Failed to resolve 'www.fundconnext.com' ([Errno -2] Name or service not known)"))
+ERROR 2026-03-23 08:51:46,800 tasks 22 281473694266560 FundConnext ETL process failed: HTTPSConnectionPool(host='www.fundconnext.com', port=443): Max retries exceeded with url: /api/auth (Caused by NameResolutionError("HTTPSConnection(host='www.fundconnext.com', port=443): Failed to resolve 'www.fundconnext.com' ([Errno -2] Name or service not known)"))
+ERROR 2026-03-23 08:51:46,817 fundconnext 15 281473694266560 FundConnext Login Failed: HTTPSConnectionPool(host='www.fundconnext.com', port=443): Max retries exceeded with url: /api/auth (Caused by NameResolutionError("HTTPSConnection(host='www.fundconnext.com', port=443): Failed to resolve 'www.fundconnext.com' ([Errno -2] Name or service not known)"))
+ERROR 2026-03-23 08:51:46,818 tasks 15 281473694266560 FundConnext ETL process failed: HTTPSConnectionPool(host='www.fundconnext.com', port=443): Max retries exceeded with url: /api/auth (Caused by NameResolutionError("HTTPSConnection(host='www.fundconnext.com', port=443): Failed to resolve 'www.fundconnext.com' ([Errno -2] Name or service not known)"))
+INFO 2026-03-23 13:14:02,652 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260101
+INFO 2026-03-23 13:14:02,685 tasks 21 281473694266560 Starting FundConnext ETL for business date: 20260101
+INFO 2026-03-23 13:14:02,687 fundconnext 21 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:02,687 tasks 21 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:03,206 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260102
+INFO 2026-03-23 13:14:03,243 tasks 22 281473694266560 Starting FundConnext ETL for business date: 20260102
+INFO 2026-03-23 13:14:03,249 fundconnext 22 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:03,251 tasks 22 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:03,739 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260103
+INFO 2026-03-23 13:14:03,765 tasks 15 281473694266560 Starting FundConnext ETL for business date: 20260103
+INFO 2026-03-23 13:14:03,768 fundconnext 15 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:03,768 tasks 15 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:04,105 tasks 15 281473694266560 Downloading AllottedTransactions for 20260103...
+ERROR 2026-03-23 13:14:04,170 fundconnext 15 281473694266560 Failed to download AllottedTransactions for date 20260103: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260103/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:04,171 tasks 15 281473694266560 Failed to process AllottedTransactions: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260103/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:04,171 tasks 15 281473694266560 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260103/AllottedTransactions.zip
+INFO 2026-03-23 13:14:04,264 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260104
+INFO 2026-03-23 13:14:04,273 tasks 15 281473694266560 Starting FundConnext ETL for business date: 20260104
+INFO 2026-03-23 13:14:04,273 fundconnext 15 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:04,274 tasks 15 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:04,589 tasks 22 281473694266560 Downloading AllottedTransactions for 20260102...
+INFO 2026-03-23 13:14:04,793 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260105
+INFO 2026-03-23 13:14:04,866 tasks 16 281473694266560 Starting FundConnext ETL for business date: 20260105
+INFO 2026-03-23 13:14:04,876 fundconnext 16 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:04,877 tasks 16 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:05,123 tasks 21 281473694266560 Downloading AllottedTransactions for 20260101...
+ERROR 2026-03-23 13:14:05,193 fundconnext 21 281473694266560 Failed to download AllottedTransactions for date 20260101: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260101/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:05,194 tasks 21 281473694266560 Failed to process AllottedTransactions: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260101/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:05,194 tasks 21 281473694266560 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260101/AllottedTransactions.zip
+INFO 2026-03-23 13:14:05,322 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260106
+INFO 2026-03-23 13:14:05,331 tasks 21 281473694266560 Starting FundConnext ETL for business date: 20260106
+INFO 2026-03-23 13:14:05,331 fundconnext 21 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:05,332 tasks 21 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:05,404 tasks 15 281473694266560 Downloading AllottedTransactions for 20260104...
+ERROR 2026-03-23 13:14:05,454 fundconnext 15 281473694266560 Failed to download AllottedTransactions for date 20260104: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260104/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:05,455 tasks 15 281473694266560 Failed to process AllottedTransactions: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260104/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:05,455 tasks 15 281473694266560 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260104/AllottedTransactions.zip
+INFO 2026-03-23 13:14:05,860 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260107
+INFO 2026-03-23 13:14:05,870 tasks 15 281473694266560 Starting FundConnext ETL for business date: 20260107
+INFO 2026-03-23 13:14:05,870 fundconnext 15 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:05,871 tasks 15 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:06,007 tasks 15 281473694266560 Downloading AllottedTransactions for 20260107...
+INFO 2026-03-23 13:14:06,091 tasks 15 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260107/AllottedTransactions.zip
+INFO 2026-03-23 13:14:06,091 tasks 15 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:06,092 fundconnext 15 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:06,216 fundconnext 15 281473694266560 Skipped 240 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:06,221 fundconnext 15 281473694266560 Successfully processed 1 Allotted Transactions.
+INFO 2026-03-23 13:14:06,221 tasks 15 281473694266560 FundConnext ETL completed successfully for 20260107
+INFO 2026-03-23 13:14:06,390 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260108
+INFO 2026-03-23 13:14:06,399 tasks 15 281473694266560 Starting FundConnext ETL for business date: 20260108
+INFO 2026-03-23 13:14:06,400 fundconnext 15 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:06,400 tasks 15 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:06,553 tasks 21 281473694266560 Downloading AllottedTransactions for 20260106...
+INFO 2026-03-23 13:14:06,637 tasks 21 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260106/AllottedTransactions.zip
+INFO 2026-03-23 13:14:06,638 tasks 21 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:06,638 fundconnext 21 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:06,736 fundconnext 21 281473694266560 Skipped 232 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:06,739 fundconnext 21 281473694266560 Successfully processed 2 Allotted Transactions.
+INFO 2026-03-23 13:14:06,739 tasks 21 281473694266560 FundConnext ETL completed successfully for 20260106
+INFO 2026-03-23 13:14:06,925 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260109
+INFO 2026-03-23 13:14:06,933 tasks 21 281473694266560 Starting FundConnext ETL for business date: 20260109
+INFO 2026-03-23 13:14:06,933 fundconnext 21 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:06,933 tasks 21 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:07,207 tasks 21 281473694266560 Downloading AllottedTransactions for 20260109...
+INFO 2026-03-23 13:14:07,256 tasks 16 281473694266560 Downloading AllottedTransactions for 20260105...
+INFO 2026-03-23 13:14:07,458 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260110
+INFO 2026-03-23 13:14:07,530 tasks 17 281473694266560 Starting FundConnext ETL for business date: 20260110
+INFO 2026-03-23 13:14:07,546 fundconnext 17 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:07,548 tasks 17 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:07,570 tasks 15 281473694266560 Downloading AllottedTransactions for 20260108...
+ERROR 2026-03-23 13:14:07,658 fundconnext 22 281473694266560 Failed to download AllottedTransactions for date 20260102: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260102/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:07,659 tasks 22 281473694266560 Failed to process AllottedTransactions: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260102/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:07,659 tasks 22 281473694266560 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260102/AllottedTransactions.zip
+INFO 2026-03-23 13:14:07,812 tasks 17 281473694266560 Downloading AllottedTransactions for 20260110...
+ERROR 2026-03-23 13:14:07,956 fundconnext 17 281473694266560 Failed to download AllottedTransactions for date 20260110: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260110/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:07,957 tasks 17 281473694266560 Failed to process AllottedTransactions: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260110/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:07,957 tasks 17 281473694266560 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260110/AllottedTransactions.zip
+INFO 2026-03-23 13:14:07,988 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260111
+INFO 2026-03-23 13:14:07,994 tasks 22 281473694266560 Starting FundConnext ETL for business date: 20260111
+INFO 2026-03-23 13:14:07,994 fundconnext 22 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:07,994 tasks 22 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:08,189 tasks 22 281473694266560 Downloading AllottedTransactions for 20260111...
+ERROR 2026-03-23 13:14:08,261 fundconnext 22 281473694266560 Failed to download AllottedTransactions for date 20260111: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260111/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:08,262 tasks 22 281473694266560 Failed to process AllottedTransactions: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260111/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:08,262 tasks 22 281473694266560 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260111/AllottedTransactions.zip
+INFO 2026-03-23 13:14:08,440 tasks 16 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260105/AllottedTransactions.zip
+INFO 2026-03-23 13:14:08,441 tasks 16 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:08,441 fundconnext 16 281473694266560 * Welcome to Allotted Transactions
+INFO 2026-03-23 13:14:08,508 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260112
+INFO 2026-03-23 13:14:08,513 tasks 22 281473694266560 Starting FundConnext ETL for business date: 20260112
+INFO 2026-03-23 13:14:08,513 fundconnext 22 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:08,513 tasks 22 281473694266560 Authenticating with FundConnext...
+WARNING 2026-03-23 13:14:08,542 fundconnext 16 281473694266560 Skipped 263 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:08,542 fundconnext 16 281473694266560 Parsing finished, but 0 brand new transactions were created.
+INFO 2026-03-23 13:14:08,542 tasks 16 281473694266560 FundConnext ETL completed successfully for 20260105
+INFO 2026-03-23 13:14:08,725 tasks 15 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260108/AllottedTransactions.zip
+INFO 2026-03-23 13:14:08,725 tasks 15 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:08,725 fundconnext 15 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:08,793 fundconnext 15 281473694266560 Skipped 242 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:08,793 fundconnext 15 281473694266560 Parsing finished, but 0 brand new transactions were created.
+INFO 2026-03-23 13:14:08,793 tasks 15 281473694266560 FundConnext ETL completed successfully for 20260108
+INFO 2026-03-23 13:14:09,043 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260113
+INFO 2026-03-23 13:14:09,094 tasks 15 281473694266560 Starting FundConnext ETL for business date: 20260113
+INFO 2026-03-23 13:14:09,108 fundconnext 15 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:09,109 tasks 15 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:09,255 tasks 15 281473694266560 Downloading AllottedTransactions for 20260113...
+INFO 2026-03-23 13:14:09,279 tasks 21 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260109/AllottedTransactions.zip
+INFO 2026-03-23 13:14:09,279 tasks 21 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:09,279 fundconnext 21 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:09,378 fundconnext 21 281473694266560 Skipped 380 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:09,380 fundconnext 21 281473694266560 Successfully processed 2 Allotted Transactions.
+INFO 2026-03-23 13:14:09,381 tasks 21 281473694266560 FundConnext ETL completed successfully for 20260109
+INFO 2026-03-23 13:14:09,615 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260114
+INFO 2026-03-23 13:14:09,624 tasks 21 281473694266560 Starting FundConnext ETL for business date: 20260114
+INFO 2026-03-23 13:14:09,624 fundconnext 21 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:09,625 tasks 21 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:10,154 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260115
+INFO 2026-03-23 13:14:10,165 tasks 16 281473694266560 Starting FundConnext ETL for business date: 20260115
+INFO 2026-03-23 13:14:10,165 fundconnext 16 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:10,165 tasks 16 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:10,286 tasks 16 281473694266560 Downloading AllottedTransactions for 20260115...
+INFO 2026-03-23 13:14:10,343 tasks 15 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260113/AllottedTransactions.zip
+INFO 2026-03-23 13:14:10,343 tasks 15 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:10,343 fundconnext 15 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:10,501 fundconnext 15 281473694266560 Skipped 591 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:10,503 fundconnext 15 281473694266560 Successfully processed 1 Allotted Transactions.
+INFO 2026-03-23 13:14:10,503 tasks 15 281473694266560 FundConnext ETL completed successfully for 20260113
+INFO 2026-03-23 13:14:10,648 tasks 22 281473694266560 Downloading AllottedTransactions for 20260112...
+INFO 2026-03-23 13:14:10,682 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260116
+INFO 2026-03-23 13:14:10,688 tasks 15 281473694266560 Starting FundConnext ETL for business date: 20260116
+INFO 2026-03-23 13:14:10,689 fundconnext 15 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:10,689 tasks 15 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:10,749 tasks 22 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260112/AllottedTransactions.zip
+INFO 2026-03-23 13:14:10,749 tasks 22 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:10,749 fundconnext 22 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:10,906 fundconnext 22 281473694266560 Skipped 562 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:10,909 fundconnext 22 281473694266560 Successfully processed 3 Allotted Transactions.
+INFO 2026-03-23 13:14:10,909 tasks 22 281473694266560 FundConnext ETL completed successfully for 20260112
+INFO 2026-03-23 13:14:11,217 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260117
+INFO 2026-03-23 13:14:11,227 tasks 22 281473694266560 Starting FundConnext ETL for business date: 20260117
+INFO 2026-03-23 13:14:11,228 fundconnext 22 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:11,228 tasks 22 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:11,362 tasks 16 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260115/AllottedTransactions.zip
+INFO 2026-03-23 13:14:11,363 tasks 16 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:11,363 fundconnext 16 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:11,439 fundconnext 16 281473694266560 Skipped 213 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:11,442 fundconnext 16 281473694266560 Successfully processed 3 Allotted Transactions.
+INFO 2026-03-23 13:14:11,442 tasks 16 281473694266560 FundConnext ETL completed successfully for 20260115
+INFO 2026-03-23 13:14:11,753 tasks 21 281473694266560 Downloading AllottedTransactions for 20260114...
+INFO 2026-03-23 13:14:11,758 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260118
+INFO 2026-03-23 13:14:11,767 tasks 16 281473694266560 Starting FundConnext ETL for business date: 20260118
+INFO 2026-03-23 13:14:11,768 fundconnext 16 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:11,769 tasks 16 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:11,829 tasks 21 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260114/AllottedTransactions.zip
+INFO 2026-03-23 13:14:11,830 tasks 21 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:11,830 fundconnext 21 281473694266560 * Welcome to Allotted Transactions
+INFO 2026-03-23 13:14:11,897 tasks 16 281473694266560 Downloading AllottedTransactions for 20260118...
+WARNING 2026-03-23 13:14:11,924 fundconnext 21 281473694266560 Skipped 369 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:11,924 fundconnext 21 281473694266560 Parsing finished, but 0 brand new transactions were created.
+INFO 2026-03-23 13:14:11,924 tasks 21 281473694266560 FundConnext ETL completed successfully for 20260114
+INFO 2026-03-23 13:14:12,295 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260119
+INFO 2026-03-23 13:14:12,315 tasks 21 281473694266560 Starting FundConnext ETL for business date: 20260119
+INFO 2026-03-23 13:14:12,315 fundconnext 21 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:12,315 tasks 21 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:12,364 tasks 22 281473694266560 Downloading AllottedTransactions for 20260117...
+INFO 2026-03-23 13:14:12,445 tasks 21 281473694266560 Downloading AllottedTransactions for 20260119...
+INFO 2026-03-23 13:14:12,525 tasks 21 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260119/AllottedTransactions.zip
+INFO 2026-03-23 13:14:12,525 tasks 21 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:12,525 fundconnext 21 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:12,618 fundconnext 21 281473694266560 Skipped 284 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:12,618 fundconnext 21 281473694266560 Parsing finished, but 0 brand new transactions were created.
+INFO 2026-03-23 13:14:12,618 tasks 21 281473694266560 FundConnext ETL completed successfully for 20260119
+INFO 2026-03-23 13:14:12,830 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260120
+INFO 2026-03-23 13:14:12,838 tasks 21 281473694266560 Starting FundConnext ETL for business date: 20260120
+INFO 2026-03-23 13:14:12,839 fundconnext 21 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:12,839 tasks 21 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:12,958 tasks 21 281473694266560 Downloading AllottedTransactions for 20260120...
+INFO 2026-03-23 13:14:13,033 tasks 21 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260120/AllottedTransactions.zip
+INFO 2026-03-23 13:14:13,034 tasks 21 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:13,034 fundconnext 21 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:13,129 fundconnext 21 281473694266560 Skipped 372 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:13,131 fundconnext 21 281473694266560 Successfully processed 1 Allotted Transactions.
+INFO 2026-03-23 13:14:13,131 tasks 21 281473694266560 FundConnext ETL completed successfully for 20260120
+INFO 2026-03-23 13:14:13,368 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260121
+INFO 2026-03-23 13:14:13,378 tasks 21 281473694266560 Starting FundConnext ETL for business date: 20260121
+INFO 2026-03-23 13:14:13,379 fundconnext 21 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:13,379 tasks 21 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:13,910 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260122
+INFO 2026-03-23 13:14:13,922 tasks 17 281473694266560 Starting FundConnext ETL for business date: 20260122
+INFO 2026-03-23 13:14:13,922 fundconnext 17 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:13,922 tasks 17 281473694266560 Authenticating with FundConnext...
+ERROR 2026-03-23 13:14:13,956 fundconnext 16 281473694266560 Failed to download AllottedTransactions for date 20260118: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260118/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:13,956 tasks 16 281473694266560 Failed to process AllottedTransactions: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260118/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:13,956 tasks 16 281473694266560 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260118/AllottedTransactions.zip
+INFO 2026-03-23 13:14:14,450 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260123
+INFO 2026-03-23 13:14:14,461 tasks 16 281473694266560 Starting FundConnext ETL for business date: 20260123
+INFO 2026-03-23 13:14:14,461 fundconnext 16 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:14,462 tasks 16 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:14,593 tasks 16 281473694266560 Downloading AllottedTransactions for 20260123...
+INFO 2026-03-23 13:14:14,668 tasks 16 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260123/AllottedTransactions.zip
+INFO 2026-03-23 13:14:14,669 tasks 16 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:14,669 fundconnext 16 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:14,761 fundconnext 16 281473694266560 Skipped 396 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:14,763 fundconnext 16 281473694266560 Successfully processed 2 Allotted Transactions.
+INFO 2026-03-23 13:14:14,763 tasks 16 281473694266560 FundConnext ETL completed successfully for 20260123
+INFO 2026-03-23 13:14:14,981 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260124
+INFO 2026-03-23 13:14:14,995 tasks 16 281473694266560 Starting FundConnext ETL for business date: 20260124
+INFO 2026-03-23 13:14:14,995 fundconnext 16 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:14,996 tasks 16 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:15,046 tasks 17 281473694266560 Downloading AllottedTransactions for 20260122...
+INFO 2026-03-23 13:14:15,152 tasks 17 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260122/AllottedTransactions.zip
+INFO 2026-03-23 13:14:15,153 tasks 17 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:15,153 fundconnext 17 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:15,262 fundconnext 17 281473694266560 Skipped 303 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:15,265 fundconnext 17 281473694266560 Successfully processed 1 Allotted Transactions.
+INFO 2026-03-23 13:14:15,265 tasks 17 281473694266560 FundConnext ETL completed successfully for 20260122
+ERROR 2026-03-23 13:14:15,427 fundconnext 22 281473694266560 Failed to download AllottedTransactions for date 20260117: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260117/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:15,428 tasks 22 281473694266560 Failed to process AllottedTransactions: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260117/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:15,428 tasks 22 281473694266560 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260117/AllottedTransactions.zip
+INFO 2026-03-23 13:14:15,524 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260125
+INFO 2026-03-23 13:14:15,533 tasks 22 281473694266560 Starting FundConnext ETL for business date: 20260125
+INFO 2026-03-23 13:14:15,533 fundconnext 22 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:15,534 tasks 22 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:15,841 tasks 15 281473694266560 Downloading AllottedTransactions for 20260116...
+INFO 2026-03-23 13:14:15,926 tasks 15 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260116/AllottedTransactions.zip
+INFO 2026-03-23 13:14:15,927 tasks 15 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:15,927 fundconnext 15 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:16,040 fundconnext 15 281473694266560 Skipped 425 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:16,042 fundconnext 15 281473694266560 Successfully processed 3 Allotted Transactions.
+INFO 2026-03-23 13:14:16,043 tasks 15 281473694266560 FundConnext ETL completed successfully for 20260116
+INFO 2026-03-23 13:14:16,047 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260126
+INFO 2026-03-23 13:14:16,051 tasks 15 281473694266560 Starting FundConnext ETL for business date: 20260126
+INFO 2026-03-23 13:14:16,051 fundconnext 15 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:16,052 tasks 15 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:16,164 tasks 15 281473694266560 Downloading AllottedTransactions for 20260126...
+INFO 2026-03-23 13:14:16,499 tasks 21 281473694266560 Downloading AllottedTransactions for 20260121...
+INFO 2026-03-23 13:14:16,568 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260127
+INFO 2026-03-23 13:14:16,577 tasks 17 281473694266560 Starting FundConnext ETL for business date: 20260127
+INFO 2026-03-23 13:14:16,578 fundconnext 17 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:16,578 tasks 17 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:17,103 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260128
+INFO 2026-03-23 13:14:17,120 tasks 16 281473694266560 Downloading AllottedTransactions for 20260124...
+INFO 2026-03-23 13:14:17,178 tasks 18 281473694266560 Starting FundConnext ETL for business date: 20260128
+INFO 2026-03-23 13:14:17,189 fundconnext 18 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:17,190 tasks 18 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:17,450 tasks 18 281473694266560 Downloading AllottedTransactions for 20260128...
+INFO 2026-03-23 13:14:17,628 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260129
+INFO 2026-03-23 13:14:17,662 tasks 22 281473694266560 Downloading AllottedTransactions for 20260125...
+INFO 2026-03-23 13:14:17,696 tasks 19 281473694266560 Starting FundConnext ETL for business date: 20260129
+INFO 2026-03-23 13:14:17,706 fundconnext 19 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:17,708 tasks 19 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:18,163 views 312 281472803860864 Manual trigger for FundConnext ETL for date: 20260130
+ERROR 2026-03-23 13:14:18,187 fundconnext 16 281473694266560 Failed to download AllottedTransactions for date 20260124: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260124/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:18,188 tasks 16 281473694266560 Failed to process AllottedTransactions: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260124/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:18,188 tasks 16 281473694266560 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260124/AllottedTransactions.zip
+INFO 2026-03-23 13:14:18,216 tasks 20 281473694266560 Starting FundConnext ETL for business date: 20260130
+INFO 2026-03-23 13:14:18,222 fundconnext 20 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:18,223 tasks 20 281473694266560 Authenticating with FundConnext...
+INFO 2026-03-23 13:14:18,444 tasks 20 281473694266560 Downloading AllottedTransactions for 20260130...
+INFO 2026-03-23 13:14:18,525 tasks 18 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260128/AllottedTransactions.zip
+INFO 2026-03-23 13:14:18,526 tasks 18 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:18,526 fundconnext 18 281473694266560 * Welcome to Allotted Transactions
+INFO 2026-03-23 13:14:18,579 tasks 21 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260121/AllottedTransactions.zip
+INFO 2026-03-23 13:14:18,579 tasks 21 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:18,579 fundconnext 21 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:18,657 fundconnext 18 281473694266560 Skipped 401 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:18,662 fundconnext 18 281473694266560 Successfully processed 2 Allotted Transactions.
+INFO 2026-03-23 13:14:18,662 tasks 18 281473694266560 FundConnext ETL completed successfully for 20260128
+INFO 2026-03-23 13:14:18,687 views 312 281472812315008 Manual trigger for FundConnext ETL for date: 20260131
+INFO 2026-03-23 13:14:18,694 tasks 16 281473694266560 Starting FundConnext ETL for business date: 20260131
+INFO 2026-03-23 13:14:18,694 fundconnext 16 281473694266560 FC_API_USER: API_MPS01
+INFO 2026-03-23 13:14:18,695 tasks 16 281473694266560 Authenticating with FundConnext...
+WARNING 2026-03-23 13:14:18,709 fundconnext 21 281473694266560 Skipped 566 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:18,713 fundconnext 21 281473694266560 Successfully processed 2 Allotted Transactions.
+INFO 2026-03-23 13:14:18,713 tasks 21 281473694266560 FundConnext ETL completed successfully for 20260121
+INFO 2026-03-23 13:14:18,811 tasks 16 281473694266560 Downloading AllottedTransactions for 20260131...
+ERROR 2026-03-23 13:14:18,871 fundconnext 16 281473694266560 Failed to download AllottedTransactions for date 20260131: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260131/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:18,872 tasks 16 281473694266560 Failed to process AllottedTransactions: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260131/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:18,872 tasks 16 281473694266560 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260131/AllottedTransactions.zip
+INFO 2026-03-23 13:14:19,243 tasks 15 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260126/AllottedTransactions.zip
+INFO 2026-03-23 13:14:19,243 tasks 15 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:19,244 fundconnext 15 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:19,351 fundconnext 15 281473694266560 Skipped 420 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:19,354 fundconnext 15 281473694266560 Successfully processed 2 Allotted Transactions.
+INFO 2026-03-23 13:14:19,354 tasks 15 281473694266560 FundConnext ETL completed successfully for 20260126
+INFO 2026-03-23 13:14:19,534 tasks 20 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260130/AllottedTransactions.zip
+INFO 2026-03-23 13:14:19,534 tasks 20 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:19,534 fundconnext 20 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:19,665 fundconnext 20 281473694266560 Skipped 481 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:19,668 fundconnext 20 281473694266560 Successfully processed 4 Allotted Transactions.
+INFO 2026-03-23 13:14:19,668 tasks 20 281473694266560 FundConnext ETL completed successfully for 20260130
+ERROR 2026-03-23 13:14:20,735 fundconnext 22 281473694266560 Failed to download AllottedTransactions for date 20260125: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260125/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:20,736 tasks 22 281473694266560 Failed to process AllottedTransactions: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260125/AllottedTransactions.zip
+ERROR 2026-03-23 13:14:20,736 tasks 22 281473694266560 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260125/AllottedTransactions.zip
+INFO 2026-03-23 13:14:20,952 tasks 19 281473694266560 Downloading AllottedTransactions for 20260129...
+INFO 2026-03-23 13:14:21,736 tasks 17 281473694266560 Downloading AllottedTransactions for 20260127...
+INFO 2026-03-23 13:14:22,074 tasks 19 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260129/AllottedTransactions.zip
+INFO 2026-03-23 13:14:22,075 tasks 19 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:22,076 fundconnext 19 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:22,196 fundconnext 19 281473694266560 Skipped 365 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:22,200 fundconnext 19 281473694266560 Successfully processed 3 Allotted Transactions.
+INFO 2026-03-23 13:14:22,200 tasks 19 281473694266560 FundConnext ETL completed successfully for 20260129
+INFO 2026-03-23 13:14:22,812 tasks 17 281473694266560 Saved AllottedTransactions to /app/logs/fundconnext/20260127/AllottedTransactions.zip
+INFO 2026-03-23 13:14:22,812 tasks 17 281473694266560 Processing AllottedTransactions...
+INFO 2026-03-23 13:14:22,813 fundconnext 17 281473694266560 * Welcome to Allotted Transactions
+WARNING 2026-03-23 13:14:22,907 fundconnext 17 281473694266560 Skipped 328 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-03-23 13:14:22,908 fundconnext 17 281473694266560 Successfully processed 1 Allotted Transactions.
+INFO 2026-03-23 13:14:22,908 tasks 17 281473694266560 FundConnext ETL completed successfully for 20260127

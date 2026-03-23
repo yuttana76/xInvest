@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "invest",
     "drf_spectacular",
     "fundDecision.apps.FunddecisionConfig",
+    "workflow.apps.WorkflowConfig",
 ]
 
 MIDDLEWARE = [
@@ -285,9 +286,8 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": False,
-
-    "ALGORITHM": "HS256",
-    "SIGNING_KEY": os.environ.get('DJANGO_SECRET_KEY', 'changeme'),
+    "ALGORITHM": os.environ.get('JWT_ALGORITHM', 'HS256'),
+    "SIGNING_KEY": os.environ.get('JWT_SECRET_KEY', 'changeme'),
     "VERIFYING_KEY": "",
     "AUDIENCE": None,
     "ISSUER": None,
