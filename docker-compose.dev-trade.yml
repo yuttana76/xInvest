@@ -63,6 +63,8 @@ services:
     environment:
       - TZ=Asia/Bangkok
     depends_on:
+      db:
+        condition: service_healthy
       redis:
         condition: service_started
     networks:
@@ -148,6 +150,8 @@ services:
       db:
         condition: service_healthy
     restart: always
+    networks:
+      - xinvest_net
 
 networks:
   xinvest_net:

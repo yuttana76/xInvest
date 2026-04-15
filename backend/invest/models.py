@@ -65,6 +65,9 @@ class Investor(models.Model):
     user = models.OneToOneField(User, on_delete=models.SET_NULL, related_name='investor_profile', null=True, blank=True)
     compCode = models.CharField(max_length=13)
     custCode = models.CharField(max_length=13)
+
+    card_number_encrypted = models.CharField(max_length=100, null=True, blank=True)
+
     fullNameEn = models.CharField(max_length=100)
     fullNameTh = models.CharField(max_length=100)
     mobile = models.CharField(max_length=10, null=True, blank=True)
@@ -94,7 +97,7 @@ class InvestorAccount(models.Model):
     custCode = models.ForeignKey(Investor, on_delete=models.CASCADE, related_name='accounts')
     accountID = models.CharField(max_length=15)
     openDate = models.DateField(null=True, blank=True)
-
+    icLicense = models.CharField(max_length=15, null=True, blank=True)
     STATUS_CHOICES = [
         ('Active', 'Active'),
         ('Inactive', 'Inactive'),

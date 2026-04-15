@@ -1,0 +1,9 @@
+{% extends "admin/change_list.html" %}
+{% block object-tools-items %}
+    <li>
+        <a href="run-etl-customer-individual/" class="addlink">
+            Re-run ETL Customer Individual
+        </a>
+    </li>
+    {{ block.super }}
+{% endblock %}

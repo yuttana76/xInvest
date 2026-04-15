@@ -175,7 +175,7 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return <div className="flex h-96 items-center justify-center text-slate-400">Loading dashboard...</div>;
+    return <div className="flex h-96 items-center justify-center text-slate-500 dark:text-slate-400">Loading dashboard...</div>;
   }
 
   if (error) {
@@ -188,13 +188,13 @@ export default function Dashboard() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-linear-to-r from-white to-slate-400 bg-clip-text text-transparent">Portfolio Overview</h1>
-          <p className="text-slate-400 mt-1">Welcome {profile?.fullNameEn || profile?.fullNameTh}, view your portfolio performance here.</p>
+          <h1 className="text-3xl font-bold tracking-tight bg-linear-to-r from-slate-900 via-slate-700 to-slate-500 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">Portfolio Overview</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">Welcome {profile?.fullNameEn || profile?.fullNameTh}, view your portfolio performance here.</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl backdrop-blur-md">
-            <span className="text-sm text-slate-400 mr-2">Market Status:</span>
-            <span className="text-sm font-medium text-emerald-400 flex items-center gap-1.5">
+          <div className="px-4 py-2 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl backdrop-blur-md">
+            <span className="text-sm text-slate-600 dark:text-slate-400 mr-2">Market Status:</span>
+            <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               Open
             </span>

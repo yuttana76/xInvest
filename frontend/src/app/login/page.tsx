@@ -58,10 +58,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-slate-950">
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-300 text-slate-900 dark:text-white">
       {/* Background Decor */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full -z-10" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/10 blur-[120px] rounded-full -z-10" />
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 dark:bg-primary/10 blur-[120px] rounded-full -z-10" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/20 dark:bg-accent/10 blur-[120px] rounded-full -z-10" />
 
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
@@ -69,19 +69,19 @@ export default function LoginPage() {
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
               <span className="text-white font-bold text-xl text-center">x</span>
             </div>
-            <span className="text-2xl font-bold tracking-tight text-white">Invest</span>
+            <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Invest</span>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
             {step === 1 ? 'Welcome Back' : 'Security Verification'}
           </h1>
-          <p className="text-slate-400">
+          <p className="text-slate-600 dark:text-slate-400">
             {step === 1 
               ? 'Enter your credentials to access your portfolio' 
               : `Enter the code sent to your email (Ref: ${otpRef})`}
           </p>
         </div>
 
-        <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl">
+        <div className="bg-white/60 dark:bg-white/5 backdrop-blur-[20px] p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl">
           {error && (
             <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
@@ -92,13 +92,13 @@ export default function LoginPage() {
           {step === 1 ? (
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 ml-1">Username</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 ml-1">Username</label>
                 <div className="relative group">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-primary transition-colors" />
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                   <Input
                     type="text"
                     placeholder="Enter your username"
-                    className="pl-12 bg-white/5 border-white/10 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                    className="pl-12 bg-slate-200/50 dark:bg-white/5 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-500 focus:border-primary/50 focus:ring-primary/20 transition-all"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
@@ -108,15 +108,15 @@ export default function LoginPage() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between ml-1">
-                  <label className="text-sm font-medium text-slate-300">Password</label>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Password</label>
                   {/* <a href="/forgot-password" className="text-xs text-primary hover:text-primary-hover transition-colors">Forgot password?</a> */}
                 </div>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-primary transition-colors" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                   <Input
                     type="password"
                     placeholder="••••••••"
-                    className="pl-12 bg-white/5 border-white/10 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                    className="pl-12 bg-slate-200/50 dark:bg-white/5 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-500 focus:border-primary/50 focus:ring-primary/20 transition-all"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -147,14 +147,14 @@ export default function LoginPage() {
           ) : (
             <form onSubmit={handleVerifyOTP} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 ml-1 text-center block">Enter 6-digit Code</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 ml-1 text-center block">Enter 6-digit Code</label>
                 <div className="relative group">
-                  <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-primary transition-colors" />
+                  <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                   <Input
                     type="text"
                     placeholder="000000"
                     maxLength={6}
-                    className="pl-12 text-center tracking-[0.5em] text-2xl font-bold bg-white/5 border-white/10 text-white placeholder:text-slate-700 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                    className="pl-12 text-center tracking-[0.5em] text-2xl font-bold bg-slate-200/50 dark:bg-white/5 border-slate-300 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-700 dark:placeholder:text-slate-700 focus:border-primary/50 focus:ring-primary/20 transition-all"
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                     required
@@ -172,7 +172,7 @@ export default function LoginPage() {
               <button 
                 type="button"
                 onClick={() => setStep(1)}
-                className="w-full text-sm text-slate-500 hover:text-slate-300 transition-colors"
+                className="w-full text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
                 disabled={isLoading}
               >
                 Go back to login

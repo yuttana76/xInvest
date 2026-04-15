@@ -1,39 +1,34 @@
 from django.contrib import admin
 from django import forms
-from .models import AssetManagementCompany, FundInfo, FundNAV, FundHoldingAsset, FundAnalysis, AIInsight, NewsArticle
+from django.shortcuts import redirect
+from .models import FundAnalysis, AIInsight, NewsArticle
 
-@admin.register(AssetManagementCompany)
-class AssetManagementCompanyAdmin(admin.ModelAdmin):
-    list_display = ('short_name', 'name_th', 'name_en')
-    search_fields = ('short_name', 'name_th', 'name_en')
-
-@admin.register(FundInfo)
-class FundAdmin(admin.ModelAdmin):
-    list_display = ('fundCode', 'amc', 'fund_category', 'risk_level')
-    list_filter = ('risk_level', 'is_dividend', 'fund_category', 'amc')
-    search_fields = ('fundCode', 'name_th', 'name_en')
 
 @admin.register(FundAnalysis)
 class FundAnalysisAdmin(admin.ModelAdmin):
-    list_display = ('fund', 'standard_deviation', 'sharpe_ratio_display', 'last_calculated', 'sentiment_score', 'sentiment_impact_level', 'created_at', 'updated_at')
-    search_fields = ('fund__fundCode',)
+    list_display = ('fundCode', 'standard_deviation', 'treynor_ratio', 'sortino_ratio', 'last_calculated', 'sentiment_score', 'sentiment_impact_level', 'created_at', 'updated_at')
+    search_fields = ('fundCode',)
     readonly_fields = ('last_calculated', 'created_at', 'updated_at')
-
-    def sharpe_ratio_display(self, obj):
-        return obj.fund.sharpe_ratio
-    sharpe_ratio_display.short_description = 'Sharpe Ratio'
 
 
 @admin.register(AIInsight)
 class AIInsightAdmin(admin.ModelAdmin):
-    list_display = ('fund', 'insight_type', 'sentiment_score', 'confidence_score', 'model_version', 'created_at')
+    list_display = ('fundCode', 'insight_type', 'sentiment_score', 'confidence_score', 'model_version', 'created_at')
     list_filter = ('insight_type', 'model_version')
-    search_fields = ('fund__fundCode', 'content', 'insight_type')
+    search_fields = ('fundCode', 'content', 'insight_type')
     readonly_fields = ('created_at',)
     ordering = ('-created_at',)
 
 
 class NewsArticleAdminForm(forms.ModelForm):
+    
+    relate_product = forms.MultipleChoiceField(
+        choices=NewsArticle.RELATE_PRODUCT_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Related Products"
+    )
+
     sectors = forms.MultipleChoiceField(
         choices=NewsArticle.INVESTMENT_SECTOR_CHOICES,
         widget=forms.CheckboxSelectMultiple,
@@ -49,6 +44,8 @@ class NewsArticleAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk and self.instance.related_sectors:
             self.initial['sectors'] = self.instance.related_sectors
+        if self.instance and self.instance.pk and self.instance.relate_product:
+            self.initial['relate_product'] = self.instance.relate_product
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -61,22 +58,21 @@ class NewsArticleAdminForm(forms.ModelForm):
 class NewsArticleAdmin(admin.ModelAdmin):
     form = NewsArticleAdminForm
     list_display = (
-        'title', 'source', 'published_at',
-        'ai_impact_level', 'ai_sentiment_score',
-        'fund_supervisor_approve', 'fund_supervisor_approve_by',
-        'published_status',
+        'title', 'source', 'published_at', 'relate_product',
+        'author', 'ai_impact_level', 'ai_sentiment_score',
+        'fund_supervisor_approve', 'published_status',
     )
+    actions = ['analyze_with_ai']
     list_filter = ('fund_supervisor_approve', 'published_status', 'ai_impact_level', 'source')
     search_fields = ('title', 'source', 'content', 'related_funds__fundCode')
-    filter_horizontal = ('related_funds',)
     readonly_fields = ('fund_supervisor_approve_at', 'published_at')
     ordering = ('-published_at',)
     fieldsets = (
         ('Article', {
-            'fields': ('source', 'title', 'content', 'url', 'published_at', 'related_funds', 'sectors')
+            'fields': ('source', 'title', 'author', 'description', 'content', 'url', 'image_url', 'relate_product', 'published_at', 'related_funds', 'sectors')
         }),
         ('AI Analysis', {
-            'fields': ('ai_sentiment_score', 'ai_summary', 'ai_impact_level')
+            'fields': ('ai_sentiment_score', 'ai_summary', 'ai_impact_level', 'ai_model')
         }),
         ('Fund Manager Sentiment', {
             'fields': ('fm_sentiment_score', 'fm_summary', 'fm_impact_level')
@@ -91,3 +87,28 @@ class NewsArticleAdmin(admin.ModelAdmin):
             'fields': ('published_status', 'published_by')
         }),
     )
+
+    def get_urls(self):
+        from django.urls import path
+        urls = super().get_urls()
+        custom_urls = [
+            path('fetch-news/', self.admin_site.admin_view(self.run_news_fetch_task), name='fetch-news'),
+        ]
+        return custom_urls + urls
+
+
+    # Function exec task new fetch
+    def run_news_fetch_task(self, request):
+        from .tasks import fetch_daily_news
+
+        count = fetch_daily_news()
+
+        self.message_user(request, f"Task 'fetch_daily_news' has been executed synchronously. Fetched {count} articles.")
+        return redirect("..")
+
+    @admin.action(description="Analyze selected articles with AI")
+    def analyze_with_ai(self, request, queryset):
+        from .tasks import analyze_news_article_task
+        for article in queryset:
+            analyze_news_article_task.delay(article.id)
+        self.message_user(request, f"Triggered AI analysis for {queryset.count()} articles.")

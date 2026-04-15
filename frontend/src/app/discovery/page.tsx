@@ -17,26 +17,26 @@ export default function DiscoveryPage() {
     // ];
 
     return (
-        <main className="min-h-screen relative overflow-hidden bg-slate-950 text-white">
+        <main className="min-h-screen relative overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white transition-colors duration-300">
             <Navbar />
 
             {/* Background Decor */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 blur-[120px] rounded-full -z-10" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/20 blur-[120px] rounded-full -z-10" />
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 dark:bg-primary/20 blur-[120px] rounded-full -z-10" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/20 dark:bg-accent/20 blur-[120px] rounded-full -z-10" />
 
             {/* Content Section */}
             <section className="pt-32 pb-20 px-4">
                 <div className="max-w-5xl mx-auto">
                     <div className="text-center mb-12">
-                        <Title className="text-5xl md:text-6xl font-bold tracking-tight mb-4 text-white">
+                        <Title className="text-5xl md:text-6xl font-bold tracking-tight mb-4 text-slate-900 dark:text-white">
                             Discover <span className="text-gradient">Smart</span> Funds
                         </Title>
-                        <Text className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto">
+                        <Text className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
                             Navigate the complex market safely. Find the right funds using AI-powered insights and real-time sentiment analysis.
                         </Text>
                     </div>
 
-                    <div className="glass p-6 rounded-2xl shadow-2xl mb-16 border border-white/10 max-w-3xl mx-auto">
+                    <div className="glass bg-white/60 dark:bg-white/5 p-6 rounded-2xl shadow-xl dark:shadow-none mb-16 border border-slate-200 dark:border-white/10 max-w-3xl mx-auto transition-colors duration-300">
                         <FundSearchBox />
                     </div>
 

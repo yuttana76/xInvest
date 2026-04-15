@@ -52,7 +52,13 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "fundDecision.apps.FunddecisionConfig",
     "workflow.apps.WorkflowConfig",
+    "stt_fundconnext.apps.SttFundconnextConfig",
+    "graphene_django",
 ]
+
+GRAPHENE = {
+    "SCHEMA": "core.schema.schema"
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -155,10 +161,8 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # CORS Settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 # Celery Settings
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0")
@@ -199,7 +203,35 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'invest.tasks.run_daily_fundconnext_etl_current_mf_balance',
         'schedule': crontab(hour=8, minute=0),
     },
+    'fetch-news-every-morning': {
+        'task': 'fundDecision.tasks.fetch_daily_news',
+        'schedule': crontab(hour=7, minute=0),
+    },
+    'daily-fundconnext-etl-fund-profile': {
+        'task': 'stt_fundconnext.tasks.run_daily_fundconnext_etl_fund_profile',
+        'schedule': crontab(hour=8, minute=0),
+    },
+    'daily-fundconnext-etl-fund-performance': {
+        'task': 'stt_fundconnext.tasks.run_daily_fundconnext_etl_fund_performance',
+        'schedule': crontab(hour=8, minute=0),
+    },
+    'daily-fundconnext-etl-asset-allocation': {
+        'task': 'stt_fundconnext.tasks.run_daily_fundconnext_etl_asset_allocation',
+        'schedule': crontab(hour=8, minute=0),
+    },
 }
+
+
+
+# News API Settings
+NEWS_API_KEY = os.environ.get("NEWS_API_KEY", "")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+
+# Settrade API Settings
+SETTRADE_APP_ID = os.environ.get("SETTRADE_APP_ID", "")
+SETTRADE_APP_SECRET = os.environ.get("SETTRADE_APP_SECRET", "")
+SETTRADE_BROKER_ID = os.environ.get("SETTRADE_BROKER_ID", "SANDBOX")
+SETTRADE_APP_CODE = os.environ.get("SETTRADE_APP_CODE", "SANDBOX")
 
 # --- LOGGING CONFIGURATION ---
 import os
@@ -254,6 +286,11 @@ LOGGING = {
             'propagate': False,
         },
         'celery': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'fundDecision': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
             'propagate': False,

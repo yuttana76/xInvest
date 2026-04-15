@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"xinvest/go-trading/internal/config"
 	"xinvest/go-trading/internal/models"
+
+	"github.com/redis/go-redis/v9"
 )
 
 var RedisClient *redis.Client
@@ -16,6 +17,7 @@ var RedisClient *redis.Client
 func InitRedis() {
 	RedisClient = redis.NewClient(&redis.Options{
 		Addr: config.AppConfig.RedisAddr,
+		DB:   config.AppConfig.RedisDB,
 	})
 }
 
@@ -42,5 +44,5 @@ func SetPortfolioToCache(ctx context.Context, userID string, portfolio *models.P
 	}
 
 	// Cache for 1 hour
-	return RedisClient.Set(ctx, key, data, 1*time.Hour).Err()
+	return RedisClient.Set(ctx, key, data, 1*time.Minute).Err()
 }

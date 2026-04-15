@@ -32,18 +32,18 @@ export default function PortfolioStats({ stats }: PortfolioStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
       {statItems.map((stat, i) => (
-        <div key={i} className="glass p-6 rounded-2xl border border-white/5">
+        <div key={i} className="glass p-6 rounded-2xl border border-slate-200/50 dark:border-white/5">
           <div className="flex items-center justify-between mb-4">
             <div className="p-2 bg-primary/10 text-primary rounded-lg">{stat.icon}</div>
             {stat.change && (
-              <div className={`flex items-center gap-1 text-xs font-medium ${stat.up ? 'text-emerald-400' : 'text-rose-500'}`}>
+              <div className={`flex items-center gap-1 text-xs font-medium ${stat.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-500'}`}>
                 {stat.up ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                 {stat.change}
               </div>
             )}
           </div>
-          <p className="text-sm text-slate-400">{stat.label}</p>
-          <h3 className="text-2xl font-bold mt-1 text-slate-100">{stat.value}</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{stat.label}</p>
+          <h3 className="text-2xl font-bold mt-1 text-slate-900 dark:text-slate-100">{stat.value}</h3>
         </div>
       ))}
     </div>

@@ -45,6 +45,11 @@ export interface NewsArticle {
   ai_sentiment_score: number | null;
   ai_summary: string;
   ai_impact_level: 'LOW' | 'MED' | 'HIGH' | null;
+  fm_sentiment_score: number | null;
+  fm_summary: string | null;
+  fm_impact_level: 'LOW' | 'MED' | 'HIGH' | null;
+  fund_supervisor_approve: boolean;
+  relate_product?: string;
 }
 
 export interface FundDetail {

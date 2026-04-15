@@ -46,14 +46,14 @@ export default function AssetAllocation({
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
         <span className="w-1 h-6 bg-primary rounded-full"></span>
         Asset Allocation
       </h2>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         {/* Left Column: Pie Chart and Legend */}
-        <div className="xl:col-span-4 glass p-8 rounded-2xl border border-white/5 h-full">
+        <div className="xl:col-span-4 glass p-8 rounded-2xl border border-slate-200/50 dark:border-white/5 h-full">
           <div className="h-64 w-full relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -77,15 +77,15 @@ export default function AssetAllocation({
                   ))}
                 </Pie>
                 <RechartsTooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }}
-                  itemStyle={{ color: '#f1f5f9' }}
+                  contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px' }}
+                  itemStyle={{ color: 'var(--foreground)' }}
                   formatter={(value: number) => [`$${new Intl.NumberFormat('en-US').format(value)}`, 'Value']}
                 />
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
               <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Total</p>
-              <p className="text-lg font-bold text-slate-100">
+              <p className="text-lg font-bold text-slate-800 dark:text-slate-100">
                 ${new Intl.NumberFormat('en-US', { notation: 'compact' }).format(allocationData.reduce((a, b) => a + b.value, 0))}
               </p>
             </div>
@@ -98,16 +98,16 @@ export default function AssetAllocation({
                 onClick={() => setExpandedFund(item.name)}
                 className={`w-full flex items-center justify-between p-3 rounded-xl transition-all border ${
                     currentFundName === item.name 
-                    ? 'bg-primary/20 border-primary/30 shadow-[0_0_20px_rgba(99,102,241,0.15)]' 
-                    : 'bg-white/5 border-transparent hover:bg-white/10'
+                    ? 'bg-primary/10 dark:bg-primary/20 border-primary/20 dark:border-primary/30 shadow-lg' 
+                    : 'bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-transparent hover:bg-slate-100 dark:hover:bg-white/10'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                  <span className="text-sm font-medium text-slate-200">{item.name}</span>
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-200">{item.name}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-bold text-slate-100">{item.percent.toFixed(1)}%</span>
+                  <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{item.percent.toFixed(1)}%</span>
                 </div>
               </button>
             ))}

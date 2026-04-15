@@ -98,7 +98,7 @@ func fetchPortfolioFromDB(ctx context.Context, userID string) (*models.Portfolio
 
 			// Fetch Balances for this account with latest ACTIVE FundAnalysis
 			bRows, err := db.QueryContext(ctx,
-				`SELECT b.id, b."compCode", b.fundCode, b."unitBalance", b.amount, b."averageCost", b."NAV", b."NAVdate",
+				`SELECT b.id, b."compCode", b."fundCode", b."unitBalance", b.amount, b."averageCost", b."NAV", b."NAVdate",
 						fa.id, fa.standard_deviation, fa.treynor_ratio, fa.sortino_ratio, fa.information_ratio,
 						fa.capture_ratio_up, fa.capture_ratio_down, fa.sentiment_score, fa.sentiment_summary,
 						fa.sentiment_impact_level, fa.last_calculated, fa.created_at, fa.updated_at,
@@ -116,20 +116,24 @@ func fetchPortfolioFromDB(ctx context.Context, userID string) (*models.Portfolio
 				 ) fa ON true
 				 WHERE b."accountID_id" = $1`, acc.ID)
 
-			if err == nil {
+			if err != nil {
+				log.Printf("Error querying MF balances for account %d: %v", acc.ID, err)
+				acc.Balances = []models.AccountBalance{} // Ensure empty slice on error
+			} else {
 				func() {
 					defer bRows.Close()
 					acc.Balances = []models.AccountBalance{} // Initialize to empty slice
 					for bRows.Next() {
 						var bal models.AccountBalance
 						var fa models.FundAnalysis
-						var faID sql.NullInt64 // To check if fa exists
+						var faID sql.NullInt64
+						var faCreatedAt, faUpdatedAt sql.NullTime
 
 						err := bRows.Scan(
 							&bal.ID, &bal.CompCode, &bal.FundCode, &bal.UnitBalance, &bal.Amount, &bal.AverageCost, &bal.NAV, &bal.NAVdate,
 							&faID, &fa.StandardDeviation, &fa.TreynorRatio, &fa.SortinoRatio, &fa.InformationRatio,
 							&fa.CaptureRatioUp, &fa.CaptureRatioDown, &fa.SentimentScore, &fa.SentimentSummary,
-							&fa.SentimentImpactLevel, &fa.LastCalculated, &fa.CreatedAt, &fa.UpdatedAt,
+							&fa.SentimentImpactLevel, &fa.LastCalculated, &faCreatedAt, &faUpdatedAt,
 							&fa.CreateBy, &fa.UpdateBy,
 						)
 						if err != nil {
@@ -139,6 +143,8 @@ func fetchPortfolioFromDB(ctx context.Context, userID string) (*models.Portfolio
 						bal.AccountID = acc.AccountID // Map the string accountID
 						if faID.Valid {
 							fa.ID = int(faID.Int64)
+							fa.CreatedAt = faCreatedAt.Time
+							fa.UpdatedAt = faUpdatedAt.Time
 							bal.FundAnalysis = &fa
 						}
 						acc.Balances = append(acc.Balances, bal)
@@ -186,7 +192,7 @@ func fetchPortfolioFromDB(ctx context.Context, userID string) (*models.Portfolio
 
 			// Fetch PF Balances with latest ACTIVE FundAnalysis
 			bRows, err := db.QueryContext(ctx,
-				`SELECT b.id, b."compCode", b.fundCode, b."unitBalance", b.amount, b."averageCost", b."NAV", b."NAVdate",
+				`SELECT b.id, b."compCode", b."fundCode", b."unitBalance", b."amount", b."averageCost", b."NAV", b."NAVdate",
 						fa.id, fa.standard_deviation, fa.treynor_ratio, fa.sortino_ratio, fa.information_ratio,
 						fa.capture_ratio_up, fa.capture_ratio_down, fa.sentiment_score, fa.sentiment_summary,
 						fa.sentiment_impact_level, fa.last_calculated, fa.created_at, fa.updated_at,
@@ -204,7 +210,10 @@ func fetchPortfolioFromDB(ctx context.Context, userID string) (*models.Portfolio
 				 ) fa ON true
 				 WHERE b."accountID_id" = $1`, acc.ID)
 
-			if err == nil {
+			if err != nil {
+				log.Printf("Error querying PF balances for account %d: %v", acc.ID, err)
+				acc.PrivateFundBalances = []models.PrivateFundBalance{} // Ensure empty slice on error
+			} else {
 				func() {
 					defer bRows.Close()
 					acc.PrivateFundBalances = []models.PrivateFundBalance{} // Initialize to empty slice
@@ -212,12 +221,13 @@ func fetchPortfolioFromDB(ctx context.Context, userID string) (*models.Portfolio
 						var bal models.PrivateFundBalance
 						var fa models.FundAnalysis
 						var faID sql.NullInt64
+						var faCreatedAt, faUpdatedAt sql.NullTime
 
 						err := bRows.Scan(
 							&bal.ID, &bal.CompCode, &bal.FundCode, &bal.UnitBalance, &bal.Amount, &bal.AverageCost, &bal.NAV, &bal.NAVdate,
 							&faID, &fa.StandardDeviation, &fa.TreynorRatio, &fa.SortinoRatio, &fa.InformationRatio,
 							&fa.CaptureRatioUp, &fa.CaptureRatioDown, &fa.SentimentScore, &fa.SentimentSummary,
-							&fa.SentimentImpactLevel, &fa.LastCalculated, &fa.CreatedAt, &fa.UpdatedAt,
+							&fa.SentimentImpactLevel, &fa.LastCalculated, &faCreatedAt, &faUpdatedAt,
 							&fa.CreateBy, &fa.UpdateBy,
 						)
 						if err != nil {
@@ -227,6 +237,8 @@ func fetchPortfolioFromDB(ctx context.Context, userID string) (*models.Portfolio
 						bal.AccountID = acc.AccountID // Map the string accountID
 						if faID.Valid {
 							fa.ID = int(faID.Int64)
+							fa.CreatedAt = faCreatedAt.Time
+							fa.UpdatedAt = faUpdatedAt.Time
 							bal.FundAnalysis = &fa
 						}
 						acc.PrivateFundBalances = append(acc.PrivateFundBalances, bal)

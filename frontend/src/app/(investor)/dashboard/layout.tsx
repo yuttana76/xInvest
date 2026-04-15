@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { LogOut, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/Button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { LogoutConfirmModal } from '@/components/LogoutConfirmModal';
 
 export default function InvestorLayout({
@@ -29,7 +30,7 @@ export default function InvestorLayout({
 
   if (isLoading || !isAuthenticated || user?.role !== 'investor') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
@@ -38,7 +39,7 @@ export default function InvestorLayout({
   return (
     <div className="min-h-screen bg-background">
       {/* Investor Header */}
-      <header className="glass border-b border-white/5 h-16 flex items-center px-6 md:px-12 sticky top-0 z-40">
+      <header className="glass border-b border-white/5 dark:border-white/5 h-16 flex items-center px-6 md:px-12 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center rotate-12">
@@ -48,11 +49,12 @@ export default function InvestorLayout({
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+            <ThemeToggle />
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10">
               <UserIcon className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-slate-300">{user?.username}</span>
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{user?.username}</span>
             </div>
-            <Button variant="ghost" size="sm" className="gap-2 text-slate-400 hover:text-red-400" onClick={() => setIsLogoutModalOpen(true)}>
+            <Button variant="ghost" size="sm" className="gap-2 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400" onClick={() => setIsLogoutModalOpen(true)}>
               <LogOut size={16} />
               <span className="hidden sm:inline">Sign Out</span>
             </Button>

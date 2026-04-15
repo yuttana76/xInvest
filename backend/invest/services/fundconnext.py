@@ -11,6 +11,9 @@ from invest.models import MFTransaction, PerformanceMFAccountBalance, InvestorAc
 from invest.services import util
 
 from django.utils import timezone
+from django.db.models import Q
+import operator
+from functools import reduce
 import logging
 logger = logging.getLogger(__name__)
 
@@ -242,7 +245,7 @@ class FundConnextService:
             date_val=self.safe_date(nav_date_val)
 
             mkt_val, gain, roi = util.calculate_performance(unitBalance_val, NAV_val, averageCost_val)
-            logger.info(f"*** mkt_val: {mkt_val}, gain: {gain}, roi: {roi}")
+            # logger.info(f"*** mkt_val: {mkt_val}, gain: {gain}, roi: {roi}")
 
             bal = PerformanceMFAccountBalance(
                 compCode=comp_code,
@@ -323,7 +326,7 @@ class FundConnextService:
                 continue
 
             comp_code = account.compCode
-
+            
             bal = AccountBalance(
                 compCode=comp_code,
                 accountID=account,
@@ -338,22 +341,22 @@ class FundConnextService:
 
 
         if skipped_missing_account > 0:
-            logger.warning(f"Skipped {skipped_missing_account} UnitholderBalance records because InvestorAccount does not exist in DB.")
+            logger.warning(f"Skipped(X) {skipped_missing_account} UnitholderBalance records because InvestorAccount does not exist in DB.")
 
-        # logger.info(f"*Processing {len(balances_to_create)} Unitholder Balances.")
+        logger.info(f"Processing {len(balances_to_create)} Unitholder Balances.")
         if balances_to_create:
-
-            
-            target_comp_codes = [b.compCode for b in balances_to_create]
-            target_account_ids = [b.accountID for b in balances_to_create]
-            target_fund_codes = [b.fundCode for b in balances_to_create]
             with transaction.atomic():
                 # 2. ลบเฉพาะรายการที่ตรงกับ compCode และ accountID ในชุดข้อมูลใหม่
-                AccountBalance.objects.filter(
-                    compCode__in=target_comp_codes,
-                    accountID__in=target_account_ids,
-                    fundCode__in=target_fund_codes,
-                ).delete()
+                # เพื่อป้องกันการลบทับ Cartesian product เราใช้ Q object มาต่อกัน
+                # โดยลบเฉพาะคู่ (compCode, accountID) ที่มีอยู่ใน balances_to_create
+                unique_accounts = {(b.compCode, b.accountID.id) for b in balances_to_create}
+                
+                # logger.info(f"Deleting {len(unique_accounts)} existing balances...")
+                # logger.info(f"** {unique_accounts} **")
+
+                if unique_accounts:
+                    q_filter = reduce(operator.or_, [Q(compCode=c, accountID=a) for c, a in unique_accounts])
+                    AccountBalance.objects.filter(q_filter).delete()
 
                 # 2. บันทึกข้อมูลชุดใหม่เข้าไปแบบ Bulk
                 AccountBalance.objects.bulk_create(balances_to_create, ignore_conflicts=True)
@@ -361,4 +364,5 @@ class FundConnextService:
             logger.info(f"Successfully processed {len(balances_to_create)} Unitholder Balances.")
         else:
             logger.info("Parsing finished, but 0 brand new balances were created.")
+
 

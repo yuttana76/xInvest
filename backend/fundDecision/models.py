@@ -2,76 +2,9 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
 
-class AssetManagementCompany(models.Model):
-    """ข้อมูลบริษัทจัดการกองทุน (บลจ.)"""
-    name_th = models.CharField(max_length=255, verbose_name="ชื่อ บลจ. (ไทย)")
-    name_en = models.CharField(max_length=255, verbose_name="ชื่อ บลจ. (อังกฤษ)")
-    short_name = models.CharField(max_length=50, unique=True)
-    website = models.URLField(blank=True)
-
-    def __str__(self):
-        return self.short_name
-
-class FundInfo(models.Model):
-    """ข้อมูลหลักของกองทุน"""
-    RISK_LEVEL_CHOICES = [(i, f'Level {i}') for i in range(1, 9)]
-
-    amc = models.ForeignKey(AssetManagementCompany, on_delete=models.CASCADE, related_name='funds')
-    fundCode = models.CharField(max_length=20, unique=True, verbose_name="ชื่อย่อกองทุน")
-    name_th = models.CharField(max_length=255)
-    name_en = models.CharField(max_length=255)
-
-    # ประเภทและนโยบาย
-    fund_category = models.CharField(max_length=100, help_text="เช่น Global Equity, Fixed Income")
-    risk_level = models.IntegerField(choices=RISK_LEVEL_CHOICES)
-    is_dividend = models.BooleanField(default=False, verbose_name="นโยบายปันผล")
-
-    fact_sheet_pdf = models.FileField(upload_to='fact_sheets/', null=True, blank=True)
-    fact_sheet_url = models.URLField(max_length=500, null=True, blank=True)
-    last_updated_ffs = models.DateField(null=True, verbose_name="วันที่อัปเดตเอกสารล่าสุด")
-
-    # ค่าธรรมเนียม
-    management_fee = models.DecimalField(max_digits=5, decimal_places=2, help_text="% ต่อปี", null=True, blank=True)
-    total_expense_ratio = models.DecimalField(max_digits=5, decimal_places=2, help_text="TER (%)", null=True, blank=True)
-
-    # ข้อมูลวิเคราะห์ (Update รายวัน/เดือน)
-    sharpe_ratio = models.FloatField(null=True, blank=True)
-    alpha = models.FloatField(null=True, blank=True)
-    beta = models.FloatField(null=True, blank=True)
-    max_drawdown = models.FloatField(null=True, blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.fundCode
-
-class FundNAV(models.Model):
-    """ข้อมูลมูลค่าหน่วยลงทุนรายวัน (Time-series Data)"""
-    fund = models.ForeignKey(FundInfo, on_delete=models.CASCADE, related_name='nav_history')
-    date = models.DateField()
-    nav = models.DecimalField(max_digits=12, decimal_places=4)
-    change = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
-    percent_change = models.FloatField(null=True, blank=True)
-
-    class Meta:
-        unique_together = ('fund', 'date')
-        ordering = ['-date']
-
-class FundHoldingAsset(models.Model):
-    """ข้อมูลสินทรัพย์ที่กองทุนถือครอง (Top Holdings)"""
-    fund = models.ForeignKey(FundInfo, on_delete=models.CASCADE, related_name='holdings')
-    asset_name = models.CharField(max_length=255)
-    proportion = models.FloatField(help_text="สัดส่วนการถือครอง (%)")
-    as_of_date = models.DateField(help_text="ข้อมูล ณ วันที่")
-
-    class Meta:
-        ordering = ['-proportion']
-
 class FundAnalysis(models.Model):  
     """เก็บค่าสถิติขั้นสูงที่ AI ต้องใช้ประมวลผล"""
-    # fund = models.OneToOneField(FundInfo, on_delete=models.CASCADE, related_name='fund_analysis')
-    fund = models.ForeignKey(FundInfo, on_delete=models.CASCADE, related_name='fund_analysis')
+    fundCode = models.CharField(max_length=20, verbose_name="ชื่อย่อกองทุน",null= False, blank= False)
 
     # Advanced Statistical Metrics
     standard_deviation = models.FloatField(null=True, blank=True, verbose_name="ค่าความผันผวน")
@@ -98,7 +31,7 @@ class FundAnalysis(models.Model):
 
 class AIInsight(models.Model):
     """เก็บผลลัพธ์ที่ AI วิเคราะห์และสรุปออกมา"""
-    fund = models.ForeignKey(FundInfo, on_delete=models.CASCADE, related_name='ai_insights')
+    fundCode = models.CharField(max_length=20, verbose_name="ชื่อย่อกองทุน",null= False, blank= False)
 
     # ประเภทของ Insight เช่น 'RISK_WARNING', 'OPPORTUNITY', 'SUMMARY'
     insight_type = models.CharField(max_length=50)
@@ -121,11 +54,25 @@ class NewsArticle(models.Model):
     source = models.CharField(max_length=100) # เช่น Reuters, Bloomberg, SET
     title = models.CharField(max_length=500)
     content = models.TextField()
-    url = models.URLField(unique=True)
-    published_at = models.DateTimeField()
+    url = models.URLField(unique=True, max_length=1000)
+    description = models.TextField(blank=True, null=True)
+    author = models.CharField(max_length=255, blank=True, null=True)
+    image_url = models.URLField(max_length=1000, blank=True, null=True)
+    published_at = models.DateTimeField(null=True, blank=True)
 
-    # ความเกี่ยวข้องกับสินทรัพย์/กองทุน
-    related_funds = models.ManyToManyField(FundInfo, related_name='related_news', null=True, blank=True)
+    RELATE_PRODUCT_CHOICES = [
+        ('MF', 'Mutual Fund'),
+        ('PF', 'Provident Fund'),
+        ('BOND', 'Bond'),
+        ]
+        
+    # relate product type(mf, pf, bond) can choose multi choice
+    relate_product = models.JSONField(default=list, blank=True, help_text="List of products: MF, PF, Bond")
+
+    # relate_product = models.CharField(max_length=20, null=True, blank=True, choices=RELATE_PRODUCT_CHOICES)
+    
+    # ความเกี่ยวข้องกับสินทรัพย์/กองทุน (type separate with ',')
+    related_funds = models.CharField(max_length=255, verbose_name="ชื่อย่อกองทุน",null=True, blank=True)
 
     # choose from choices (investment_sector)
     # can choose multi choices
@@ -145,6 +92,7 @@ class NewsArticle(models.Model):
     related_sectors = models.JSONField(default=list, blank=True, help_text="List of sectors: Tech, Energy, Healthcare, etc.")
 
     # ผลลัพธ์จาก AI Sentiment Analysis
+    ai_model = models.CharField(max_length=20, null=True, blank=True)
     ai_sentiment_score = models.FloatField(help_text="-1 (ร้ายสุด) ถึง 1 (ดีสุด)", null=True, blank=True)
     ai_summary = models.TextField(blank=True, help_text="AI สรุปสั้นๆ ว่าข่าวนี้ส่งผลอย่างไร")
     ai_impact_level = models.CharField(max_length=20, choices=[('LOW', 'Low'), ('MED', 'Medium'), ('HIGH', 'High')], null=True, blank=True)
@@ -156,7 +104,6 @@ class NewsArticle(models.Model):
 
     # publish by fund supervisor
     published_status = models.BooleanField(default=False, help_text="เผยแพร่")
-    published_at = models.DateTimeField(null=True, blank=True)
     published_by = models.CharField(max_length=100, null=True, blank=True)
 
     # fund supervisor approve

@@ -8,7 +8,7 @@ def run_performance_etl(year, month):
     #api_path = "/api/v1/invest/etl/trigger-fconnext-performance-balance/"
     api_path = "/api/v1/invest/etl/trigger-fconnext-transaction/"
     url = f"{base_url}{api_path}"
-    token ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc0MjQ5ODYxLCJpYXQiOjE3NzQyNDYyNjEsImp0aSI6IjJkNDE0ZjViOTE2ZDQ3MzBiNWIxNjhlMmQ3NWQ2YWViIiwidXNlcl9pZCI6IjEiLCJ1c2VybmFtZSI6InJvb3QiLCJlbWFpbCI6Inl1dHRhbmE3NkBnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4ifQ.MYi-VEu9meY4YPaaE6UbqXhi1tlqoDAAdenC2KFHCFs'
+    token ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc0MzI4ODgyLCJpYXQiOjE3NzQzMjUyODIsImp0aSI6IjZhYzIyMzIwZjhhMDQ4NTI5ODJkNTA2MGE0ZTE3ZmMzIiwidXNlcl9pZCI6IjEiLCJ1c2VybmFtZSI6InJvb3QiLCJlbWFpbCI6Inl1dHRhbmE3NkBnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4ifQ.xKiei8GFUJeGb2wEUtwOOiTWl2UPyBoeas7RJjgaw-Q'
     
     headers = {
         "Content-Type": "application/json",

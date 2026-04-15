@@ -34,17 +34,19 @@
             </table>
         </div>
 
-        <!-- Performance Keys -->
+        <!-- Cache Keys -->
         <div class="module">
             <form method="post" action="clear-performance/">
                 {% csrf_token %}
-                <table style="width: 100%;" id="keys-table">
+                
+                <!-- Performance Keys -->
+                <table style="width: 100%; margin-bottom: 20px;" id="performance-keys-table">
                     <caption>
                         <a href="#" class="section">Performance Cache Keys ({{ performance_keys|length }})</a>
                     </caption>
                     <thead>
                         <tr>
-                            <th style="width: 40px;"><input type="checkbox" id="action-toggle"></th>
+                            <th style="width: 40px;"><input type="checkbox" id="perf-toggle"></th>
                             <th>Cache Key</th>
                             <th style="width: 100px;">TTL</th>
                         </tr>
@@ -52,7 +54,7 @@
                     <tbody>
                         {% for key in performance_keys %}
                         <tr class="{% cycle 'row1' 'row2' %}">
-                            <td><input type="checkbox" name="selected_keys" value="{{ key.name }}" class="action-select"></td>
+                            <td><input type="checkbox" name="selected_keys" value="{{ key.name }}" class="perf-select"></td>
                             <td><small>{{ key.name }}</small></td>
                             <td><span class="tag">{{ key.ttl_human }}</span></td>
                         </tr>
@@ -64,9 +66,37 @@
                     </tbody>
                 </table>
 
-                <div class="submit-row" style="text-align: left; padding: 15px; margin: 0; background: #fff; border: 1px solid #eee; border-top: none; display: flex; gap: 10px;">
+                <!-- Portfolio Keys -->
+                <table style="width: 100%; margin-bottom: 20px;" id="portfolio-keys-table">
+                    <caption>
+                        <a href="#" class="section">Portfolio Cache Keys - Go Trading ({{ portfolio_keys|length }})</a>
+                    </caption>
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"><input type="checkbox" id="portfolio-toggle"></th>
+                            <th>Cache Key</th>
+                            <th style="width: 100px;">TTL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key in portfolio_keys %}
+                        <tr class="{% cycle 'row1' 'row2' %}">
+                            <td><input type="checkbox" name="selected_keys" value="{{ key.name }}" class="portfolio-select"></td>
+                            <td><small style="color: #007bff;">{{ key.name }}</small></td>
+                            <td><span class="tag" style="background: #e8f5e9; color: #2e7d32;">{{ key.ttl_human }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 20px;">No portfolio cache keys found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="submit-row" style="text-align: left; padding: 15px; margin: 0; background: #fff; border: 1px solid #eee; border-top: none; display: flex; flex-wrap: wrap; gap: 10px;">
                     <button type="submit" name="clear_selected" class="button" style="background: #417690;">Clear Selected</button>
-                    <button type="submit" name="clear_all" value="1" class="button" style="background: #e66b6b;" onclick="return confirm('Clear ALL performance cache?')">Clear All Performance</button>
+                    <button type="submit" name="clear_all_perf" value="1" class="button" style="background: #e66b6b;" onclick="return confirm('Clear ALL performance cache?')">Clear All Performance</button>
+                    <button type="submit" name="clear_all_portfolio" value="1" class="button" style="background: #f48a42;" onclick="return confirm('Clear ALL portfolio cache?')">Clear All Portfolio (Go)</button>
                     <div style="flex-grow: 1;"></div>
                     <a href="." class="button" style="background: #79cec1; color: white;">Refresh Stats</a>
                 </div>
@@ -77,12 +107,21 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const toggleAll = document.getElementById('action-toggle');
-        const checkboxes = document.querySelectorAll('.action-select');
-        
-        if (toggleAll) {
-            toggleAll.addEventListener('change', function() {
-                checkboxes.forEach(cb => cb.checked = toggleAll.checked);
+        // Performance Toggle
+        const perfToggle = document.getElementById('perf-toggle');
+        const perfCheckboxes = document.querySelectorAll('.perf-select');
+        if (perfToggle) {
+            perfToggle.addEventListener('change', function() {
+                perfCheckboxes.forEach(cb => cb.checked = perfToggle.checked);
+            });
+        }
+
+        // Portfolio Toggle
+        const portfolioToggle = document.getElementById('portfolio-toggle');
+        const portfolioCheckboxes = document.querySelectorAll('.portfolio-select');
+        if (portfolioToggle) {
+            portfolioToggle.addEventListener('change', function() {
+                portfolioCheckboxes.forEach(cb => cb.checked = portfolioToggle.checked);
             });
         }
     });

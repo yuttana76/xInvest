@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import QueryProvider from "@/providers/QueryProvider";
+import { AppApolloProvider } from "@/providers/ApolloProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,7 +26,8 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased`}
       >
-        <QueryProvider>
+        <AppApolloProvider>
+          <QueryProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -36,7 +38,8 @@ export default function RootLayout({
               {children}
             </AuthProvider>
           </ThemeProvider>
-        </QueryProvider>
+          </QueryProvider>
+        </AppApolloProvider>
       </body>
     </html>
   );

@@ -87,6 +87,34 @@ services:
         condition: service_started
     restart: always
 
+  # db_backup_on_startup:
+  #   image: postgres:15-alpine
+  #   volumes:
+  #     - ./backups:/backups
+  #   env_file:
+  #     - .env.dev
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   command: >
+  #     sh -c "PGPASSWORD=$$POSTGRES_PASSWORD pg_dump -h db -U $$POSTGRES_USER $$POSTGRES_DB > /backups/startup_backup_$$(date +%Y%m%d_%H%M%S).sql"
+  #   restart: "no"
+
+  db_backup_cron:
+    image: postgres:15-alpine
+    volumes:
+      - ./backups:/backups
+      - ./scripts/cron-entrypoint.sh:/scripts/cron-entrypoint.sh
+    env_file:
+      - .env.dev
+    environment:
+      - BACKUP_SCHEDULE=59 23 * * *
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: /scripts/cron-entrypoint.sh
+    restart: always
+
   frontend:
     build:
       context: ./frontend

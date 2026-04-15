@@ -559,170 +559,170 @@ class InvestorMeView(APIView):
             "bondAccounts": BondAccountSerializer(bond_accounts, many=True).data
         }, status=status.HTTP_200_OK)
 
-class ETLManualTriggerViewTrans(APIView):
-    permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]
+# class ETLManualTriggerViewTrans(APIView):
+#     permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]
 
-    @extend_schema(
-        summary="Trigger FundConnext ETL manually",
-        description="Admin only endpoint to trigger transaction ETL for FundConnext data.",
-        request={
-            "application/json": {
-                "type": "object",
-                "properties": {
-                    "business_date": {"type": "string", "example": "20240101", "description": "Optional: YYYYMMDD format. Defaults to yesterday."},
-                }
-            }
-        },
-        responses={200: OpenApiTypes.OBJECT},
-        tags=["Admin ETL"]
-    )
-    def post(self, request):
+#     @extend_schema(
+#         summary="Trigger FundConnext ETL manually",
+#         description="Admin only endpoint to trigger transaction ETL for FundConnext data.",
+#         request={
+#             "application/json": {
+#                 "type": "object",
+#                 "properties": {
+#                     "business_date": {"type": "string", "example": "20240101", "description": "Optional: YYYYMMDD format. Defaults to yesterday."},
+#                 }
+#             }
+#         },
+#         responses={200: OpenApiTypes.OBJECT},
+#         tags=["Admin ETL"]
+#     )
+#     def post(self, request):
 
-        business_date_str = request.data.get('business_date')
+#         business_date_str = request.data.get('business_date')
 
-        #Validate business_date_str format
-        try:
-            datetime.strptime(business_date_str, '%Y%m%d')
-        except ValueError:
-            return Response({"error": "Invalid business_date format. Must be YYYYMMDD."}, status=status.HTTP_400_BAD_REQUEST)   
+#         #Validate business_date_str format
+#         try:
+#             datetime.strptime(business_date_str, '%Y%m%d')
+#         except ValueError:
+#             return Response({"error": "Invalid business_date format. Must be YYYYMMDD."}, status=status.HTTP_400_BAD_REQUEST)   
 
-        target_date = business_date_str if business_date_str else (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
-        logger.info(f"Manual trigger for FundConnext ETL for date: {target_date}")
+#         target_date = business_date_str if business_date_str else (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+#         logger.info(f"Manual trigger for FundConnext ETL for date: {target_date}")
         
-        result = run_daily_fundconnext_etl_trans.delay(business_date_str)
+#         result = run_daily_fundconnext_etl_trans.delay(business_date_str)
 
-        celery_task_id = []
-        if result:
-            celery_task_id.append(result.id)
-        else:
-            logger.error("Failed to trigger transaction ETL")
+#         celery_task_id = []
+#         if result:
+#             celery_task_id.append(result.id)
+#         else:
+#             logger.error("Failed to trigger transaction ETL")
 
-        if celery_task_id.__len__() > 0:
-            return Response({
-                "message": f"ETL task triggered for transaction successfully for business date {target_date}.",
-                "status": "Task Queued",
-                "celery_task_id": celery_task_id
-            }, status=status.HTTP_200_OK)
-        else:
-            return Response({
-                "message": f"ETL task failed to trigger for transaction for business date {target_date}.",
-                "status": "Task Failed",
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#         if celery_task_id.__len__() > 0:
+#             return Response({
+#                 "message": f"ETL task triggered for transaction successfully for business date {target_date}.",
+#                 "status": "Task Queued",
+#                 "celery_task_id": celery_task_id
+#             }, status=status.HTTP_200_OK)
+#         else:
+#             return Response({
+#                 "message": f"ETL task failed to trigger for transaction for business date {target_date}.",
+#                 "status": "Task Failed",
+#             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class ETLManualTriggerViewCurrentBalance(APIView):
-    permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]
+# class ETLManualTriggerViewCurrentBalance(APIView):
+#     permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]
 
-    @extend_schema(
-        summary="Trigger FundConnext ETL manually",
-        description="Admin only endpoint to trigger current MF balance ETL for FundConnext data.",
-        request={
-            "application/json": {
-                "type": "object",
-                "properties": {
-                    "business_date": {"type": "string", "example": "20240101", "description": "Optional: YYYYMMDD format. Defaults to yesterday."},
-                }
-            }
-        },
-        responses={200: OpenApiTypes.OBJECT},
-        tags=["Admin ETL"]
-    )
-    def post(self, request):
+#     @extend_schema(
+#         summary="Trigger FundConnext ETL manually",
+#         description="Admin only endpoint to trigger current MF balance ETL for FundConnext data.",
+#         request={
+#             "application/json": {
+#                 "type": "object",
+#                 "properties": {
+#                     "business_date": {"type": "string", "example": "20240101", "description": "Optional: YYYYMMDD format. Defaults to yesterday."},
+#                 }
+#             }
+#         },
+#         responses={200: OpenApiTypes.OBJECT},
+#         tags=["Admin ETL"]
+#     )
+#     def post(self, request):
 
-        business_date_str = request.data.get('business_date')
+#         business_date_str = request.data.get('business_date')
 
-        #Validate business_date_str format
-        try:
-            datetime.strptime(business_date_str, '%Y%m%d')
-        except ValueError:
-            return Response({"error": "Invalid business_date format. Must be YYYYMMDD."}, status=status.HTTP_400_BAD_REQUEST)   
+#         #Validate business_date_str format
+#         try:
+#             datetime.strptime(business_date_str, '%Y%m%d')
+#         except ValueError:
+#             return Response({"error": "Invalid business_date format. Must be YYYYMMDD."}, status=status.HTTP_400_BAD_REQUEST)   
 
-        target_date = business_date_str if business_date_str else (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
-        logger.info(f"Manual trigger for FundConnext ETL for date: {target_date}")
+#         target_date = business_date_str if business_date_str else (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+#         logger.info(f"Manual trigger for FundConnext ETL for date: {target_date}")
         
-        result1 =''
-        result2 =''
-        # result1 = run_daily_fundconnext_etl_trans.delay(business_date_str)
-        # result2 = run_daily_fundconnext_etl_performance_mf_balance.delay(business_date_str)
-        result3 = run_daily_fundconnext_etl_current_mf_balance.delay(business_date_str)
+#         result1 =''
+#         result2 =''
+#         # result1 = run_daily_fundconnext_etl_trans.delay(business_date_str)
+#         # result2 = run_daily_fundconnext_etl_performance_mf_balance.delay(business_date_str)
+#         result3 = run_daily_fundconnext_etl_current_mf_balance.delay(business_date_str)
 
-        celery_task_id = []
-        if result1:
-            celery_task_id.append(result1.id)
-        else:
-            logger.error("Failed to trigger transaction ETL")
+#         celery_task_id = []
+#         if result1:
+#             celery_task_id.append(result1.id)
+#         else:
+#             logger.error("Failed to trigger transaction ETL")
 
 
-        if result2:
-            celery_task_id.append(result2.id)
-        else:
-            logger.error("Failed to trigger performance MF balance ETL")
+#         if result2:
+#             celery_task_id.append(result2.id)
+#         else:
+#             logger.error("Failed to trigger performance MF balance ETL")
 
-        if result3:
-            celery_task_id.append(result3.id)
-        else:
-            logger.error("Failed to trigger current MF balance ETL")
+#         if result3:
+#             celery_task_id.append(result3.id)
+#         else:
+#             logger.error("Failed to trigger current MF balance ETL")
 
-        if celery_task_id.__len__() > 0:
-            return Response({
-                "message": f"ETL task triggered for current MF balance successfully for business date {target_date}.",
-                "status": "Task Queued",
-                "celery_task_id": celery_task_id
-            }, status=status.HTTP_200_OK)
-        else:
-            return Response({
-                "message": f"ETL task failed to trigger for current MF balance for business date {target_date}.",
-                "status": "Task Failed",
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#         if celery_task_id.__len__() > 0:
+#             return Response({
+#                 "message": f"ETL task triggered for current MF balance successfully for business date {target_date}.",
+#                 "status": "Task Queued",
+#                 "celery_task_id": celery_task_id
+#             }, status=status.HTTP_200_OK)
+#         else:
+#             return Response({
+#                 "message": f"ETL task failed to trigger for current MF balance for business date {target_date}.",
+#                 "status": "Task Failed",
+#             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class ETLManualTriggerViewPerformanceBalance(APIView):
-    permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]
+# class ETLManualTriggerViewPerformanceBalance(APIView):
+#     permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]
 
-    @extend_schema(
-        summary="Trigger FundConnext ETL manually",
-        description="Admin only endpoint to trigger performance MF balance ETL for FundConnext data.",
-        request={
-            "application/json": {
-                "type": "object",
-                "properties": {
-                    "business_date": {"type": "string", "example": "20240101", "description": "Optional: YYYYMMDD format. Defaults to yesterday."},
-                }
-            }
-        },
-        responses={200: OpenApiTypes.OBJECT},
-        tags=["Admin ETL"]
-    )
-    def post(self, request):
+#     @extend_schema(
+#         summary="Trigger FundConnext ETL manually",
+#         description="Admin only endpoint to trigger performance MF balance ETL for FundConnext data.",
+#         request={
+#             "application/json": {
+#                 "type": "object",
+#                 "properties": {
+#                     "business_date": {"type": "string", "example": "20240101", "description": "Optional: YYYYMMDD format. Defaults to yesterday."},
+#                 }
+#             }
+#         },
+#         responses={200: OpenApiTypes.OBJECT},
+#         tags=["Admin ETL"]
+#     )
+#     def post(self, request):
 
-        business_date_str = request.data.get('business_date')
+#         business_date_str = request.data.get('business_date')
 
-        #Validate business_date_str format
-        try:
-            datetime.strptime(business_date_str, '%Y%m%d')
-        except ValueError:
-            return Response({"error": "Invalid business_date format. Must be YYYYMMDD."}, status=status.HTTP_400_BAD_REQUEST)   
+#         #Validate business_date_str format
+#         try:
+#             datetime.strptime(business_date_str, '%Y%m%d')
+#         except ValueError:
+#             return Response({"error": "Invalid business_date format. Must be YYYYMMDD."}, status=status.HTTP_400_BAD_REQUEST)   
 
-        target_date = business_date_str if business_date_str else (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
-        logger.info(f"Manual trigger for FundConnext ETL for date: {target_date}")
+#         target_date = business_date_str if business_date_str else (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+#         logger.info(f"Manual trigger for FundConnext ETL for date: {target_date}")
         
-        result = run_daily_fundconnext_etl_performance_mf_balance.delay(business_date_str)
+#         result = run_daily_fundconnext_etl_performance_mf_balance.delay(business_date_str)
 
-        celery_task_id = []
-        if result:
-            celery_task_id.append(result.id)
-        else:
-            logger.error("Failed to trigger performance MF balance ETL")
+#         celery_task_id = []
+#         if result:
+#             celery_task_id.append(result.id)
+#         else:
+#             logger.error("Failed to trigger performance MF balance ETL")
 
-        if celery_task_id.__len__() > 0:
-            return Response({
-                "message": f"ETL task triggered for performance MF balance successfully for business date {target_date}.",
-                "status": "Task Queued",
-                "celery_task_id": celery_task_id
-            }, status=status.HTTP_200_OK)
-        else:
-            return Response({
-                "message": f"ETL task failed to trigger for performance MF balance for business date {target_date}.",
-                "status": "Task Failed",
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#         if celery_task_id.__len__() > 0:
+#             return Response({
+#                 "message": f"ETL task triggered for performance MF balance successfully for business date {target_date}.",
+#                 "status": "Task Queued",
+#                 "celery_task_id": celery_task_id
+#             }, status=status.HTTP_200_OK)
+#         else:
+#             return Response({
+#                 "message": f"ETL task failed to trigger for performance MF balance for business date {target_date}.",
+#                 "status": "Task Failed",
+#             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class MFPortfolioPerformanceAPIView(APIView):

@@ -57,9 +57,9 @@ export const Navbar: React.FC = () => {
                             </>
                         ) : (
                             <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10">
                                     <User className="w-4 h-4 text-primary" />
-                                    <span className="text-sm font-medium text-slate-300">{user?.username}</span>
+                                    <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{user?.username}</span>
                                 </div>
                                 <Button variant="ghost" size="icon" onClick={() => setIsLogoutModalOpen(true)} title="Logout">
                                     <LogOut className="w-5 h-5 text-slate-500 hover:text-red-400 transition-colors" />

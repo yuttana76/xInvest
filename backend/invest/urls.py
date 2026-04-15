@@ -1,8 +1,7 @@
 from django.urls import path
 from .views import (
     InvestorListView, InvestorInquiryView, InvestorMeView, 
-    ETLManualTriggerViewTrans, ETLManualTriggerViewCurrentBalance, 
-    ETLManualTriggerViewPerformanceBalance, MFPortfolioPerformanceAPIView, PFPortfolioPerformanceAPIView,
+    MFPortfolioPerformanceAPIView, PFPortfolioPerformanceAPIView,
     OperatorInvestorListView, OperatorInvestorDetailView, MarketingInvestorListView, AgentInvestorListView,
     OperatorDashboardView, OperatorInvestorExportView,
     MarketingDashboardView, AgentDashboardView,
@@ -20,9 +19,9 @@ urlpatterns = [
     #Current-UnitholderBalance
     #Performance-UnitholderBalance
 
-    path('etl/trigger-fconnext-transaction/', ETLManualTriggerViewTrans.as_view(), name='etl_trigger_transaction'),
-    path('etl/trigger-fconnext-current-balance/', ETLManualTriggerViewCurrentBalance.as_view(), name='etl_trigger_current_balance'),
-    path('etl/trigger-fconnext-performance-balance/', ETLManualTriggerViewPerformanceBalance.as_view(), name='etl_trigger_performance_balance'),
+    # path('etl/trigger-fconnext-transaction/', ETLManualTriggerViewTrans.as_view(), name='etl_trigger_transaction'),
+    # path('etl/trigger-fconnext-current-balance/', ETLManualTriggerViewCurrentBalance.as_view(), name='etl_trigger_current_balance'),
+    # path('etl/trigger-fconnext-performance-balance/', ETLManualTriggerViewPerformanceBalance.as_view(), name='etl_trigger_performance_balance'),
 
     #Performance api
     path('mf/portfolio-performance/', MFPortfolioPerformanceAPIView.as_view(), name='portfolio_performance'),

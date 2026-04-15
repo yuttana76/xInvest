@@ -17,15 +17,15 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({ isOpen, 
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-300" 
+        className="absolute inset-0 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-300" 
         onClick={onClose}
       />
       
       {/* Modal */}
-      <div className="relative w-full max-w-sm glass border border-white/10 rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 fade-in duration-300">
+      <div className="relative w-full max-w-sm glass border border-slate-200 dark:border-white/10 rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 fade-in duration-300">
         <button 
           onClick={onClose}
-          className="absolute right-4 top-4 p-2 text-slate-500 hover:text-white transition-colors"
+          className="absolute right-4 top-4 p-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-white transition-colors"
         >
           <X size={20} />
         </button>
@@ -35,8 +35,8 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({ isOpen, 
             <LogOut className="text-red-500 w-8 h-8" />
           </div>
           
-          <h3 className="text-xl font-bold text-white mb-2">Sign Out</h3>
-          <p className="text-slate-400 mb-8">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Sign Out</h3>
+          <p className="text-slate-500 dark:text-slate-400 mb-8">
             Are you sure you want to sign out of your account? You will need to verify your OTP again to sign back in.
           </p>
 

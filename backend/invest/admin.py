@@ -87,7 +87,7 @@ class AccountBalanceAdmin(ImportExportModelAdmin):
     list_display = ('compCode', 'accountID', 'fundCode', 'unitBalance', 'amount', 'NAV', 'NAVdate', 'redis_monitor_shortcut')
     list_filter = ('compCode', 'fundCode', 'NAVdate','accountID')
     search_fields = ('compCode', 'accountID__accountID', 'fundCode')
-    change_list_template = None # Use default
+    change_list_template = "admin/invest/accountbalance/change_list.html"
 
     def redis_monitor_shortcut(self, obj):
         return format_html('<a href="redis-status/">Monitor</a>')
@@ -101,6 +101,7 @@ class AccountBalanceAdmin(ImportExportModelAdmin):
         custom_urls = [
             path('redis-status/', self.admin_site.admin_view(self.redis_status_view), name='redis_status'),
             path('redis-status/clear-performance/', self.admin_site.admin_view(self.clear_performance_cache), name='clear_performance_cache'),
+            path('run-etl-current-balance/', self.admin_site.admin_view(self.run_etl_current_balance_view), name='run_etl_current_balance'),
         ]
         return custom_urls + urls
 
@@ -111,7 +112,7 @@ class AccountBalanceAdmin(ImportExportModelAdmin):
         con = get_redis_connection("default")
         info = con.info()
         
-        # Performance Keys
+        # Performance Keys (Django)
         performance_keys = []
         for pattern in ["*performance_mf_*", "*performance_pf_*"]:
             for key in con.scan_iter(pattern):
@@ -123,6 +124,17 @@ class AccountBalanceAdmin(ImportExportModelAdmin):
                     'ttl_human': f"{ttl // 3600}h {(ttl % 3600) // 60}m" if ttl > 0 else "Expired/No TTL"
                 })
         
+        # Portfolio Keys (Go Trading)
+        portfolio_keys = []
+        for key in con.scan_iter("portfolio:*"):
+            key_str = key.decode('utf-8') if isinstance(key, bytes) else key
+            ttl = con.ttl(key)
+            portfolio_keys.append({
+                'name': key_str,
+                'ttl': ttl,
+                'ttl_human': f"{ttl // 3600}h {(ttl % 3600) // 60}m" if ttl > 0 else "Expired/No TTL"
+            })
+            
         context = {
             **self.admin_site.each_context(request),
             'title': 'Redis Real-time Monitor',
@@ -137,6 +149,7 @@ class AccountBalanceAdmin(ImportExportModelAdmin):
                 'Misses': info.get('keyspace_misses'),
             },
             'performance_keys': sorted(performance_keys, key=lambda x: x['name']),
+            'portfolio_keys': sorted(portfolio_keys, key=lambda x: x['name']),
         }
         return TemplateResponse(request, "admin/redis_status.html", context)
 
@@ -148,23 +161,42 @@ class AccountBalanceAdmin(ImportExportModelAdmin):
         con = get_redis_connection("default")
         
         selected_keys = request.POST.getlist('selected_keys')
-        clear_all = request.POST.get('clear_all') == '1'
+        clear_all_perf = request.POST.get('clear_all_perf') == '1'
+        clear_all_portfolio = request.POST.get('clear_all_portfolio') == '1'
         
         keys_to_delete = []
-        if clear_all:
+        if clear_all_perf:
             mf_keys = list(con.scan_iter("*performance_mf_*"))
             pf_keys = list(con.scan_iter("*performance_pf_*"))
             keys_to_delete = mf_keys + pf_keys
+            msg = "Successfully cleared ALL performance cache keys."
+        elif clear_all_portfolio:
+            portfolio_keys = list(con.scan_iter("portfolio:*"))
+            keys_to_delete = portfolio_keys
+            msg = "Successfully cleared ALL portfolio cache keys (Go Trading)."
         elif selected_keys:
             keys_to_delete = selected_keys
+            msg = f"Successfully cleared {len(keys_to_delete)} selected cache keys."
+        else:
+            messages.info(request, "No keys selected or found to clear.")
+            return redirect('admin:redis_status')
 
         if keys_to_delete:
             con.delete(*keys_to_delete)
-            messages.success(request, f"Successfully cleared {len(keys_to_delete)} performance cache keys.")
-        else:
-            messages.info(request, "No keys selected or found to clear.")
+            messages.success(request, msg)
             
         return redirect('admin:redis_status')
+
+    def run_etl_current_balance_view(self, request):
+        from .tasks import run_daily_fundconnext_etl_current_mf_balance
+        from django.contrib import messages
+        from django.shortcuts import redirect
+        
+        # Trigger the task asynchronously
+        run_daily_fundconnext_etl_current_mf_balance.delay()
+        
+        self.message_user(request, "Task 'run_daily_fundconnext_etl_current_mf_balance' has been triggered in the background.")
+        return redirect("..")
 
 
 class BondAccountResource(BaseResource):
@@ -230,5 +262,24 @@ class MFTransactionAdmin(ImportExportModelAdmin):
     list_display = ('transactionID', 'accountID', 'transactionCode', 'fundCode', 'amount', 'unit', 'status', 'effectiveDate')
     list_filter = ('transactionCode', 'status', 'fundCode', 'effectiveDate')
     search_fields = ('transactionID', 'accountID__accountID', 'fundCode', )
+    change_list_template = "admin/invest/mftransaction/change_list.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('run-etl-trans/', self.admin_site.admin_view(self.run_etl_trans_view), name='run_etl_trans'),
+        ]
+        return custom_urls + urls
+
+    def run_etl_trans_view(self, request):
+        from .tasks import run_daily_fundconnext_etl_trans
+        from django.contrib import messages
+        from django.shortcuts import redirect
+        
+        # Trigger the task asynchronously
+        run_daily_fundconnext_etl_trans.delay()
+        
+        self.message_user(request, "Task 'run_daily_fundconnext_etl_trans' has been triggered in the background.")
+        return redirect("..")
 
 

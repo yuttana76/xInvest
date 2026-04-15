@@ -10,12 +10,13 @@ type Config struct {
 	Port      string `mapstructure:"PORT"`
 	JWTSecret string `mapstructure:"JWT_SECRET_KEY"`
 	DBURL     string `mapstructure:"DB_URL"`
-	RedisAddr string `mapstructure:"REDIS_ADDR"`
 	DBHost    string `mapstructure:"POSTGRES_HOST"`
 	DBPort    string `mapstructure:"POSTGRES_PORT"`
 	DBUser    string `mapstructure:"POSTGRES_USER"`
 	DBPass    string `mapstructure:"POSTGRES_PASSWORD"`
 	DBName    string `mapstructure:"POSTGRES_DB"`
+	RedisAddr string `mapstructure:"REDIS_ADDR"`
+	RedisDB   int    `mapstructure:"REDIS_DB"`
 }
 
 var AppConfig *Config
@@ -27,6 +28,7 @@ func LoadConfig() {
 	viper.BindEnv("PORT", "PORT")
 	viper.BindEnv("JWT_SECRET_KEY", "JWT_SECRET_KEY")
 	viper.BindEnv("REDIS_ADDR", "REDIS_ADDR")
+	viper.BindEnv("REDIS_DB", "REDIS_DB")
 	viper.BindEnv("POSTGRES_HOST", "POSTGRES_HOST")
 	viper.BindEnv("POSTGRES_PORT", "POSTGRES_PORT")
 	viper.BindEnv("POSTGRES_USER", "POSTGRES_USER")
@@ -47,6 +49,7 @@ func LoadConfig() {
 	AppConfig.Port = viper.GetString("PORT")
 	AppConfig.JWTSecret = viper.GetString("JWT_SECRET_KEY")
 	AppConfig.RedisAddr = viper.GetString("REDIS_ADDR")
+	AppConfig.RedisDB = viper.GetInt("REDIS_DB")
 	AppConfig.DBHost = viper.GetString("POSTGRES_HOST")
 	AppConfig.DBPort = viper.GetString("POSTGRES_PORT")
 	AppConfig.DBUser = viper.GetString("POSTGRES_USER")
@@ -54,7 +57,7 @@ func LoadConfig() {
 	AppConfig.DBName = viper.GetString("POSTGRES_DB")
 
 	log.Printf("Configuration loaded. JWT Secret length: %d", len(AppConfig.JWTSecret))
-	log.Printf("Redis Addr: %s, DB Host: %s", AppConfig.RedisAddr, AppConfig.DBHost)
+	log.Printf("Redis Addr: %s, Redis DB: %d, DB Host: %s", AppConfig.RedisAddr, AppConfig.RedisDB, AppConfig.DBHost)
 
 	// Set defaults if not provided
 	if AppConfig.Port == "" {

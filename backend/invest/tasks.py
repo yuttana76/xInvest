@@ -138,3 +138,4 @@ def run_daily_fundconnext_etl_current_mf_balance(business_date_str=None):
     except Exception as e:
         logger.error(f"FundConnext ETL process failed: {e}")
         return {"status": "error", "message": str(e), "business_date": business_date_str}
+

@@ -2,21 +2,32 @@
 backend/__pycache__/
 backend/*.py[cod]
 backend/venv/
-backend/.env
 backend/logs/*
 
 # Node (Frontend)
 frontend/node_modules/
 frontend/.next/
 frontend/out/
-frontend/.env.local
 
-# Docker & OS
+# Docker & Environment Files
 .DS_Store
-.env
+**/*.env*
+.env.dev
 .env.production
+.env.local
+!*.env.example
 
 logs/*
 docs/*
+
+# Mobile (Flutter)
+x_mobile_app/build/
+x_mobile_app/.dart_tool/
+x_mobile_app/.flutter-plugins
+x_mobile_app/.flutter-plugins-dependencies
+x_mobile_app/.packages
+x_mobile_app/.pub-cache/
+x_mobile_app/.pub/
+x_mobile_app/.stitch/
 
 media/*

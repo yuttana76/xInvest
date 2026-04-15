@@ -56,11 +56,7 @@ class AccountBalanceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_fund_analysis(self, obj):
-        from fundDecision.models import FundAnalysis
-        from fundDecision.serializers import FundAnalysisSerializer
-        analysis = FundAnalysis.objects.filter(fund__fundCode=obj.fundCode,status='ACTIVE').order_by('-created_at').first()
-        if analysis:
-            return FundAnalysisSerializer(analysis).data
+        # TODO: implement fund analysis
         return None
 
 class InvestorAccountSerializer(serializers.ModelSerializer):
@@ -88,11 +84,7 @@ class PrivateFundBalanceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_fund_analysis(self, obj):
-        from fundDecision.models import FundAnalysis
-        from fundDecision.serializers import FundAnalysisSerializer
-        analysis = FundAnalysis.objects.filter(fund__fundCode=obj.fundCode).order_by('-created_at').first()
-        if analysis:
-            return FundAnalysisSerializer(analysis).data
+        # TODO: implement fund analysis
         return None
 
 class PrivateFundAccountSerializer(serializers.ModelSerializer):

@@ -17,6 +17,10 @@ django-import-export
 pyotp
 drf-spectacular
 google-generativeai
+langchain
+langchain-google-genai
+langchain-community
 flower
 django-redis
 openpyxl
+graphene-django
