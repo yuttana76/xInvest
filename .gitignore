@@ -11,6 +11,7 @@ frontend/out/
 
 # Docker & Environment Files
 .DS_Store
+backups/
 **/*.env*
 .env.dev
 .env.production
