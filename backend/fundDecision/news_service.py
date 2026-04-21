@@ -1,6 +1,7 @@
 import requests
 import xml.etree.ElementTree as ET
 import time
+import re
 from bs4 import BeautifulSoup
 from datetime import datetime
 from django.conf import settings
@@ -47,6 +48,43 @@ class NewsFetcher:
         text = re.sub(r'\n\s*\n', '\n\n', text)
         
         return text.strip()
+
+    def fetch_content_from_url(self, url):
+        """
+        Fetch article content from its URL and clean it.
+        """
+        if not url:
+            return ""
+            
+        try:
+            logger.info(f"Fetching full content from URL: {url}")
+            response = requests.get(url, headers=self.headers, timeout=15)
+            response.raise_for_status()
+            
+            soup = BeautifulSoup(response.content, "html.parser")
+            
+            # Find the main content area (heuristics)
+            # Some common tags for article body
+            article_body = None
+            for selector in ['article', '.article-body', '.entry-content', '.post-content', '.main-content', 'main']:
+                article_body = soup.select_one(selector)
+                if article_body:
+                    break
+            
+            if article_body:
+                text = article_body.get_text(separator="\n")
+            else:
+                # Fallback to whole body if specific selector not found
+                # but removing scripts/styles first
+                for extraneous in soup(["script", "style", "aside", "nav", "footer", "header"]):
+                    extraneous.decompose()
+                text = soup.get_text(separator="\n")
+                
+            return self.clean_html(text)
+            
+        except Exception as e:
+            logger.error(f"Error fetching content from {url}: {e}")
+            return ""
 
     def __init__(self):
         self.api_key = getattr(settings, 'NEWS_API_KEY', None)

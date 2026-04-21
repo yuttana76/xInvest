@@ -53,6 +53,15 @@ class InvestorAdmin(ImportExportModelAdmin):
     list_display = ('compCode', 'custCode', 'fullNameEn', 'projects', 'status')
     list_filter = ('projects', 'status')
     search_fields = ('compCode', 'custCode', 'fullNameEn')
+    actions = ['send_statement_report']
+
+    def send_statement_report(self, request, queryset):
+        from .tasks import send_investor_statement_report
+        for investor in queryset:
+            send_investor_statement_report.delay(investor.id)
+        self.message_user(request, f"Statement report task triggered for {queryset.count()} investors.")
+    
+    send_statement_report.short_description = "Send Statement Report (via Email)"
 
 @admin.register(InvestorAccount)
 class InvestorAccountAdmin(ImportExportModelAdmin):
@@ -191,12 +200,25 @@ class AccountBalanceAdmin(ImportExportModelAdmin):
         from .tasks import run_daily_fundconnext_etl_current_mf_balance
         from django.contrib import messages
         from django.shortcuts import redirect
+        from django.template.response import TemplateResponse
         
-        # Trigger the task asynchronously
-        run_daily_fundconnext_etl_current_mf_balance.delay()
+        if request.method == 'POST':
+            business_date = request.POST.get('business_date')
+            if business_date:
+                # Trigger the task asynchronously with the specified date
+                run_daily_fundconnext_etl_current_mf_balance.delay(business_date)
+                self.message_user(request, f"Task 'run_daily_fundconnext_etl_current_mf_balance' triggered for date: {business_date}")
+                return redirect("..")
         
-        self.message_user(request, "Task 'run_daily_fundconnext_etl_current_mf_balance' has been triggered in the background.")
-        return redirect("..")
+        from datetime import datetime, timedelta
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+        context = {
+            **self.admin_site.each_context(request),
+            'opts': self.model._meta,
+            'title': 'Run ETL Current Balance',
+            'default_date': yesterday,
+        }
+        return TemplateResponse(request, "admin/invest/run_etl_form.html", context)
 
 
 class BondAccountResource(BaseResource):
@@ -275,11 +297,24 @@ class MFTransactionAdmin(ImportExportModelAdmin):
         from .tasks import run_daily_fundconnext_etl_trans
         from django.contrib import messages
         from django.shortcuts import redirect
+        from django.template.response import TemplateResponse
         
-        # Trigger the task asynchronously
-        run_daily_fundconnext_etl_trans.delay()
-        
-        self.message_user(request, "Task 'run_daily_fundconnext_etl_trans' has been triggered in the background.")
-        return redirect("..")
+        if request.method == 'POST':
+            business_date = request.POST.get('business_date')
+            if business_date:
+                # Trigger the task asynchronously with the specified date
+                run_daily_fundconnext_etl_trans.delay(business_date)
+                self.message_user(request, f"Task 'run_daily_fundconnext_etl_trans' triggered for date: {business_date}")
+                return redirect("..")
+
+        from datetime import datetime, timedelta
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+        context = {
+            **self.admin_site.each_context(request),
+            'opts': self.model._meta,
+            'title': 'Run ETL Transactions',
+            'default_date': yesterday,
+        }
+        return TemplateResponse(request, "admin/invest/run_etl_form.html", context)
 
 

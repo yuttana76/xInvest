@@ -92,7 +92,7 @@ class NewsArticle(models.Model):
     related_sectors = models.JSONField(default=list, blank=True, help_text="List of sectors: Tech, Energy, Healthcare, etc.")
 
     # ผลลัพธ์จาก AI Sentiment Analysis
-    ai_model = models.CharField(max_length=20, null=True, blank=True)
+    ai_model = models.CharField(max_length=100, null=True, blank=True)
     ai_sentiment_score = models.FloatField(help_text="-1 (ร้ายสุด) ถึง 1 (ดีสุด)", null=True, blank=True)
     ai_summary = models.TextField(blank=True, help_text="AI สรุปสั้นๆ ว่าข่าวนี้ส่งผลอย่างไร")
     ai_impact_level = models.CharField(max_length=20, choices=[('LOW', 'Low'), ('MED', 'Medium'), ('HIGH', 'High')], null=True, blank=True)
@@ -117,3 +117,53 @@ class NewsArticle(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class FundFactSheet(models.Model):
+    # --- Identifiers ---
+    fund_code = models.CharField(max_length=20, unique=True, verbose_name="รหัสกองทุน")
+    fund_name_th = models.TextField(blank=True, verbose_name="ชื่อกองทุนภาษาไทย")
+    sec_proj_id = models.CharField(max_length=50, blank=True, help_text="ID จาก SEC API")
+    prompt_val = models.JSONField(null=True, blank=True, verbose_name="JSON Raw")
+
+    # --- Core Strategy & Risk ---
+    risk_level = models.IntegerField(null=True, blank=True, verbose_name="ระดับความเสี่ยง (1-8)")
+    fund_category = models.TextField(blank=True, help_text="เช่น Equity Large-Cap, Global Bond")
+    investment_strategy = models.CharField(max_length=50, blank=True, choices=[('Active', 'Active'), ('Passive', 'Passive')])
+
+    # --- Advanced Context for AI ---
+    holdings_data = models.JSONField(null=True, blank=True, verbose_name="ข้อมูลการถือครองหุ้น 5-10 อันดับแรก")
+    sector_allocation = models.JSONField(null=True, blank=True, help_text="สัดส่วนกลุ่มอุตสาหกรรม เช่น พลังงาน 20%, แบงก์ 15%")
+
+    # --- Currency & Global Impact ---
+    is_hedged = models.BooleanField(default=False)
+    hedging_policy = models.TextField(blank=True, help_text="นโยบายป้องกันความเสี่ยงค่าเงินแบบละเอียด")
+    currency_hedging = models.CharField(max_length=50, blank=True, help_text="None/Partial/Fully/Discretionary")
+
+    # --- Performance Metrics ---
+    benchmark = models.TextField(blank=True)
+    dividend_policy = models.BooleanField(default=False, verbose_name="นโยบายจ่ายปันผล")
+
+    # --- Metadata ---
+    factsheet_file = models.FileField(upload_to='fact_sheets/', null=True, blank=True, verbose_name="ไฟล์ Fund Fact Sheet (PDF)")
+    factsheet_url = models.URLField(max_length=500, blank=True, null=True, verbose_name="ลิงก์ Fund Fact Sheet (URL)")
+    as_of_date = models.DateField(null=True, blank=True, help_text="ข้อมูลใน Fact Sheet นี้เป็นข้อมูล ณ วันที่เท่าไหร่")
+    
+    ai_analysis_status = models.CharField(max_length=20, default='PENDING', choices=[
+        ('PENDING', 'Pending'),
+        ('PROCESSING', 'Processing'),
+        ('SUCCESS', 'Success'),
+        ('FAILED', 'Failed'),
+    ])
+    ai_error_message = models.TextField(blank=True, null=True)
+    
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Fund Fact Sheet"
+        verbose_name_plural = "Fund Fact Sheets"
+        ordering = ['-as_of_date', '-created_at']
+
+    def __str__(self):
+        return f"{self.fund_code} - {self.fund_name_th or 'Unknown Fund'}"

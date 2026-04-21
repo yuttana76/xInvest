@@ -4,6 +4,11 @@ from django.urls import path
 from django.shortcuts import redirect
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
+from django.http import JsonResponse
+from django.utils.html import format_html
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .models import FundProfile, FundPerformance, AssetAllocation, TopHolding, CustomerIndividual
 from invest.models import Investor, InvestorAccount
@@ -15,7 +20,7 @@ class CustomerIndividualResource(resources.ModelResource):
 @admin.register(CustomerIndividual)
 class CustomerIndividualAdmin(ImportExportModelAdmin):
     resource_class = CustomerIndividualResource
-    list_display = ('card_number', 'en_first_name', 'en_last_name', 'th_first_name', 'mobile_number', 'email', 'suitability_risk_level', 'profile_status','created_at','updated_at')
+    list_display = ('card_number', 'en_first_name', 'en_last_name', 'th_first_name', 'mobile_number', 'email', 'suitability_risk_level', 'profile_status', 'sync_profile_link', 'created_at', 'updated_at')
     search_fields = ('card_number', 'en_first_name', 'en_last_name', 'th_first_name', 'email')
     list_filter = ('profile_status', 'suitability_risk_level', 'investor_type')
     change_list_template = "admin/stt_fundconnext/customerindividual/change_list.html"
@@ -90,17 +95,58 @@ class CustomerIndividualAdmin(ImportExportModelAdmin):
         urls = super().get_urls()
         custom_urls = [
             path('run-etl-customer-individual/', self.admin_site.admin_view(self.run_etl_customer_individual_view), name='run_etl_customer_individual'),
+            path('sync-profile/<str:card_number>/', self.admin_site.admin_view(self.sync_profile_view), name='sync_customer_profile'),
         ]
         return custom_urls + urls
 
+    def sync_profile_view(self, request, card_number):
+        from django.urls import reverse
+        from .tasks import sync_fundconnext_individual_profile
+
+        # Guard against invalid card numbers or accidentally captured admin paths like 'change'
+        if not card_number or card_number == 'change':
+            logger.warning(f"Invalid card number detected in sync view: {card_number}")
+            self.message_user(request, f"Invalid card number: {card_number}", level='warning')
+            return redirect(reverse('admin:stt_fundconnext_customerindividual_changelist'))
+
+        try:
+            # Trigger Celery task asynchronously
+            sync_fundconnext_individual_profile.delay(card_number)
+            self.message_user(request, f"Sync task for {card_number} has been triggered successfully.", level='info')
+            return redirect(reverse('admin:stt_fundconnext_customerindividual_changelist'))
+        except Exception as e:
+            # More descriptive error logging
+            logger.error(f"Admin Sync Trigger Error for card {card_number}: {e}")
+            self.message_user(request, f"Error triggering sync for {card_number}: {e}", level='error')
+            return redirect(reverse('admin:stt_fundconnext_customerindividual_changelist'))
+
+    def sync_profile_link(self, obj):
+        from django.urls import reverse
+        url = reverse('admin:sync_customer_profile', args=[obj.card_number])
+        return format_html('<a class="button" href="{}">Sync Profile</a>', url)
+    sync_profile_link.short_description = 'Sync FC Profile'
+
     def run_etl_customer_individual_view(self, request):
         from .tasks import run_daily_fundconnext_etl_customer_individual
+        from django.template.response import TemplateResponse
         
-        # Trigger the task asynchronously
-        run_daily_fundconnext_etl_customer_individual.delay()
+        if request.method == 'POST':
+            business_date = request.POST.get('business_date')
+            if business_date:
+                # Trigger the task asynchronously with the specified date
+                run_daily_fundconnext_etl_customer_individual.delay(business_date)
+                self.message_user(request, f"Task 'run_daily_fundconnext_etl_customer_individual' triggered for date: {business_date}")
+                return redirect("..")
         
-        self.message_user(request, "Task 'run_daily_fundconnext_etl_customer_individual' has been triggered in the background to fetch Customer Individuals.")
-        return redirect("..")
+        from datetime import datetime, timedelta
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+        context = {
+            **self.admin_site.each_context(request),
+            'opts': self.model._meta,
+            'title': 'Run ETL Customer Individuals',
+            'default_date': yesterday,
+        }
+        return TemplateResponse(request, "admin/stt_fundconnext/run_etl_form.html", context)
 
 class FundProfileResource(resources.ModelResource):
     class Meta:
@@ -123,12 +169,25 @@ class FundProfileAdmin(ImportExportModelAdmin):
 
     def run_etl_fund_profile_view(self, request):
         from .tasks import run_daily_fundconnext_etl_fund_profile
+        from django.template.response import TemplateResponse
         
-        # Trigger the task asynchronously
-        run_daily_fundconnext_etl_fund_profile.delay()
+        if request.method == 'POST':
+            business_date = request.POST.get('business_date')
+            if business_date:
+                # Trigger the task asynchronously with the specified date
+                run_daily_fundconnext_etl_fund_profile.delay(business_date)
+                self.message_user(request, f"Task 'run_daily_fundconnext_etl_fund_profile' triggered for date: {business_date}")
+                return redirect("..")
         
-        self.message_user(request, "Task 'run_daily_fundconnext_etl_fund_profile' has been triggered in the background to fetch Fund Profiles.")
-        return redirect("..")
+        from datetime import datetime, timedelta
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+        context = {
+            **self.admin_site.each_context(request),
+            'opts': self.model._meta,
+            'title': 'Run ETL Fund Profiles',
+            'default_date': yesterday,
+        }
+        return TemplateResponse(request, "admin/stt_fundconnext/run_etl_form.html", context)
 
 class FundPerformanceResource(resources.ModelResource):
     class Meta:
@@ -150,12 +209,25 @@ class FundPerformanceAdmin(ImportExportModelAdmin):
 
     def run_etl_fund_performance_view(self, request):
         from .tasks import run_daily_fundconnext_etl_fund_performance
+        from django.template.response import TemplateResponse
         
-        # Trigger the task asynchronously
-        run_daily_fundconnext_etl_fund_performance.delay()
+        if request.method == 'POST':
+            business_date = request.POST.get('business_date')
+            if business_date:
+                # Trigger the task asynchronously with the specified date
+                run_daily_fundconnext_etl_fund_performance.delay(business_date)
+                self.message_user(request, f"Task 'run_daily_fundconnext_etl_fund_performance' triggered for date: {business_date}")
+                return redirect("..")
         
-        self.message_user(request, "Task 'run_daily_fundconnext_etl_fund_performance' has been triggered in the background to fetch Fund Performances.")
-        return redirect("..")
+        from datetime import datetime, timedelta
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+        context = {
+            **self.admin_site.each_context(request),
+            'opts': self.model._meta,
+            'title': 'Run ETL Fund Performance',
+            'default_date': yesterday,
+        }
+        return TemplateResponse(request, "admin/stt_fundconnext/run_etl_form.html", context)
 
 class AssetAllocationResource(resources.ModelResource):
     class Meta:
@@ -178,12 +250,25 @@ class AssetAllocationAdmin(ImportExportModelAdmin):
 
     def run_etl_asset_allocation_view(self, request):
         from .tasks import run_daily_fundconnext_etl_asset_allocation
+        from django.template.response import TemplateResponse
         
-        # Trigger the task asynchronously
-        run_daily_fundconnext_etl_asset_allocation.delay()
+        if request.method == 'POST':
+            business_date = request.POST.get('business_date')
+            if business_date:
+                # Trigger the task asynchronously with the specified date
+                run_daily_fundconnext_etl_asset_allocation.delay(business_date)
+                self.message_user(request, f"Task 'run_daily_fundconnext_etl_asset_allocation' triggered for date: {business_date}")
+                return redirect("..")
         
-        self.message_user(request, "Task 'run_daily_fundconnext_etl_asset_allocation' has been triggered in the background to fetch Asset Allocations.")
-        return redirect("..")
+        from datetime import datetime, timedelta
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+        context = {
+            **self.admin_site.each_context(request),
+            'opts': self.model._meta,
+            'title': 'Run ETL Asset Allocation',
+            'default_date': yesterday,
+        }
+        return TemplateResponse(request, "admin/stt_fundconnext/run_etl_form.html", context)
 
 class TopHoldingResource(resources.ModelResource):
     class Meta:
@@ -206,10 +291,23 @@ class TopHoldingAdmin(ImportExportModelAdmin):
 
     def run_etl_top_holding_view(self, request):
         from .tasks import run_daily_fundconnext_etl_top_holding
+        from django.template.response import TemplateResponse
         
-        # Trigger the task asynchronously
-        run_daily_fundconnext_etl_top_holding.delay()
+        if request.method == 'POST':
+            business_date = request.POST.get('business_date')
+            if business_date:
+                # Trigger the task asynchronously with the specified date
+                run_daily_fundconnext_etl_top_holding.delay(business_date)
+                self.message_user(request, f"Task 'run_daily_fundconnext_etl_top_holding' triggered for date: {business_date}")
+                return redirect("..")
         
-        self.message_user(request, "Task 'run_daily_fundconnext_etl_top_holding' has been triggered in the background to fetch Top Holdings.")
-        return redirect("..")
+        from datetime import datetime, timedelta
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+        context = {
+            **self.admin_site.each_context(request),
+            'opts': self.model._meta,
+            'title': 'Run ETL Top Holding',
+            'default_date': yesterday,
+        }
+        return TemplateResponse(request, "admin/stt_fundconnext/run_etl_form.html", context)
 

@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django import forms
 from django.shortcuts import redirect
-from .models import FundAnalysis, AIInsight, NewsArticle
+from .models import FundAnalysis, AIInsight, NewsArticle, FundFactSheet
+from import_export.admin import ImportExportModelAdmin
 
 
 @admin.register(FundAnalysis)
@@ -62,7 +63,7 @@ class NewsArticleAdmin(admin.ModelAdmin):
         'author', 'ai_impact_level', 'ai_sentiment_score',
         'fund_supervisor_approve', 'published_status',
     )
-    actions = ['analyze_with_ai']
+    actions = ['analyze_with_ai', 'analyze_with_langgraph']
     list_filter = ('fund_supervisor_approve', 'published_status', 'ai_impact_level', 'source')
     search_fields = ('title', 'source', 'content', 'related_funds__fundCode')
     readonly_fields = ('fund_supervisor_approve_at', 'published_at')
@@ -112,3 +113,64 @@ class NewsArticleAdmin(admin.ModelAdmin):
         for article in queryset:
             analyze_news_article_task.delay(article.id)
         self.message_user(request, f"Triggered AI analysis for {queryset.count()} articles.")
+
+    @admin.action(description="Analyze selected articles with LangGraph")
+    def analyze_with_langgraph(self, request, queryset):
+        from .tasks import analyze_news_langgraph_task
+        for article in queryset:
+            analyze_news_langgraph_task.delay(article.id)
+        self.message_user(request, f"Triggered LangGraph analysis for {queryset.count()} articles.")
+
+
+@admin.register(FundFactSheet)
+class FundFactSheetAdmin(ImportExportModelAdmin):
+    list_display = ('fund_code', 'fund_category', 'risk_level', 'as_of_date', 'ai_analysis_status', 'updated_at')
+    search_fields = ('fund_code', 'fund_name_th')
+    list_filter = ('ai_analysis_status', 'risk_level', 'investment_strategy')
+    readonly_fields = ('created_at', 'updated_at', 'ai_error_message')
+    actions = ['analyze_factsheet_with_ai']
+
+    fieldsets = (
+        ('Fund Information', {
+            'fields': (
+                'fund_code', 'fund_name_th', 'sec_proj_id', 
+                'risk_level', 'fund_category', 'investment_strategy'
+            )
+        }),
+        ('PDF Document', {
+            'fields': ('factsheet_file', 'factsheet_url','prompt_val', 'as_of_date')
+        }),
+        ('Extracted Strategy & Context', {
+            'fields': ('benchmark', 'dividend_policy', 'is_hedged', 'hedging_policy', 'currency_hedging')
+        }),
+        ('Extracted Data (JSON)', {
+            'fields': ('holdings_data', 'sector_allocation')
+        }),
+        ('AI Analysis Status', {
+            'fields': ('ai_analysis_status', 'ai_error_message')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        is_new = not obj.pk
+        # Check if file or url changed
+        file_changed = 'factsheet_file' in form.changed_data
+        url_changed = 'factsheet_url' in form.changed_data
+        
+        super().save_model(request, obj, form, change)
+        
+        # Trigger AI analysis if it's new and has data, or if data changed
+        if (is_new or file_changed or url_changed) and (obj.factsheet_file or obj.factsheet_url):
+            from .tasks import analyze_factsheet_task
+            analyze_factsheet_task.delay(obj.id)
+            self.message_user(request, f"AI analysis task triggered for {obj.fund_code}")
+
+    @admin.action(description="Analyze selected Fact Sheets with AI")
+    def analyze_factsheet_with_ai(self, request, queryset):
+        from .tasks import analyze_factsheet_task
+        for factsheet in queryset:
+            analyze_factsheet_task.delay(factsheet.id)
+        self.message_user(request, f"Triggered AI analysis for {queryset.count()} fact sheets.")

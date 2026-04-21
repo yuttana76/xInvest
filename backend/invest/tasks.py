@@ -139,3 +139,32 @@ def run_daily_fundconnext_etl_current_mf_balance(business_date_str=None):
         logger.error(f"FundConnext ETL process failed: {e}")
         return {"status": "error", "message": str(e), "business_date": business_date_str}
 
+@shared_task
+def send_investor_statement_report(investor_id):
+    """
+    Generates an encrypted statement report PDF and sends it to the investor's email.
+    """
+    from .models import Investor
+    from .services.report_service import ReportService
+    
+    try:
+        investor = Investor.objects.get(id=investor_id)
+        logger.info(f"Generating statement report (PDF) for investor: {investor.custCode}")
+        
+        report_service = ReportService()
+        success, message = report_service.send_statement_report(investor)
+        
+        if success:
+            logger.info(f"Successfully sent statement report to {investor.custCode}")
+            return {"status": "success", "investor": investor.custCode}
+        else:
+            logger.error(f"Failed to send statement report for investor {investor.custCode}: {message}")
+            return {"status": "error", "message": message}
+            
+    except Investor.DoesNotExist:
+        logger.error(f"Investor with id {investor_id} does not exist")
+        return {"status": "error", "message": "Investor not found"}
+    except Exception as e:
+        logger.error(f"Failed to send statement report for investor {investor_id}: {e}")
+        return {"status": "error", "message": str(e)}
+

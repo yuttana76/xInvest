@@ -1,4 +1,5 @@
 import io
+import requests
 import zipfile
 import logging
 from decimal import Decimal
@@ -11,6 +12,133 @@ from .models import FundProfile
 logger = logging.getLogger(__name__)
 
 class STTFundConnextService(FundConnextService):
+    def get_api_customer_individual_investor_profile_v5(self, cardNumber, allAccount=True):
+        """
+        API url is get_api_customer_individual_investor_profile_v5 method GET 
+        parameter is cardNumber(As input) and allAccount=true.
+        Important use API PATH /Authorize same as FundProfile download
+        """
+        # Guard against invalid card numbers like 'change' or empty strings
+        if not cardNumber or cardNumber == 'change':
+            raise ValueError(f"Invalid cardNumber: {cardNumber}")
+
+        token = self.login()
+        # Based on user instruction: "use API PATH /Authorize"
+        # url = f"{self.base_url}/api/v5/CustomerIndividual/Authorize"
+        # 'https://stage.fundconnext.com/api/customer/individual/investor/profile/v5?allAccount=true'
+        url = f"{self.base_url}/api/customer/individual/investor/profile/v5"
+
+        headers = {
+            "X-Auth-Token": token,
+            "Content-Type": "application/json"
+        }
+        params = {
+            "cardNumber": cardNumber,
+            "allAccount": "true" if allAccount else "false"
+        }
+        try:
+            logger.info(f"* url: {url}")
+            logger.info(f"* headers: {headers}")
+            logger.info(f"* params: {params}")
+
+            response = requests.get(url, headers=headers, params=params)
+
+            
+            if response.status_code != 200:
+                logger.error(f"API Error Response: {response.status_code} - {response.text}")
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to get customer profile for card {cardNumber}: {e}")
+            raise
+
+    def sync_customer_individual(self, item):
+        """
+        Synchronizes a single customer individual record from a JSON dictionary.
+        Returns (object, created)
+        """
+        from stt_fundconnext.models import CustomerIndividual
+        
+        card_number = item.get('cardNumber')
+        if not card_number:
+            raise ValueError("Item missing cardNumber")
+
+        # Map JSON keys to model fields
+        defaults = {
+            'identification_card_type': item.get('identificationCardType'),
+            'card_expiry_date': item.get('cardExpiryDate'),
+            'accompanying_document': item.get('accompanyingDocument'),
+            'title': item.get('title'),
+            'title_other': item.get('titleOther'),
+            'en_first_name': item.get('enFirstName'),
+            'en_last_name': item.get('enLastName'),
+            'th_first_name': item.get('thFirstName'),
+            'th_last_name': item.get('thLastName'),
+            'birth_date': item.get('birthDate'),
+            'nationality': item.get('nationality'),
+            'mobile_number': item.get('mobileNumber'),
+            'email': item.get('email'),
+            'phone': item.get('phone'),
+            'fax': item.get('fax'),
+            'marital_status': item.get('maritalStatus'),
+            'spouse': item.get('spouse'),
+            'occupation_id': item.get('occupationId'),
+            'occupation_other': item.get('occupationOther'),
+            'business_type_id': item.get('businessTypeId'),
+            'business_type_other': item.get('businessTypeOther'),
+            'company_name': item.get('companyName'),
+            'work_position': item.get('workPosition'),
+            'monthly_income_level': item.get('monthlyIncomeLevel'),
+            'asset_value': item.get('assetValue'),
+            'income_source': item.get('incomeSource'),
+            'income_source_other': item.get('incomeSourceOther'),
+            'income_source_country': item.get('incomeSourceCountry'),
+            'related_political_person': bool(item.get('relatedPoliticalPerson')),
+            'political_related_person_position': item.get('politicalRelatedPersonPosition'),
+            'can_accept_fx_risk': bool(item.get('canAcceptFxRisk')),
+            'can_accept_derivative_investment': bool(item.get('canAcceptDerivativeInvestment')),
+            'suitability_risk_level': item.get('suitabilityRiskLevel'),
+            'suitability_evaluation_date': item.get('suitabilityEvaluationDate'),
+            'fatca': bool(item.get('fatca')),
+            'fatca_declaration_date': item.get('fatcaDeclarationDate'),
+            'cdd_score': item.get('cddScore'),
+            'cdd_date': item.get('cddDate'),
+            'referral_person': item.get('referralPerson'),
+            'application_date': item.get('applicationDate'),
+            'accepted_by': item.get('acceptedBy'),
+            'open_fund_connext_form_flag': item.get('openFundConnextFormFlag'),
+            'approved_date': item.get('approvedDate'),
+            'approved_date_time': item.get('approvedDateTime'),
+            'open_channel': item.get('openChannel'),
+            'investor_class': item.get('investorClass'),
+            'vulnerable_flag': bool(item.get('vulnerableFlag')),
+            'vulnerable_detail': item.get('vulnerableDetail'),
+            'ndid_flag': bool(item.get('ndidFlag')),
+            'ndid_request_id': item.get('ndidRequestId'),
+            'investor_type': item.get('investorType'),
+            'knowledge_assessment_result': bool(item.get('knowledgeAssessmentResult')),
+            'profile_status': item.get('profileStatus'),
+            'crs_place_of_birth_country': item.get('crsPlaceOfBirthCountry'),
+            'crs_place_of_birth_city': item.get('crsPlaceOfBirthCity'),
+            'crs_tax_residence_in_countries_other_than_the_us': bool(item.get('crsTaxResidenceInCountriesOtherThanTheUS')),
+            'crs_declaration_date': item.get('crsDeclarationDate'),
+            'identity_verification_date_time': item.get('identityVerificationDateTime'),
+            'dopa_verification_date_time': item.get('dopaVerificationDateTime'),
+            'current_address_same_as_flag': item.get('currentAddressSameAsFlag'),
+            # JSONFields
+            'identification_document': item.get('identificationDocument'),
+            'current_address': item.get('current'),
+            'work_address': item.get('work'),
+            'suitability_form': item.get('suitabilityForm'),
+            'knowledge_assessment_form': item.get('knowledgeAssessmentForm'),
+            'crs_details': item.get('crsDetails'),
+            'accounts': item.get('accounts'),
+        }
+
+        return CustomerIndividual.objects.update_or_create(
+            card_number=card_number,
+            defaults=defaults
+        )
 
     def process_fund_profile(self, zip_content):
         logger.info('* Welcome to Fund Profile ETL')
@@ -330,82 +458,8 @@ class STTFundConnextService(FundConnextService):
             if not card_number:
                 continue
             
-            # Map JSON keys to model fields
-            defaults = {
-                'identification_card_type': item.get('identificationCardType'),
-                'card_expiry_date': item.get('cardExpiryDate'),
-                'accompanying_document': item.get('accompanyingDocument'),
-                'title': item.get('title'),
-                'title_other': item.get('titleOther'),
-                'en_first_name': item.get('enFirstName'),
-                'en_last_name': item.get('enLastName'),
-                'th_first_name': item.get('thFirstName'),
-                'th_last_name': item.get('thLastName'),
-                'birth_date': item.get('birthDate'),
-                'nationality': item.get('nationality'),
-                'mobile_number': item.get('mobileNumber'),
-                'email': item.get('email'),
-                'phone': item.get('phone'),
-                'fax': item.get('fax'),
-                'marital_status': item.get('maritalStatus'),
-                'spouse': item.get('spouse'),
-                'occupation_id': item.get('occupationId'),
-                'occupation_other': item.get('occupationOther'),
-                'business_type_id': item.get('businessTypeId'),
-                'business_type_other': item.get('businessTypeOther'),
-                'company_name': item.get('companyName'),
-                'work_position': item.get('workPosition'),
-                'monthly_income_level': item.get('monthlyIncomeLevel'),
-                'asset_value': item.get('assetValue'),
-                'income_source': item.get('incomeSource'),
-                'income_source_other': item.get('incomeSourceOther'),
-                'income_source_country': item.get('incomeSourceCountry'),
-                'related_political_person': bool(item.get('relatedPoliticalPerson')),
-                'political_related_person_position': item.get('politicalRelatedPersonPosition'),
-                'can_accept_fx_risk': bool(item.get('canAcceptFxRisk')),
-                'can_accept_derivative_investment': bool(item.get('canAcceptDerivativeInvestment')),
-                'suitability_risk_level': item.get('suitabilityRiskLevel'),
-                'suitability_evaluation_date': item.get('suitabilityEvaluationDate'),
-                'fatca': bool(item.get('fatca')),
-                'fatca_declaration_date': item.get('fatcaDeclarationDate'),
-                'cdd_score': item.get('cddScore'),
-                'cdd_date': item.get('cddDate'),
-                'referral_person': item.get('referralPerson'),
-                'application_date': item.get('applicationDate'),
-                'accepted_by': item.get('acceptedBy'),
-                'open_fund_connext_form_flag': item.get('openFundConnextFormFlag'),
-                'approved_date': item.get('approvedDate'),
-                'approved_date_time': item.get('approvedDateTime'),
-                'open_channel': item.get('openChannel'),
-                'investor_class': item.get('investorClass'),
-                'vulnerable_flag': bool(item.get('vulnerableFlag')),
-                'vulnerable_detail': item.get('vulnerableDetail'),
-                'ndid_flag': bool(item.get('ndidFlag')),
-                'ndid_request_id': item.get('ndidRequestId'),
-                'investor_type': item.get('investorType'),
-                'knowledge_assessment_result': bool(item.get('knowledgeAssessmentResult')),
-                'profile_status': item.get('profileStatus'),
-                'crs_place_of_birth_country': item.get('crsPlaceOfBirthCountry'),
-                'crs_place_of_birth_city': item.get('crsPlaceOfBirthCity'),
-                'crs_tax_residence_in_countries_other_than_the_us': bool(item.get('crsTaxResidenceInCountriesOtherThanTheUS')),
-                'crs_declaration_date': item.get('crsDeclarationDate'),
-                'identity_verification_date_time': item.get('identityVerificationDateTime'),
-                'dopa_verification_date_time': item.get('dopaVerificationDateTime'),
-                'current_address_same_as_flag': item.get('currentAddressSameAsFlag'),
-                # JSONFields
-                'identification_document': item.get('identificationDocument'),
-                'current_address': item.get('current'),
-                'work_address': item.get('work'),
-                'suitability_form': item.get('suitabilityForm'),
-                'knowledge_assessment_form': item.get('knowledgeAssessmentForm'),
-                'crs_details': item.get('crsDetails'),
-                'accounts': item.get('accounts'),
-            }
 
-            obj, created = CustomerIndividual.objects.update_or_create(
-                card_number=card_number,
-                defaults=defaults
-            )
+            obj, created = self.sync_customer_individual(item)
             if created:
                 count_created += 1
             else:

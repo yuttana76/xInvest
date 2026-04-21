@@ -24,3 +24,6 @@ flower
 django-redis
 openpyxl
 graphene-django
+langgraph
+reportlab
+pypdf

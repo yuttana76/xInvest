@@ -223,3 +223,25 @@ def run_daily_fundconnext_etl_customer_individual(business_date_str=None):
     except Exception as e:
         logger.error(f"FundConnext CustomerIndividual ETL process failed: {e}")
         return {"status": "error", "message": str(e), "business_date": business_date_str}
+@shared_task
+def sync_fundconnext_individual_profile(card_number):
+    """
+    Syncs a single customer profile from FundConnext.
+    """
+    logger.info(f"Starting async sync for card: {card_number}")
+    fnc_service = STTFundConnextService()
+    try:
+        profile_data = fnc_service.get_api_customer_individual_investor_profile_v5(card_number)
+        
+        # Sync to local database
+        # If we get here, profile_data is the JSON from FundConnext
+        # The API usually returns a list or a single dict
+        items = profile_data if isinstance(profile_data, list) else [profile_data]
+        for item in items:
+            fnc_service.sync_customer_individual(item)
+        
+        logger.info(f"Async sync completed for card: {card_number}")
+        return {"status": "success", "card_number": card_number}
+    except Exception as e:
+        logger.error(f"Async sync failed for card {card_number}: {e}")
+        return {"status": "error", "message": str(e), "card_number": card_number}

@@ -111,6 +111,7 @@ class NewsAIService:
                 
                 # Step 1: Generate response from LLM
                 prompt_val = self.prompt.invoke({"title": title, "content": processed_content})
+                logger.info(f"Prompt: {prompt_val}")
                 raw_response = self.llm.invoke(prompt_val)
                 
                 # Log raw response content
@@ -119,7 +120,7 @@ class NewsAIService:
                     # Handle multi-part content
                     content_str = " ".join([part.get("text", "") if isinstance(part, dict) else str(part) for part in content_str])
                 
-                logger.info(f"Raw AI Response from {current_model}: {content_str[:200]}...")
+                # logger.info(f"Raw AI Response from {current_model}: {content_str[:200]}...")
                 
                 if not content_str:
                     logger.warning(f"Empty content received from {current_model}")
@@ -150,4 +151,117 @@ class NewsAIService:
                     continue
                     
         logger.error("All AI analysis models failed or quota exhausted.")
+        return None
+
+class FactSheetAnalysisResult(BaseModel):
+    fund_code: str = Field(description="รหัสย่อกองทุน")
+    fund_name_th: str = Field(description="ชื่อเต็มกองทุนภาษาไทย")
+    risk_level: int = Field(description="ระดับความเสี่ยง (เลข 1-8)")
+    fund_category: str = Field(description="ประเภทกลุ่มกองทุน ")
+    investment_strategy: str = Field(description="กลยุทธ์การลงทุน (Active หรือ Passive)")
+    top_5_holdings: List[dict] = Field(description="รายชื่อสินทรัพย์ 5 อันดับแรก (name, ticker, ratio)")
+    sector_allocation: List[dict] = Field(description="สัดส่วนกลุ่มอุตสาหกรรม 5 อันดับแรก (sector_name, ratio)")
+    currency_hedging: str = Field(description="นโยบายการป้องกันความเสี่ยงค่าเงิน (None/Partial/Fully/Discretionary)")
+    benchmark: str = Field(description="ดัชนีชี้วัดที่ใช้เปรียบเทียบ")
+    as_of_date: str = Field(description="วันที่ของข้อมูลพอร์ตล่าสุด (YYYY-MM-DD)")
+
+class FactSheetAIService:
+    def __init__(self):
+        # Reuse existing LLM setup logic from NewsAIService
+        news_service = NewsAIService()
+        self.llm = news_service.llm
+        self.parser = PydanticOutputParser(pydantic_object=FactSheetAnalysisResult)
+        
+        self.system_prompt = (
+            "คุณคือนักวิเคราะห์ข้อมูลการเงินที่มีหน้าที่สกัดข้อมูลจาก PDF Fund Fact Sheet ของกองทุนไทย "
+            "กรุณาอ่านเอกสารที่แนบมาและตอบกลับเป็นรูปแบบ JSON บริสุทธิ์ (Pure JSON) เท่านั้น "
+            "ห้ามมีข้อความเกริ่นนำหรือคำอธิบายเพิ่มเติม ข้อมูลต้องแม่นยำตามที่ปรากฏในเอกสาร"
+        )
+        
+        self.user_prompt_template = (
+            "วิเคราะห์ไฟล์ PDF นี้และสกัดข้อมูลเข้าสู่โครงสร้าง JSON ดังนี้:\n\n"
+            "1. fund_code: รหัสย่อกองทุน\n"
+            "2. fund_name_th: ชื่อเต็มกองทุนภาษาไทย\n"
+            "3. risk_level: ระดับความเสี่ยง (เลข 1-8)\n"
+            "4. fund_category: ประเภทกลุ่มกองทุน\n"
+            "5. investment_strategy: กลยุทธ์การลงทุน (ตอบเฉพาะ \"Active\" หรือ \"Passive\")\n"
+            "6. top_5_holdings: รายชื่อสินทรัพย์ 5 อันดับแรก (ระบุ name, ticker ถ้ามี, และ ratio เป็นตัวเลข %)\n"
+            "7. sector_allocation: สัดส่วนกลุ่มอุตสาหกรรม 5 อันดับแรก (ระบุ sector_name และ ratio %)\n"
+            "8. currency_hedging: นโยบายการป้องกันความเสี่ยงค่าเงิน (None/Partial/Fully/Discretionary)\n"
+            "9. benchmark: ดัชนีชี้วัดที่ใช้เปรียบเทียบ\n"
+            "10. as_of_date: วันที่ของข้อมูลพอร์ตล่าสุดในเอกสาร (รูปแบบ YYYY-MM-DD)\n\n"
+            "{format_instructions}\n\n"
+            "Content from PDF:\n{pdf_text}"
+        )
+        
+        self.prompt = ChatPromptTemplate.from_messages([
+            ("system", self.system_prompt),
+            ("user", self.user_prompt_template)
+        ]).partial(format_instructions=self.parser.get_format_instructions())
+
+    def extract_text_from_pdf(self, pdf_file_path: str) -> str:
+        """Extract text from PDF using pypdf."""
+        try:
+            logger.info(f"*AI extract_text_from_pdf() PDF: {pdf_file_path}")
+            from pypdf import PdfReader
+            reader = PdfReader(pdf_file_path)
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text() + "\n"
+            return text
+        except Exception as e:
+            logger.error(f"Error extracting text from PDF: {e}")
+            return ""
+
+    def analyze_factsheet(self, pdf_file_path: str) -> Optional[FactSheetAnalysisResult]:
+        """Analyzes a Fund Fact Sheet PDF and returns the extracted data."""
+        logger.info(f"*AI analyze_factsheet() PDF: {pdf_file_path}")
+        if not self.llm:
+            logger.error("LLM not initialized")
+            return None
+            
+        pdf_text = self.extract_text_from_pdf(pdf_file_path)
+        if not pdf_text:
+            logger.error("Failed to extract text from PDF")
+            return None
+            
+        # List of models to try if the first one fails
+        models_to_try = [self.llm.model]
+        for m in ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-pro", "gemini-2.0-flash"]:
+            if m not in models_to_try:
+                models_to_try.append(m)
+
+        for current_model in models_to_try:
+            try:
+                # Update LLM if retrying
+                if self.llm.model != current_model:
+                    logger.info(f"Retrying factsheet analysis with fallback model: {current_model}")
+                    self.llm.model = current_model
+
+                # Token optimization
+                max_chars = 30000 
+                processed_text = pdf_text
+                if len(processed_text) > max_chars:
+                    processed_text = processed_text[:max_chars] + "..."
+                    
+                prompt_val = self.prompt.invoke({"pdf_text": processed_text})
+                raw_response = self.llm.invoke(prompt_val)
+                
+                content_str = raw_response.content
+                if isinstance(content_str, list):
+                    content_str = " ".join([part.get("text", "") if isinstance(part, dict) else str(part) for part in content_str])
+                
+                logger.info(f"** Raw FactSheet AI Response from {current_model}: {content_str[:200]}...")
+                
+                return self.parser.parse(content_str)
+            except Exception as e:
+                error_msg = str(e)
+                if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                    logger.warning(f"Quota exceeded (429) for model {current_model} during factsheet analysis. Trying next fallback...")
+                    continue
+                else:
+                    logger.error(f"Unexpected error during FactSheet AI analysis with {current_model}: {e}")
+                    continue
+                    
+        logger.error("All AI analysis models failed or quota exhausted for factsheet analysis.")
         return None

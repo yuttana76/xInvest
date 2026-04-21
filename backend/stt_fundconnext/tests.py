@@ -124,3 +124,65 @@ class CustomerIndividualETLTest(TestCase):
         self.assertEqual(acc.status, "Active")
         self.assertEqual(acc.icLicense, "IC123")
         self.assertEqual(acc.openDate.strftime("%Y%m%d"), "20260409")
+    def test_get_api_customer_individual_investor_profile_v5(self):
+        from unittest.mock import patch, MagicMock
+        
+        with patch('requests.get') as mock_get:
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {"status": "success", "data": self.sample_customer}
+            mock_get.return_value = mock_response
+            
+            with patch.object(self.service, 'login', return_value="mock_token"):
+                result = self.service.get_api_customer_individual_investor_profile_v5("1234567890123")
+                
+                self.assertEqual(result["status"], "success")
+                self.assertEqual(result["data"]["cardNumber"], "1234567890123")
+                
+                # Check call
+                args, kwargs = mock_get.call_args
+                self.assertIn("/api/customer/individual/investor/profile/v5", args[0])
+                self.assertEqual(kwargs['headers']['X-Auth-Token'], "mock_token")
+                self.assertEqual(kwargs['params']['cardNumber'], "1234567890123")
+                self.assertEqual(kwargs['params']['allAccount'], "true")
+
+    def test_sync_customer_individual(self):
+        # Initial check
+        cardNumber = "1234567890123"
+        self.assertFalse(CustomerIndividual.objects.filter(card_number=cardNumber).exists())
+        
+        # Sync
+        item = self.sample_customer.copy()
+        item['cardNumber'] = cardNumber
+        item['thFirstName'] = "UpdatedName"
+        
+        obj, created = self.service.sync_customer_individual(item)
+        
+        self.assertTrue(created)
+        self.assertEqual(obj.card_number, cardNumber)
+        self.assertEqual(obj.th_first_name, "UpdatedName")
+        
+        # Verify update
+        item['thFirstName'] = "SecondUpdate"
+        obj2, created2 = self.service.sync_customer_individual(item)
+        
+        self.assertFalse(created2)
+        self.assertEqual(obj2.id, obj.id)
+        self.assertEqual(obj2.th_first_name, "SecondUpdate")
+
+    def test_sync_profile_link(self):
+        from stt_fundconnext.admin import CustomerIndividualAdmin
+        from django.contrib.admin.sites import AdminSite
+        
+        # Setup Admin
+        site = AdminSite()
+        admin = CustomerIndividualAdmin(CustomerIndividual, site)
+        
+        ci = CustomerIndividual.objects.create(
+            card_number="1112223334445",
+            en_first_name="Jane"
+        )
+        
+        link = admin.sync_profile_link(ci)
+        self.assertIn("sync-profile/1112223334445/", link)
+        self.assertIn("Sync Profile", link)

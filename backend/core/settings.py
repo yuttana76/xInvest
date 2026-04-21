@@ -295,6 +295,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'stt_fundconnext': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     },
 }
 
