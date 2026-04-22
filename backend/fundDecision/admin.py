@@ -102,9 +102,9 @@ class NewsArticleAdmin(admin.ModelAdmin):
     def run_news_fetch_task(self, request):
         from .tasks import fetch_daily_news
 
-        count = fetch_daily_news()
+        fetch_daily_news.delay()
 
-        self.message_user(request, f"Task 'fetch_daily_news' has been executed synchronously. Fetched {count} articles.")
+        self.message_user(request, "Task 'fetch_daily_news' has been queued to run in the background. Please check the logs or refresh in a few moments.")
         return redirect("..")
 
     @admin.action(description="Analyze selected articles with AI")

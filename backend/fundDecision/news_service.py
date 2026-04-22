@@ -95,10 +95,10 @@ class NewsFetcher:
     def fetch_all(self):
         """Fetch news from all sources."""
         count = 0
-        if self.api_key:
-            count += self.fetch_from_newsapi()
+        # if self.api_key:
+        #     count += self.fetch_from_newsapi()
         
-        count += self.fetch_from_settrade()
+        # count += self.fetch_from_settrade()
         count += self.fetch_from_rss()
         return count
 
@@ -127,7 +127,7 @@ class NewsFetcher:
             articles = res.get('news_list', []) if isinstance(res, dict) else res
             
             saved_count = 0
-            for item in articles:
+            for item in articles[:10]: # Limit to 10
                 published_dt = None
                 if item.get('datetime'):
                     try:
@@ -160,7 +160,7 @@ class NewsFetcher:
             'apiKey': self.api_key,
             'category': 'business',
             'language': 'en',
-            'pageSize': 20
+            'pageSize': 10 # Limit to 10
         }
         
         try:
@@ -190,6 +190,7 @@ class NewsFetcher:
     def fetch_from_rss(self):
         """Fetch news from RSS feeds."""
         saved_count = 0
+        per_feed_limit = 10
         for feed in self.RSS_FEEDS:
             try:
                 response = requests.get(feed['url'], headers=self.headers, timeout=10)
@@ -198,21 +199,28 @@ class NewsFetcher:
                 
                 # RSS 2.0 structure: channel -> item
                 items = root.findall('.//item')
-                for item in items:
+                for item in items[:per_feed_limit]: # Limit to 10 per feed
                     title = item.find('title').text if item.find('title') is not None else ''
                     url = item.find('link').text if item.find('link') is not None else ''
                     description = item.find('description').text if item.find('description') is not None else ''
                     pub_date = item.find('pubDate').text if item.find('pubDate') is not None else None
                     
                     # Convert pubDate to ISO format if possible
-                    published_dt = None
+                    published_dt = timezone.now()
                     if pub_date:
                         try:
-                            # Basic parsing for many RSS formats: "Wed, 25 Mar 2026 05:00:00 GMT"
-                            dt = datetime.strptime(pub_date[:25].strip(), "%a, %d %b %Y %H:%M:%S")
-                            published_dt = timezone.make_aware(dt)
+                            # Use email.utils for more robust RFC 822 parsing
+                            from email.utils import parsedate_to_datetime
+                            published_dt = parsedate_to_datetime(pub_date)
+                            if timezone.is_naive(published_dt):
+                                published_dt = timezone.make_aware(published_dt)
                         except:
-                            published_dt = None
+                            try:
+                                # Fallback to basic parsing
+                                dt = datetime.strptime(pub_date[:25].strip(), "%a, %d %b %Y %H:%M:%S")
+                                published_dt = timezone.make_aware(dt)
+                            except:
+                                published_dt = timezone.now()
 
                     if self._save_article(
                         source=feed['name'],
@@ -242,11 +250,18 @@ class NewsFetcher:
             published_dt = published_at
             if published_at and isinstance(published_at, str):
                 try:
-                    published_dt = datetime.fromisoformat(published_at.replace('Z', '+00:00'))
-                    if timezone.is_naive(published_dt):
+                    # Try Django's parse_datetime which is robust for ISO formats
+                    from django.utils.dateparse import parse_datetime
+                    published_dt = parse_datetime(published_at)
+                    if published_dt and timezone.is_naive(published_dt):
                         published_dt = timezone.make_aware(published_dt)
                 except:
-                    published_dt = None
+                    try:
+                        published_dt = datetime.fromisoformat(published_at.replace('Z', '+00:00'))
+                        if timezone.is_naive(published_dt):
+                            published_dt = timezone.make_aware(published_dt)
+                    except:
+                        published_dt = None
             elif published_at and isinstance(published_at, datetime):
                 if timezone.is_naive(published_at):
                     published_dt = timezone.make_aware(published_at)

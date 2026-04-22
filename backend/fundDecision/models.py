@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
+from pgvector.django import VectorField
 
 class FundAnalysis(models.Model):  
     """เก็บค่าสถิติขั้นสูงที่ AI ต้องใช้ประมวลผล"""
@@ -167,3 +168,23 @@ class FundFactSheet(models.Model):
 
     def __str__(self):
         return f"{self.fund_code} - {self.fund_name_th or 'Unknown Fund'}"
+
+class FundDocumentChunk(models.Model):
+    """เก็บข้อมูลเนื้อหาจาก PDF แบ่งเป็นส่วนๆ เพื่อใช้ทำ RAG"""
+    fund_code = models.CharField(max_length=20, verbose_name="รหัสกองทุน")
+    content = models.TextField(verbose_name="เนื้อหา")
+    embedding = VectorField(dimensions=768, verbose_name="Vector Embedding") # dimensions=768 สำหรับ Gemini
+    page_number = models.IntegerField(null=True, blank=True, verbose_name="เลขหน้า")
+    metadata = models.JSONField(default=dict, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Fund Document Chunk"
+        verbose_name_plural = "Fund Document Chunks"
+        indexes = [
+            # การทำ HNSW index สำหรับ vector search จะต้องทำผ่าน migration แบบ manual
+        ]
+
+    def __str__(self):
+        return f"{self.fund_code} - Page {self.page_number} - {self.content[:30]}..."

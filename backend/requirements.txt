@@ -27,3 +27,7 @@ graphene-django
 langgraph
 reportlab
 pypdf
+pgvector
+langchain-postgres
+sentence-transformers
+langchain-ollama

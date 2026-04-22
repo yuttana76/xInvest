@@ -3,8 +3,12 @@ from pydantic import BaseModel, Field
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.messages import HumanMessage
 from django.conf import settings
 import logging
+import json
+import os
+from .models import FundDocumentChunk
 
 logger = logging.getLogger(__name__)
 
@@ -265,3 +269,182 @@ class FactSheetAIService:
                     
         logger.error("All AI analysis models failed or quota exhausted for factsheet analysis.")
         return None
+
+class SmartFundAIService:
+    # Class-level model cache — load once, reuse across requests
+    _model = None
+    _model_name = "intfloat/multilingual-e5-base"  # 768 dims, supports Thai
+    
+    @classmethod
+    def _get_model(cls):
+        if cls._model is None:
+            from sentence_transformers import SentenceTransformer
+            logger.info(f"Loading embedding model: {cls._model_name}")
+            cls._model = SentenceTransformer(cls._model_name)
+            logger.info(f"Embedding model loaded. Dimension: {cls._model.get_sentence_embedding_dimension()}")
+        return cls._model
+    
+    def __init__(self):
+        # Determine AI Provider from environment (default: GEMINI)
+        import os
+        ai_provider = os.environ.get('AI_PROVIDER', 'GEMINI').upper()
+        
+        if ai_provider == 'OLLAMA':
+            try:
+                from langchain_ollama import ChatOllama
+                ollama_base_url = os.environ.get('OLLAMA_BASE_URL', 'http://ollama:11434')
+                ollama_model = os.environ.get('OLLAMA_MODEL', 'llama3')
+                
+                logger.info(f"SmartFundAIService: Selecting OLLAMA provider (Model: {ollama_model}, URL: {ollama_base_url})")
+                self.llm = ChatOllama(
+                    model=ollama_model,
+                    base_url=ollama_base_url,
+                    temperature=0
+                )
+            except Exception as e:
+                logger.error(f"Error initializing Ollama: {e}. Ensure langchain-ollama is installed.")
+                self.llm = None
+        else:
+            api_key = getattr(settings, 'GEMINI_API_KEY', None)
+            if not api_key:
+                logger.error("GEMINI_API_KEY not found (needed for LLM, not embeddings)")
+                self.llm = None
+            else:
+                try:
+                    import google.generativeai as genai
+                    genai.configure(api_key=api_key)
+                    
+                    # Priority list for models
+                    priority_list = [
+                        "gemini-1.5-flash",
+                        "gemini-1.5-flash-latest",
+                        "gemini-2.0-flash",
+                        "gemini-pro",
+                        "gemini-1.5-pro",
+                    ]
+                    
+                    available_models = [m.name.replace("models/", "") for m in genai.list_models() 
+                                       if "generateContent" in m.supported_generation_methods]
+                    
+                    selected_model = None
+                    for model_candidate in priority_list:
+                        if model_candidate in available_models:
+                            selected_model = model_candidate
+                            break
+                    
+                    if not selected_model and available_models:
+                        selected_model = available_models[0]
+                    
+                    if selected_model:
+                        logger.info(f"SmartFundAIService: Selected model: {selected_model}")
+                        self.llm = ChatGoogleGenerativeAI(
+                            model=selected_model,
+                            google_api_key=api_key,
+                            temperature=0,
+                        )
+                    else:
+                        logger.error("No available Gemini models found.")
+                        self.llm = None
+                except Exception as e:
+                    logger.error(f"Error initializing LLM in SmartFundAIService: {e}")
+                    # Safe fallback
+                    self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=api_key)
+        
+        # Local embedding model (no API key needed)
+        self.model = self._get_model()
+
+    def ingest_pdf(self, fund_code: str, pdf_path: str):
+        """วิเคราะห์ PDF, แบ่งเป็นส่วนๆ และเก็บลง Vector DB (ใช้ local embedding — ไม่มี rate limit)
+        
+        Raises:
+            RuntimeError: หาก embedding ล้มเหลว (ข้อมูลเก่าจะไม่ถูกลบ)
+        """
+        logger.info(f"Ingesting PDF for fund {fund_code}: {pdf_path}")
+        
+        from pypdf import PdfReader
+        reader = PdfReader(pdf_path)
+        
+        # 1. สกัดข้อความและแบ่ง Chunk (ยังไม่ลบข้อมูลเก่า จนกว่า embed สำเร็จ)
+        all_chunks_text = []
+        all_chunks_meta = []
+        chunk_size = 1000
+        
+        for i, page in enumerate(reader.pages):
+            text = page.extract_text()
+            if not text:
+                continue
+            for start in range(0, len(text), chunk_size):
+                chunk_text = text[start:start + chunk_size + 100]
+                all_chunks_text.append(chunk_text)
+                all_chunks_meta.append({
+                    "page_number": i + 1,
+                    "source": os.path.basename(pdf_path),
+                })
+        
+        if not all_chunks_text:
+            logger.warning(f"No text extracted from PDF for {fund_code}")
+            return
+        
+        logger.info(f"Extracted {len(all_chunks_text)} chunks from PDF. Embedding locally...")
+        
+        # 2. Embed ทั้งหมดในครั้งเดียว (local — ไม่มี rate limit)
+        # E5 models ต้องเติม prefix "passage: " สำหรับ document
+        prefixed_chunks = [f"passage: {text}" for text in all_chunks_text]
+        all_vectors = self.model.encode(prefixed_chunks, show_progress_bar=True).tolist()
+        
+        logger.info(f"Embedding complete. {len(all_vectors)} vectors generated.")
+        
+        # 3. ลบข้อมูลเก่า + Bulk create ใน transaction (atomic)
+        from django.db import transaction
+        
+        chunks_to_create = [
+            FundDocumentChunk(
+                fund_code=fund_code,
+                content=all_chunks_text[i],
+                embedding=all_vectors[i],
+                page_number=all_chunks_meta[i]["page_number"],
+                metadata={"source": all_chunks_meta[i]["source"]},
+            )
+            for i in range(len(all_vectors))
+        ]
+        
+        with transaction.atomic():
+            deleted_count, _ = FundDocumentChunk.objects.filter(fund_code=fund_code).delete()
+            FundDocumentChunk.objects.bulk_create(chunks_to_create)
+        
+        logger.info(f"Successfully ingested {len(chunks_to_create)} chunks for {fund_code} (replaced {deleted_count} old chunks)")
+
+    def query_fund(self, fund_code: str, query: str):
+        """ค้นหาข้อมูลที่เกี่ยวข้องและตอบคำถามแบบ RAG"""
+        if not self.llm:
+            return "AI Service not available"
+            
+        # 1. เข้ารหัสคำถาม (E5 ต้องเติม prefix "query: " สำหรับ search query)
+        query_vector = self.model.encode(f"query: {query}").tolist()
+        
+        # 2. ค้นหา Vector (ใช้ pgvector L2 distance / Cosine similarity)
+        # Note: pgvector django wrapper allows <-> or <=> operator
+        from pgvector.django import L2Distance
+        
+        related_chunks = FundDocumentChunk.objects.filter(fund_code=fund_code).annotate(
+            distance=L2Distance('embedding', query_vector)
+        ).order_by('distance')[:5]
+        
+        if not related_chunks:
+            return "ไม่พบข้อมูลที่เกี่ยวข้องในระบบ"
+            
+        # 3. สร้าง Context
+        context = "\n\n".join([f"Source (Page {c.page_number}): {c.content}" for c in related_chunks])
+        
+        # 4. ส่งให้ LLM ตอบ
+        prompt = (
+            "คุณคือผู้ช่วยอัจฉริยะด้านการลงทุน (xInvest Smart Assistant) "
+            "กรุณาตอบคำถามของผู้ใช้งานโดยใช้ข้อมูลที่ให้มาด้านล่างนี้เท่านั้น "
+            "หากข้อมูลไม่เพียงพอ ให้ตอบว่าไม่พบข้อมูลที่ชัดเจนในเอกสาร "
+            "ระบุแหล่งที่มา (เลขหน้า) เสมอในการตอบ\n\n"
+            f"Context:\n{context}\n\n"
+            f"User Question: {query}"
+        )
+        
+        response = self.llm.invoke([HumanMessage(content=prompt)])
+        return response.content

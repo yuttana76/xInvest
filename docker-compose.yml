@@ -1,7 +1,7 @@
 # Production xInvest Compose
 services:
   db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file:

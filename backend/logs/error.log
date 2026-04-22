@@ -2266,3 +2266,7 @@ Traceback (most recent call last):
                        ^^^^^^^^^^^^^^^^^^^^^^^
 NameError: name 'FactSheetAnalysisResult' is not defined
 ERROR 2026-04-17 17:10:58,712 basehttp 15 281472399110528 "POST /admin/fundDecision/fundfactsheet/1/change/ HTTP/1.1" 500 167644
+ERROR 2026-04-22 17:06:09,169 log 14 281470015697280 Internal Server Error: /api/v1/fundDecision/chat/
+ERROR 2026-04-22 17:06:09,172 basehttp 14 281470015697280 "POST /api/v1/fundDecision/chat/ HTTP/1.1" 500 323
+ERROR 2026-04-22 17:13:59,767 log 59 281469104419200 Internal Server Error: /api/v1/fundDecision/chat/
+ERROR 2026-04-22 17:13:59,769 basehttp 59 281469104419200 "POST /api/v1/fundDecision/chat/ HTTP/1.1" 500 1888

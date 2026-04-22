@@ -1,8 +1,9 @@
 # Development xInvest Compose
 services:
   db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     volumes:
+
       - postgres_data:/var/lib/postgresql/data
     env_file:
       - .env.dev
@@ -19,6 +20,14 @@ services:
     ports:
       - "6379:6379"
 
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: always
+
   backend:
     build: 
       context: ./backend
@@ -28,6 +37,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - huggingface_cache:/root/.cache/huggingface
     env_file:
       - .env.dev
     environment:
@@ -44,6 +54,7 @@ services:
     command: celery -A core worker -l info
     volumes:
       - ./backend:/app
+      - huggingface_cache:/root/.cache/huggingface
     env_file:
       - .env.dev
     environment:
@@ -88,7 +99,7 @@ services:
     restart: always
 
   # db_backup_on_startup:
-  #   image: postgres:15-alpine
+  #   image: ankane/pgvector:15-alpine
   #   volumes:
   #     - ./backups:/backups
   #   env_file:
@@ -143,3 +154,5 @@ services:
 volumes:
   postgres_data:
   frontend_node_modules:
+  huggingface_cache:
+  ollama_data:
