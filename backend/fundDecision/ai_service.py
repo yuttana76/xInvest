@@ -353,57 +353,129 @@ class SmartFundAIService:
         # Local embedding model (no API key needed)
         self.model = self._get_model()
 
-    def ingest_pdf(self, fund_code: str, pdf_path: str):
-        """วิเคราะห์ PDF, แบ่งเป็นส่วนๆ และเก็บลง Vector DB (ใช้ local embedding — ไม่มี rate limit)
+    # def ingest_pdf(self, fund_code: str, pdf_path: str):
+    #     """วิเคราะห์ PDF, แบ่งเป็นส่วนๆ และเก็บลง Vector DB (ใช้ local embedding — ไม่มี rate limit)
+    #     
+    #     Raises:
+    #         RuntimeError: หาก embedding ล้มเหลว (ข้อมูลเก่าจะไม่ถูกลบ)
+    #     """
+    #     logger.info(f"Ingesting PDF for fund {fund_code}: {pdf_path}")
+    #     
+    #     from pypdf import PdfReader
+    #     reader = PdfReader(pdf_path)
+    #     
+    #     # 1. สกัดข้อความและแบ่ง Chunk (ยังไม่ลบข้อมูลเก่า จนกว่า embed สำเร็จ)
+    #     all_chunks_text = []
+    #     all_chunks_meta = []
+    #     chunk_size = 1000
+    #     
+    #     for i, page in enumerate(reader.pages):
+    #         text = page.extract_text()
+    #         if not text:
+    #             continue
+    #         for start in range(0, len(text), chunk_size):
+    #             chunk_text = text[start:start + chunk_size + 100]
+    #             all_chunks_text.append(chunk_text)
+    #             all_chunks_meta.append({
+    #                 "page_number": i + 1,
+    #                 "source": os.path.basename(pdf_path),
+    #             })
+    #     
+    #     if not all_chunks_text:
+    #         logger.warning(f"No text extracted from PDF for {fund_code}")
+    #         return
+    #     
+    #     logger.info(f"Extracted {len(all_chunks_text)} chunks from PDF. Embedding locally...")
+    #     
+    #     # 2. Embed ทั้งหมดในครั้งเดียว (local — ไม่มี rate limit)
+    #     # E5 models ต้องเติม prefix "passage: " สำหรับ document
+    #     prefixed_chunks = [f"passage: {text}" for text in all_chunks_text]
+    #     all_vectors = self.model.encode(prefixed_chunks, show_progress_bar=True).tolist()
+    #     
+    #     logger.info(f"Embedding complete. {len(all_vectors)} vectors generated.")
+    #     
+    #     # 3. ลบข้อมูลเก่า + Bulk create ใน transaction (atomic)
+    #     from django.db import transaction
+    #     
+    #     chunks_to_create = [
+    #         FundDocumentChunk(
+    #             fund_code=fund_code,
+    #             content=all_chunks_text[i],
+    #             embedding=all_vectors[i],
+    #             page_number=all_chunks_meta[i]["page_number"],
+    #             metadata={"source": all_chunks_meta[i]["source"]},
+    #         )
+    #         for i in range(len(all_vectors))
+    #     ]
+    #     
+    #     with transaction.atomic():
+    #         deleted_count, _ = FundDocumentChunk.objects.filter(fund_code=fund_code).delete()
+    #         FundDocumentChunk.objects.bulk_create(chunks_to_create)
+    #     
+    #     logger.info(f"Successfully ingested {len(chunks_to_create)} chunks for {fund_code} (replaced {deleted_count} old chunks)")
+
+    def ingest_factsheet_data(self, fund_code: str):
+        """วิเคราะห์และเก็บข้อมูล FundFactSheet ลง Vector DB (ใช้ข้อมูลจาก database field แทน PDF)"""
+        logger.info(f"Ingesting factsheet data from DB fields for fund {fund_code}")
         
-        Raises:
-            RuntimeError: หาก embedding ล้มเหลว (ข้อมูลเก่าจะไม่ถูกลบ)
-        """
-        logger.info(f"Ingesting PDF for fund {fund_code}: {pdf_path}")
+        from .models import FundFactSheet, FundDocumentChunk
+        from django.db import transaction
+        import json
         
-        from pypdf import PdfReader
-        reader = PdfReader(pdf_path)
-        
-        # 1. สกัดข้อความและแบ่ง Chunk (ยังไม่ลบข้อมูลเก่า จนกว่า embed สำเร็จ)
-        all_chunks_text = []
-        all_chunks_meta = []
-        chunk_size = 1000
-        
-        for i, page in enumerate(reader.pages):
-            text = page.extract_text()
-            if not text:
-                continue
-            for start in range(0, len(text), chunk_size):
-                chunk_text = text[start:start + chunk_size + 100]
-                all_chunks_text.append(chunk_text)
-                all_chunks_meta.append({
-                    "page_number": i + 1,
-                    "source": os.path.basename(pdf_path),
-                })
-        
-        if not all_chunks_text:
-            logger.warning(f"No text extracted from PDF for {fund_code}")
+        try:
+            factsheet = FundFactSheet.objects.get(fund_code=fund_code)
+        except FundFactSheet.DoesNotExist:
+            logger.error(f"FundFactSheet not found for {fund_code}")
             return
+            
+        chunks_text = []
         
-        logger.info(f"Extracted {len(all_chunks_text)} chunks from PDF. Embedding locally...")
+        # 1. ข้อมูลพื้นฐาน
+        basic_info = f"รหัสกองทุน: {factsheet.fund_code}\nชื่อกองทุน: {factsheet.fund_name_th or 'ไม่ระบุ'}\nระดับความเสี่ยง: {factsheet.risk_level or 'ไม่ระบุ'}\nประเภทกลุ่มกองทุน: {factsheet.fund_category or 'ไม่ระบุ'}\nกลยุทธ์การลงทุน: {factsheet.investment_strategy or 'ไม่ระบุ'}\nดัชนีชี้วัดเปรียบเทียบ: {factsheet.benchmark or 'ไม่ระบุ'}"
+        chunks_text.append(basic_info)
         
-        # 2. Embed ทั้งหมดในครั้งเดียว (local — ไม่มี rate limit)
-        # E5 models ต้องเติม prefix "passage: " สำหรับ document
-        prefixed_chunks = [f"passage: {text}" for text in all_chunks_text]
+        # 2. ข้อมูลนโยบายป้องกันความเสี่ยงค่าเงิน
+        hedging_info = f"รหัสกองทุน: {factsheet.fund_code}\nมีการป้องกันความเสี่ยงค่าเงิน (Hedged): {'ใช่' if factsheet.is_hedged else 'ไม่ใช่'}\nนโยบายป้องกันความเสี่ยงค่าเงินเพิ่มเติม: {factsheet.hedging_policy or 'ไม่ระบุ'}\nรายละเอียดการป้องกันความเสี่ยง: {factsheet.currency_hedging or 'ไม่ระบุ'}"
+        chunks_text.append(hedging_info)
+        
+        # 3. ข้อมูลการถือครองทรัพย์สิน (Holdings)
+        if factsheet.holdings_data:
+            holdings_str = f"รหัสกองทุน: {factsheet.fund_code}\nสินทรัพย์ที่ลงทุนสูงสุด (Top Holdings):\n"
+            if isinstance(factsheet.holdings_data, list):
+                for item in factsheet.holdings_data:
+                    name = item.get('name', 'Unknown')
+                    ratio = item.get('ratio', 'ไม่ระบุ')
+                    holdings_str += f"- {name} ({ratio}%)\n"
+            else:
+                holdings_str += str(factsheet.holdings_data)
+            chunks_text.append(holdings_str)
+            
+        # 4. สัดส่วนกลุ่มอุตสาหกรรม (Sector Allocation)
+        if factsheet.sector_allocation:
+            sectors_str = f"รหัสกองทุน: {factsheet.fund_code}\nสัดส่วนอุตสาหกรรมที่ลงทุน (Sector Allocation):\n"
+            if isinstance(factsheet.sector_allocation, list):
+                for item in factsheet.sector_allocation:
+                    sector_name = item.get('sector_name', 'Unknown')
+                    ratio = item.get('ratio', 'ไม่ระบุ')
+                    sectors_str += f"- {sector_name} ({ratio}%)\n"
+            else:
+                sectors_str += str(factsheet.sector_allocation)
+            chunks_text.append(sectors_str)
+            
+        # 5. Embed ทั้งหมดในครั้งเดียว (local)
+        prefixed_chunks = [f"passage: {text}" for text in chunks_text]
         all_vectors = self.model.encode(prefixed_chunks, show_progress_bar=True).tolist()
         
-        logger.info(f"Embedding complete. {len(all_vectors)} vectors generated.")
+        logger.info(f"Embedding complete. {len(all_vectors)} vectors generated for {fund_code}.")
         
-        # 3. ลบข้อมูลเก่า + Bulk create ใน transaction (atomic)
-        from django.db import transaction
-        
+        # 6. ลบข้อมูลเก่า + Bulk create in transaction
         chunks_to_create = [
             FundDocumentChunk(
                 fund_code=fund_code,
-                content=all_chunks_text[i],
+                content=chunks_text[i],
                 embedding=all_vectors[i],
-                page_number=all_chunks_meta[i]["page_number"],
-                metadata={"source": all_chunks_meta[i]["source"]},
+                page_number=1, # Default value required instead of PDF page
+                metadata={"source": "database_fields", "section_index": i},
             )
             for i in range(len(all_vectors))
         ]
@@ -412,9 +484,9 @@ class SmartFundAIService:
             deleted_count, _ = FundDocumentChunk.objects.filter(fund_code=fund_code).delete()
             FundDocumentChunk.objects.bulk_create(chunks_to_create)
         
-        logger.info(f"Successfully ingested {len(chunks_to_create)} chunks for {fund_code} (replaced {deleted_count} old chunks)")
+        logger.info(f"Successfully ingested {len(chunks_to_create)} field-based chunks for {fund_code} (replaced {deleted_count} old chunks)")
 
-    def query_fund(self, fund_code: str, query: str):
+    def query_fund(self, query: str, fund_code: str = None):
         """ค้นหาข้อมูลที่เกี่ยวข้องและตอบคำถามแบบ RAG"""
         if not self.llm:
             return "AI Service not available"
@@ -426,7 +498,11 @@ class SmartFundAIService:
         # Note: pgvector django wrapper allows <-> or <=> operator
         from pgvector.django import L2Distance
         
-        related_chunks = FundDocumentChunk.objects.filter(fund_code=fund_code).annotate(
+        qs = FundDocumentChunk.objects.all()
+        if fund_code:
+            qs = qs.filter(fund_code=fund_code)
+            
+        related_chunks = qs.annotate(
             distance=L2Distance('embedding', query_vector)
         ).order_by('distance')[:5]
         
@@ -448,3 +524,76 @@ class SmartFundAIService:
         
         response = self.llm.invoke([HumanMessage(content=prompt)])
         return response.content
+
+class FundImpactAnalysisResult(BaseModel):
+    sentiment_score: float = Field(description="Overall sentiment score between -1.0 (very negative) and 1.0 (very positive)")
+    sentiment_summary: str = Field(description="A concise summary (in Thai) of the collective impact on the fund")
+    sentiment_impact_level: str = Field(description="Impact level on the fund. Choices: LOW, MED, HIGH")
+
+class FundImpactAIService:
+    def __init__(self):
+        news_service = NewsAIService()
+        self.llm = news_service.llm
+        self.parser = PydanticOutputParser(pydantic_object=FundImpactAnalysisResult)
+        
+        self.system_prompt = (
+            "คุณคือนักวิเคราะห์ข้อมูลการเงินผู้เชี่ยวชาญ คอยประเมินผลกระทบจากข่าวและข้อมูลเชิงลึกต่างๆ ที่มีต่อกองทุน "
+            "กรุณาอ่านข้อมูลทั้งหมดที่รวบรวมมา แล้วสรุปผลกระทบในภาพรวมต่อกองทุนนั้นๆ "
+            "ตอบกลับเป็นรูปแบบ JSON บริสุทธิ์ (Pure JSON) เท่านั้น\n"
+            "{format_instructions}"
+        )
+        
+        self.user_prompt_template = (
+            "รหัสกองทุน: {fund_code}\n"
+            "ข้อมูลผลกระทบ (Insights) ที่ผ่านมา:\n"
+            "{insights_content}\n"
+        )
+        
+        self.prompt = ChatPromptTemplate.from_messages([
+            ("system", self.system_prompt),
+            ("user", self.user_prompt_template)
+        ]).partial(format_instructions=self.parser.get_format_instructions())
+
+    def summarize_fund_impact(self, fund_code: str, insights_content: str) -> Optional[FundImpactAnalysisResult]:
+        logger.info(f"Summarizing impact for fund: {fund_code}")
+        if not self.llm:
+            logger.error("LLM not initialized for FundImpactAIService")
+            return None
+            
+        max_retries_per_model = 2
+        for attempt in range(max_retries_per_model):
+            try:
+                # Token optimization
+                max_chars = 30000 
+                processed_text = insights_content
+                if len(processed_text) > max_chars:
+                    processed_text = processed_text[:max_chars] + "..."
+                    
+                prompt_val = self.prompt.invoke({"fund_code": fund_code, "insights_content": processed_text})
+                raw_response = self.llm.invoke(prompt_val)
+                
+                content_str = raw_response.content
+                if isinstance(content_str, list):
+                    content_str = " ".join([part.get("text", "") if isinstance(part, dict) else str(part) for part in content_str])
+                
+                logger.debug(f"Raw Fund Impact AI Response from {self.llm.model}: {content_str[:200]}...")
+                
+                return self.parser.parse(content_str)
+            except Exception as e:
+                error_msg = str(e)
+                if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                    if attempt < max_retries_per_model - 1:
+                        logger.warning(f"Quota exceeded (429) for model {self.llm.model}. Sleeping for 20 seconds before retry (Attempt {attempt+1}/{max_retries_per_model})...")
+                        import time
+                        time.sleep(20)
+                        continue
+                    else:
+                        logger.error(f"Quota exhausted for model {self.llm.model} after {max_retries_per_model} attempts. Bubbling up to Celery.")
+                        # Raise to let Celery handles it with a longer backoff
+                        raise e
+                else:
+                    logger.error(f"Unexpected error during Fund Impact AI analysis with {self.llm.model}: {e}")
+                    raise e
+                    
+        return None
+

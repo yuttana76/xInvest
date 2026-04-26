@@ -15,10 +15,28 @@ class FundAnalysisAdmin(admin.ModelAdmin):
 @admin.register(AIInsight)
 class AIInsightAdmin(admin.ModelAdmin):
     list_display = ('fundCode', 'insight_type', 'sentiment_score', 'confidence_score', 'model_version', 'created_at')
-    list_filter = ('insight_type', 'model_version')
+    list_filter = ('fundCode','insight_type', 'model_version')
     search_fields = ('fundCode', 'content', 'insight_type')
     readonly_fields = ('created_at',)
     ordering = ('-created_at',)
+    actions = ['summarize_impact_for_fund']
+
+    @admin.action(description="วิเคราะห์และสรุปผลกระทบระดับกองทุน (Fund Analysis)")
+    def summarize_impact_for_fund(self, request, queryset):
+        from .tasks import summarize_fund_impact_task
+        
+        # Group by fundCode
+        fund_insights = {}
+        for insight in queryset:
+            if insight.fundCode not in fund_insights:
+                fund_insights[insight.fundCode] = []
+            fund_insights[insight.fundCode].append(insight.id)
+            
+        for fund_code, insight_ids in fund_insights.items():
+            summarize_fund_impact_task.delay(fund_code, insight_ids)
+            
+        self.message_user(request, f"Triggered summary tasks for {len(fund_insights)} funds.")
+
 
 
 class NewsArticleAdminForm(forms.ModelForm):

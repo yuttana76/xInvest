@@ -41,16 +41,16 @@ class SmartFundChatView(APIView):
         import logging
         logger = logging.getLogger(__name__)
 
-        if not fund_code or not query:
+        if not query:
             return Response(
-                {"error": "Missing fund_code or query"}, 
+                {"error": "Missing query"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
             
         try:
-            logger.info(f"SmartFundChatView: querying {fund_code} with '{query}'")
+            logger.info(f"SmartFundChatView: querying fund_code={fund_code} with '{query}'")
             smart_ai = SmartFundAIService()
-            answer = smart_ai.query_fund(fund_code, query)
+            answer = smart_ai.query_fund(query=query, fund_code=fund_code)
             
             return Response({
                 "fund_code": fund_code,

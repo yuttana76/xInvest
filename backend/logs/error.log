@@ -2270,3 +2270,13 @@ ERROR 2026-04-22 17:06:09,169 log 14 281470015697280 Internal Server Error: /api
 ERROR 2026-04-22 17:06:09,172 basehttp 14 281470015697280 "POST /api/v1/fundDecision/chat/ HTTP/1.1" 500 323
 ERROR 2026-04-22 17:13:59,767 log 59 281469104419200 Internal Server Error: /api/v1/fundDecision/chat/
 ERROR 2026-04-22 17:13:59,769 basehttp 59 281469104419200 "POST /api/v1/fundDecision/chat/ HTTP/1.1" 500 1888
+ERROR 2026-04-23 10:07:19,608 log 14 281469738086784 Internal Server Error: /api/v1/fundDecision/chat/
+ERROR 2026-04-23 10:07:19,609 basehttp 14 281469738086784 "POST /api/v1/fundDecision/chat/ HTTP/1.1" 500 55
+ERROR 2026-04-23 10:15:24,285 log 14 281469738086784 Internal Server Error: /api/v1/fundDecision/chat/
+ERROR 2026-04-23 10:15:24,287 basehttp 14 281469738086784 "POST /api/v1/fundDecision/chat/ HTTP/1.1" 500 78
+ERROR 2026-04-23 10:34:25,285 log 14 281469437866368 Internal Server Error: /api/v1/fundDecision/chat/
+ERROR 2026-04-23 10:34:25,286 basehttp 14 281469437866368 "POST /api/v1/fundDecision/chat/ HTTP/1.1" 500 55
+ERROR 2026-04-23 11:18:18,976 log 14 281469028589952 Internal Server Error: /api/v1/fundDecision/chat/
+ERROR 2026-04-23 11:18:18,981 basehttp 14 281469028589952 "POST /api/v1/fundDecision/chat/ HTTP/1.1" 500 94
+ERROR 2026-04-23 11:42:16,981 log 14 281469597315456 Internal Server Error: /api/v1/fundDecision/chat/
+ERROR 2026-04-23 11:42:16,984 basehttp 14 281469597315456 "POST /api/v1/fundDecision/chat/ HTTP/1.1" 500 1889
