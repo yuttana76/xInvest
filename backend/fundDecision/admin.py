@@ -7,7 +7,7 @@ from import_export.admin import ImportExportModelAdmin
 
 @admin.register(FundAnalysis)
 class FundAnalysisAdmin(admin.ModelAdmin):
-    list_display = ('fundCode', 'standard_deviation', 'treynor_ratio', 'sortino_ratio', 'last_calculated', 'sentiment_score', 'sentiment_impact_level', 'created_at', 'updated_at')
+    list_display = ('fundCode', 'status','standard_deviation', 'treynor_ratio', 'sortino_ratio', 'last_calculated', 'sentiment_score', 'sentiment_impact_level', 'created_at', 'updated_at')
     search_fields = ('fundCode',)
     readonly_fields = ('last_calculated', 'created_at', 'updated_at')
 

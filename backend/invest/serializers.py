@@ -4,6 +4,7 @@ from .models import (
     BondAccount, PrivateFundAccount, PrivateFundBalance,
     MarketingGroup, ExternalAgent
 )
+from fundDecision.models import FundAnalysis
 
 class MarketingGroupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -56,8 +57,19 @@ class AccountBalanceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_fund_analysis(self, obj):
-        # TODO: implement fund analysis
-        return None
+        try:
+            analysis = FundAnalysis.objects.get(
+                fundCode=obj.fundCode,
+                status='ACTIVE'
+            )
+            return {
+                'sentiment_score': analysis.sentiment_score,
+                'sentiment_summary': analysis.sentiment_summary,
+                'sentiment_impact_level': analysis.sentiment_impact_level,
+                'updated_at': analysis.updated_at
+            }
+        except FundAnalysis.DoesNotExist:
+            return None
 
 class InvestorAccountSerializer(serializers.ModelSerializer):
     balances = AccountBalanceSerializer(many=True, read_only=True)
@@ -84,8 +96,19 @@ class PrivateFundBalanceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_fund_analysis(self, obj):
-        # TODO: implement fund analysis
-        return None
+        try:
+            analysis = FundAnalysis.objects.get(
+                fundCode=obj.fundCode,
+                status='ACTIVE'
+            )
+            return {
+                'sentiment_score': analysis.sentiment_score,
+                'sentiment_summary': analysis.sentiment_summary,
+                'sentiment_impact_level': analysis.sentiment_impact_level,
+                'updated_at': analysis.updated_at,
+            }
+        except FundAnalysis.DoesNotExist:
+            return None
 
 class PrivateFundAccountSerializer(serializers.ModelSerializer):
     privateFundBalances = PrivateFundBalanceSerializer(many=True, read_only=True, source='private_fund_balances')

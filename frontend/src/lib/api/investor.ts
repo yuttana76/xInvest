@@ -20,6 +20,8 @@ export interface Balance {
   fund_analysis?: {
     sentiment_score: number | null;
     sentiment_summary: string | null;
+    sentiment_impact_level: 'LOW' | 'MED' | 'HIGH' | null;
+    updated_at: string | null;
   } | null;
 }
 

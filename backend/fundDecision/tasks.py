@@ -239,7 +239,7 @@ def ingest_factsheet_to_vector_db(self, fund_code):
     except Exception as e:
         logger.error(f"Error in ingest_factsheet_to_vector_db for {fund_code}: {e}")
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_backoff_max=3600, retry_jitter=True, max_retries=10)
 def summarize_fund_impact_task(self, fund_code, insight_ids):
     """
     Task to summarize the impact of selected AIInsight records for a specific fund.
@@ -247,40 +247,34 @@ def summarize_fund_impact_task(self, fund_code, insight_ids):
     from .models import AIInsight, FundAnalysis
     from .ai_service import FundImpactAIService
     
-    try:
-        insights = AIInsight.objects.filter(id__in=insight_ids)
-        if not insights.exists():
-            logger.warning(f"No insights found for IDs {insight_ids}")
-            return
-            
-        logger.info(f"Summarizing {insights.count()} insights for fund {fund_code}")
+    insights = AIInsight.objects.filter(id__in=insight_ids)
+    if not insights.exists():
+        logger.warning(f"No insights found for IDs {insight_ids}")
+        return
         
-        # Combine insight context
-        combined_content = ""
-        for idx, insight in enumerate(insights, 1):
-            combined_content += f"[{idx}] ประเภท: {insight.insight_type}\nข้อความ: {insight.content}\nคะแนนเดิม: {insight.sentiment_score}\n---\n"
-            
-        ai_service = FundImpactAIService()
+    logger.info(f"Summarizing {insights.count()} insights for fund {fund_code}")
+    
+    # Combine insight context
+    combined_content = ""
+    for idx, insight in enumerate(insights, 1):
+        combined_content += f"[{idx}] ประเภท: {insight.insight_type}\nข้อความ: {insight.content}\nคะแนนเดิม: {insight.sentiment_score}\n---\n"
         
-        # If LangChain fails inside the service, it returns None.
-        result = ai_service.summarize_fund_impact(fund_code, combined_content)
-        
-        if result:
-            # Create a new FundAnalysis record
-            new_analysis = FundAnalysis.objects.create(
-                fundCode=fund_code,
-                sentiment_score=result.sentiment_score,
-                sentiment_summary=result.sentiment_summary,
-                sentiment_impact_level=result.sentiment_impact_level,
-                createBy="System-AI_Summary",
-                status="ACTIVE"
-            )
-            logger.info(f"Successfully created FundAnalysis ID {new_analysis.id} for fund {fund_code}")
-        else:
-            logger.warning(f"Failed to generate summary for fund {fund_code}. Service returned None. Proceeding to retry.")
-            raise Exception("AI Service returned None. Possibly due to rate limits or API errors.")
-            
-    except Exception as e:
-        logger.warning(f"Retrying summarize_fund_impact_task for fund {fund_code} due to error: {e}")
-        # Automatically retry the task if there's an exception
-        raise self.retry(exc=e)
+    ai_service = FundImpactAIService()
+    
+    # If LangChain fails inside the service, it bubbles up the exception.
+    result = ai_service.summarize_fund_impact(fund_code, combined_content)
+    
+    if result:
+        # Create a new FundAnalysis record
+        new_analysis = FundAnalysis.objects.create(
+            fundCode=fund_code,
+            sentiment_score=result.sentiment_score,
+            sentiment_summary=result.sentiment_summary,
+            sentiment_impact_level=result.sentiment_impact_level,
+            createBy="System-AI_Summary",
+            status="ACTIVE"
+        )
+        logger.info(f"Successfully created FundAnalysis ID {new_analysis.id} for fund {fund_code}")
+    else:
+        logger.warning(f"Failed to generate summary for fund {fund_code}. Service returned None.")
+        raise Exception("AI Service returned None. Possibly due to rate limits or API errors.")

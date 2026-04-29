@@ -5,6 +5,88 @@ import { ChevronUp, ChevronDown, ThumbsUp, ThumbsDown, TrendingUp, Newspaper, Ba
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { MFDetailsProps, ExtendedBalance } from './types';
 import { ProductNewsTab } from '@/components/fund/ProductNewsTab';
+import { Balance } from '@/lib/api/investor';
+
+// ─── AI Insight card — matches news-headline card style ───────────────────────
+type FundAnalysis = NonNullable<Balance['fund_analysis']>;
+
+function timeAgo(iso: string | null): string {
+  if (!iso) return '';
+  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto', style: 'short' });
+  const sec = Math.round((new Date(iso).getTime() - Date.now()) / 1000);
+  const abs = Math.abs(sec);
+  if (abs < 60)    return rtf.format(sec, 'second');
+  if (abs < 3600)  return rtf.format(Math.round(sec / 60), 'minute');
+  if (abs < 86400) return rtf.format(Math.round(sec / 3600), 'hour');
+  return rtf.format(Math.round(sec / 86400), 'day');
+}
+
+function AiRecommendCard({ analysis }: { analysis: FundAnalysis }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const impactCfg: Record<string, { dot: string; label: string; pill: string }> = {
+    HIGH: { dot: 'bg-rose-500 dark:bg-rose-400',    label: 'High Impact',   pill: 'text-rose-700 border-rose-400/60 bg-rose-50 dark:text-rose-400 dark:border-rose-500/40 dark:bg-rose-500/10'   },
+    MED:  { dot: 'bg-amber-500 dark:bg-amber-400',   label: 'Medium Impact', pill: 'text-amber-700 border-amber-400/60 bg-amber-50 dark:text-amber-400 dark:border-amber-400/40 dark:bg-amber-400/10'  },
+    LOW:  { dot: 'bg-emerald-500 dark:bg-emerald-400', label: 'Low Impact',  pill: 'text-emerald-700 border-emerald-400/60 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-400/40 dark:bg-emerald-400/10' },
+  };
+  const lvl = analysis.sentiment_impact_level ?? null;
+  const ic  = lvl ? (impactCfg[lvl] ?? impactCfg['LOW']) : null;
+
+  return (
+    <div className="mt-2 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 shadow-sm dark:shadow-lg overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-2 px-4 pt-3.5 pb-0">
+        {/* Gemini-style 4-pointed sparkle */}
+        <svg width="13" height="13" viewBox="0 0 28 28" fill="none" className="text-teal-500 dark:text-teal-400 shrink-0" aria-hidden>
+          <path d="M14 0 C14 0 15.5 10 20 14 C15.5 18 14 28 14 28 C14 28 12.5 18 8 14 C12.5 10 14 0 14 0Z" fill="currentColor"/>
+          <path d="M0 14 C0 14 10 15.5 14 20 C18 15.5 28 14 28 14 C28 14 18 12.5 14 8 C10 12.5 0 14 0 14Z" fill="currentColor"/>
+        </svg>
+        <span className="text-[11px] font-bold text-slate-800 dark:text-white tracking-wide">AI Insight</span>
+      </div>
+
+      {/* Body */}
+      <div className="px-4 pt-2 pb-1">
+        {analysis.sentiment_summary ? (
+          <>
+            <p
+              className={`text-[12px] leading-relaxed text-slate-700 dark:text-slate-200 ${
+                expanded ? '' : 'line-clamp-2'
+              }`}
+            >
+              {analysis.sentiment_summary}
+            </p>
+            {analysis.sentiment_summary.length > 120 && (
+              <button
+                onClick={() => setExpanded(v => !v)}
+                className="mt-1 text-[10px] font-semibold text-teal-600 hover:text-teal-500 dark:text-teal-400 dark:hover:text-teal-300 transition-colors"
+              >
+                {expanded ? 'View less' : 'View more'}
+              </button>
+            )}
+          </>
+        ) : (
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 italic">No summary available.</p>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between px-4 py-2.5 mt-1">
+        <span className="text-[10px] text-slate-400 dark:text-slate-500">
+          {analysis.updated_at && (
+            <span>Updated {timeAgo(analysis.updated_at)} · </span>
+          )}
+          Powered by xInvest
+        </span>
+        {/* {ic && (
+          <span className={`flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider border rounded-full px-2.5 py-0.5 ${ic.pill}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${ic.dot} shrink-0`} />
+            {ic.label}
+          </span>
+        )} */}
+      </div>
+    </div>
+  );
+}
 
 export default function MutualFundDetails({
   balances,
@@ -188,7 +270,7 @@ export default function MutualFundDetails({
 
       <div className="space-y-4">
         <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Holdings ({filteredBalances.length})</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
           {filteredBalances.map((b, bIdx) => {
             const profit = (b.unitBalance * b.NAV) - (b.unitBalance * b.averageCost);
             const profitPercent = (b.unitBalance * b.averageCost) > 0 ? (profit / (b.unitBalance * b.averageCost)) * 100 : 0;
@@ -267,13 +349,19 @@ export default function MutualFundDetails({
                 </div>
 
                 {isExpanded && (
-                  <div className="animate-in slide-in-from-top-1 duration-200">
+                  <div className="animate-in slide-in-from-top-1 duration-200 space-y-4">
+                    {/* Fund Stats Grid */}
                     <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-xs pl-2 pt-2">
                       <div className="text-slate-500 dark:text-slate-400">Unit Balance: <span className="text-slate-800 dark:text-slate-100 block font-medium mt-0.5">{Number(b.unitBalance).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</span></div>
                       <div className="text-slate-500 dark:text-slate-400">Average Cost: <span className="text-slate-800 dark:text-slate-100 block font-medium mt-0.5">{Number(b.averageCost).toFixed(4)}</span></div>
                       <div className="text-slate-500 dark:text-slate-400">NAV: <span className="text-slate-800 dark:text-slate-100 block font-medium mt-0.5">{Number(b.NAV).toFixed(4)}</span></div>
                       <div className="text-slate-500 dark:text-slate-400">NAV Date: <span className="text-slate-800 dark:text-slate-100 block font-medium mt-0.5">{new Date(b.NAVdate).toLocaleDateString('en-GB')}</span></div>
                     </div>
+
+                    {/* AI Recommendation Panel — news card style */}
+                    {b.fund_analysis && (b.fund_analysis.sentiment_summary || b.fund_analysis.sentiment_impact_level) && (
+                      <AiRecommendCard analysis={b.fund_analysis} />
+                    )}
                   </div>
                 )}
               </div>

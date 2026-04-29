@@ -9,18 +9,16 @@ from .ai_service import SmartFundAIService
 from .serializers import NewsArticleSerializer
 
 class NewsArticleViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = NewsArticle.objects.all().prefetch_related('related_funds')
+    queryset = NewsArticle.objects.all()
     serializer_class = NewsArticleSerializer
 
     def get_queryset(self):
-        queryset = NewsArticle.objects.filter(published_status=True).order_by('-published_at').prefetch_related('related_funds')
+        queryset = NewsArticle.objects.filter(published_status=True).order_by('-published_at')
         ticker = self.request.query_params.get('ticker')
         relate_product = self.request.query_params.get('relate_product')
 
-        
-
         if ticker:
-            queryset = queryset.filter(related_funds__fundCode=ticker)
+            queryset = queryset.filter(related_funds__icontains=ticker)
         if relate_product:
             from django.db.models import Q
             products = relate_product.split(',')
