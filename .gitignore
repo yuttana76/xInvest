@@ -19,7 +19,9 @@ backups/
 !*.env.example
 
 logs/*
-docs/*
+docs/**/*.json
+temp/*
+
 
 # Mobile (Flutter)
 x_mobile_app/build/
