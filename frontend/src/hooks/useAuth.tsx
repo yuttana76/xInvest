@@ -89,16 +89,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const profile: UserProfile = { username, email, role };
       setUser(profile);
       
+      console.log('*Role:', role);
+      console.log('*Profile:', profile);
+
       if (role === 'admin') {
         router.push('/admin-portal');
+
       } else if (role === 'operator') {
         router.push('/operator');
+
       } else if (role === 'marketing') {
         router.push('/marketing');
+
       } else if (role === 'agent') {
         router.push('/agent');
+
       } else {
-        router.push('/dashboard');
+        router.push('/');
       }
       
       return profile;

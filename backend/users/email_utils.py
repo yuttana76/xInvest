@@ -85,3 +85,41 @@ def send_password_reset_email(user_email: str, username: str, reset_link: str) -
         logger = logging.getLogger(__name__)
         logger.error(f"Failed to send password reset email to {user_email}: {e}")
         return False
+
+
+def send_welcome_email(user_email: str, username: str) -> bool:
+    """
+    ส่งอีเมลต้อนรับเมื่อลงทะเบียนและยืนยันตัวตนสำเร็จ
+    
+    Returns:
+        True ถ้าส่งสำเร็จ, False ถ้า error
+    """
+    subject = "Welcome to xInvest!"
+
+    context = {
+        "username": username,
+    }
+
+    html_message = render_to_string("users/emails/welcome_email.html", context)
+    plain_message = (
+        f"Welcome to xInvest, {username}!\n\n"
+        f"Thank you for verifying your email. Your account is now fully active, and you are ready to start managing your investments on our platform.\n\n"
+        f"If you have any questions or need support, contact us at support@xinvest.com\n\n"
+        f"xInvest Team"
+    )
+
+    try:
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user_email],
+        )
+        msg.attach_alternative(html_message, "text/html")
+        msg.send(fail_silently=False)
+        return True
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to send welcome email to {user_email}: {e}")
+        return False

@@ -6,6 +6,7 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Lock, User, ArrowRight, ShieldCheck } from 'lucide-react';
 import axios from 'axios';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const { login, verifyOTP } = useAuth();
@@ -65,12 +66,12 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 mb-6">
+          <Link href="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
               <span className="text-white font-bold text-xl text-center">x</span>
             </div>
             <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Invest</span>
-          </div>
+          </Link>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
             {step === 1 ? 'Welcome Back' : 'Security Verification'}
           </h1>
@@ -186,8 +187,10 @@ export default function LoginPage() {
         </p>
 
         <p className="mt-4 text-center text-sm text-slate-500">
-          
-          Don&apos;t have an account? <a href="#" className="text-primary font-medium hover:underline">Request Access</a>
+          Don&apos;t have an account?{' '}
+          <Link href="/register" className="text-primary font-medium hover:underline">
+            Register
+          </Link>
         </p>
       </div>
     </div>

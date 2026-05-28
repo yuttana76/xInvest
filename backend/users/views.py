@@ -1,12 +1,15 @@
 from django.contrib.auth import authenticate
-from .tasks import task_send_otp_email, task_send_password_reset_email
+from .tasks import task_send_otp_email, task_send_password_reset_email, task_send_welcome_email
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import OTP, UserActivityLog
-from .serializers import LoginSerializer, VerifyOTPSerializer, TokenRefreshSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer
+from .serializers import (
+    LoginSerializer, VerifyOTPSerializer, TokenRefreshSerializer,
+    PasswordResetRequestSerializer, PasswordResetConfirmSerializer, RegisterSerializer
+)
 from django.contrib.auth.models import User
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
@@ -235,3 +238,141 @@ class PasswordResetConfirmView(APIView):
             except (UnicodeDecodeError, User.DoesNotExist, ValueError):
                 return Response({"error": "Invalid request."}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class APIRegisterView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="User Registration (Phase 1)",
+        description="Creates a new unverified user and sends OTP to email.",
+        request=RegisterSerializer,
+        responses={201: OpenApiTypes.OBJECT},
+        tags=["Authentication"]
+    )
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            
+            # Generate OTP & OTP Reference
+            otp, created = OTP.objects.get_or_create(user=user)
+            otp_ref, otp_code = otp.generate_code()
+            
+            # Send OTP email via Celery async
+            task_send_otp_email.delay(
+                user_email=user.email,
+                username=user.username,
+                otp_code=otp_code,
+                otp_ref=otp_ref,
+            )
+            
+            print(f"Registration OTP sent to email. OTP Code: {otp_code} Ref: {otp_ref}")
+
+            return Response({
+                "message": "Registration successful. Please verify your email with the OTP sent.",
+                "username": user.username,
+                "email": user.email,
+                "otp_ref": otp_ref,
+                "register_date": user.date_joined
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class APIRegisterVerifyView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="Verify Registration OTP (Phase 2)",
+        description="Verifies the OTP code to activate the user account.",
+        request=VerifyOTPSerializer,
+        responses={200: OpenApiTypes.OBJECT},
+        tags=["Authentication"]
+    )
+    def post(self, request):
+        serializer = VerifyOTPSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
+            otp_code = serializer.validated_data['otp_code']
+            
+            try:
+                user = User.objects.get(username=username)
+                
+                # Check if user is already active
+                if user.is_active and hasattr(user, 'profile') and user.profile.is_email_verified:
+                    return Response({"message": "User is already active and verified."}, status=status.HTTP_200_OK)
+                
+                otp = user.otp
+                if otp.otp_code == otp_code and otp.is_valid():
+                    # Activate user
+                    user.is_active = True
+                    user.save()
+                    
+                    # Mark email as verified
+                    profile = user.profile
+                    profile.is_email_verified = True
+                    profile.save()
+                    
+                    # Clear OTP
+                    otp.max_otp_try = 3
+                    otp.otp_code = ""
+                    otp.otpSuccess_DT = timezone.now()
+                    otp.save()
+                    
+                    # Log activity
+                    log_activity(user, request, 'LOGIN')
+                    
+                    # ส่งอีเมลต้อนรับผ่าน Celery async
+                    task_send_welcome_email.delay(
+                        user_email=user.email,
+                        username=user.username,
+                    )
+                    
+                    return Response({
+                        "message": "Email verified successfully. Your account is now active.",
+                        "username": user.username,
+                        "is_active": True
+                    }, status=status.HTTP_200_OK)
+                
+                return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_401_UNAUTHORIZED)
+            except (User.DoesNotExist, OTP.DoesNotExist):
+                return Response({"error": "User or OTP not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class APIResendRegisterOTPView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="Resend Registration OTP",
+        description="Resends the verification OTP code to the user's registered email if not verified yet.",
+        responses={200: OpenApiTypes.OBJECT},
+        tags=["Authentication"]
+    )
+    def post(self, request):
+        username = request.data.get('username')
+        if not username:
+            return Response({"error": "Username is required"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            user = User.objects.get(username=username)
+            if user.is_active and hasattr(user, 'profile') and user.profile.is_email_verified:
+                return Response({"error": "User is already active and verified."}, status=status.HTTP_400_BAD_REQUEST)
+                
+            otp, created = OTP.objects.get_or_create(user=user)
+            otp_ref, otp_code = otp.generate_code()
+            
+            task_send_otp_email.delay(
+                user_email=user.email,
+                username=user.username,
+                otp_code=otp_code,
+                otp_ref=otp_ref,
+            )
+            
+            return Response({
+                "message": "Registration OTP resent successfully.",
+                "otp_ref": otp_ref
+            }, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)

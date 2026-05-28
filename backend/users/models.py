@@ -19,14 +19,14 @@ class OTP(models.Model):
     otpSuccess_DT = models.DateTimeField(blank=True, null=True)
     
     def is_valid(self):
-        # OTP is valid for 10 minutes
-        expiry_time = self.created_at + timezone.timedelta(minutes=10)
+        # OTP is valid for 60 minutes
+        expiry_time = self.created_at + timezone.timedelta(minutes=60)
         return timezone.now() <= expiry_time
 
     def generate_code(self):
 
         # # New Generate OTP & OTP Reference
-        OTP_LIFE_MIN=10  # OTP life in 10 minutes
+        OTP_LIFE_MIN=60  # OTP life in 60 minutes
         MAX_OTP_TRY=3
 
         keygen = generateKey()
@@ -99,6 +99,8 @@ class Department(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='members')
+    mobile_number = models.CharField(max_length=15, unique=True, blank=True, null=True)
+    is_email_verified = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username}'s Profile"

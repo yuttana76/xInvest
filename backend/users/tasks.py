@@ -14,7 +14,7 @@ Celery Tasks — Email Queue สำหรับ xInvest
 
 import logging
 from celery import shared_task
-from .email_utils import send_otp_email, send_password_reset_email
+from .email_utils import send_otp_email, send_password_reset_email, send_welcome_email
 
 logger = logging.getLogger(__name__)
 
@@ -91,3 +91,31 @@ def task_send_password_reset_email(self, user_email: str, username: str, reset_l
             f"(attempt {self.request.retries + 1}/{self.max_retries + 1}): {exc}"
         )
         raise self.retry(exc=exc)
+
+
+@shared_task(
+    bind=True,
+    max_retries=3,
+    default_retry_delay=30,
+    name="users.send_welcome_email",
+)
+def task_send_welcome_email(self, user_email: str, username: str):
+    """
+    Celery Task: ส่ง Welcome email หลังยืนยันการลงทะเบียนสำเร็จ
+    """
+    logger.info(f"[EMAIL QUEUE] Sending welcome email to {user_email}")
+    try:
+        success = send_welcome_email(
+            user_email=user_email,
+            username=username,
+        )
+        if not success:
+            raise Exception("send_welcome_email returned False")
+        logger.info(f"[EMAIL QUEUE] Welcome email sent successfully to {user_email}")
+    except Exception as exc:
+        logger.warning(
+            f"[EMAIL QUEUE] Welcome email failed for {user_email} "
+            f"(attempt {self.request.retries + 1}/{self.max_retries + 1}): {exc}"
+        )
+        raise self.retry(exc=exc)
+
