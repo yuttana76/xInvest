@@ -12,6 +12,31 @@ class ProfileInline(admin.StackedInline):
 
 class UserAdmin(BaseUserAdmin):
     inlines = (ProfileInline,)
+    list_display = BaseUserAdmin.list_display + ('get_groups', 'get_role')
+
+    def get_queryset(self, request):
+        from django.db.models import Case, When, Value, CharField, Q
+        qs = super().get_queryset(request)
+        return qs.annotate(
+            annotated_role=Case(
+                When(Q(is_staff=True) | Q(is_superuser=True), then=Value('admin')),
+                When(groups__name='operator', then=Value('operator')),
+                When(groups__name='marketing', then=Value('marketing')),
+                When(groups__name='agent', then=Value('agent')),
+                When(investor_profile__isnull=False, then=Value('investor')),
+                default=Value('guest'),
+                output_field=CharField(),
+            )
+        ).distinct()
+
+    def get_groups(self, obj):
+        return ", ".join([group.name for group in obj.groups.all()])
+    get_groups.short_description = 'Groups'
+
+    def get_role(self, obj):
+        return getattr(obj, 'annotated_role', determine_user_role(obj))
+    get_role.short_description = 'Role'
+    get_role.admin_order_field = 'annotated_role'
 
 # Re-register UserAdmin
 admin.site.unregister(User)
@@ -68,7 +93,6 @@ class ProfileAdmin(admin.ModelAdmin):
             self.message_user(request, f"Registration OTP resent successfully for {user.username}. Ref: {otp_ref}", level=messages.SUCCESS)
 
         return redirect(request.META.get('HTTP_REFERER', 'admin:users_profile_changelist'))
-
 
 
     def resend_otp_button(self, obj):

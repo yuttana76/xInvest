@@ -26,7 +26,30 @@ Django: http://localhost/admin/
 
 ## docker remove image<none>
 
+##
+
+```
 docker rmi $(docker images -f "dangling=true" -q)
+```
+
+## ล้าง Container ที่หยุดทำงาน, Network ที่ไม่ได้ใช้ และ Build Cache (ปลอดภัยต่อข้อมูลฐานข้อมูล):
+
+```
+docker system prune -f
+```
+
+## ล้าง image ที่ไม่ใช้ (build cache) อย่างเดียว:
+
+```
+docker builder prune -f
+```
+
+## ล้าง Image ทั้งหมดที่ไม่ได้ถูกรันอยู่ด้วย (ปลอดภัยต่อข้อมูลฐานข้อมูล):
+
+```
+bash
+docker system prune -a -f
+```
 
 To start the services in development mode, use the following command:
 

@@ -9,6 +9,20 @@ import random
 from random import choice
 import string
 
+def determine_user_role(user):
+    if user.is_staff or user.is_superuser:
+        return "admin"
+    elif user.groups.filter(name="operator").exists():
+        return "operator"
+    elif user.groups.filter(name="marketing").exists():
+        return "marketing"
+    elif user.groups.filter(name="agent").exists():
+        return "agent"
+    elif hasattr(user, 'investor_profile'):
+        return "investor"
+    else:
+        return "guest"
+
 class OTP(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="otp")
     otp_ref = models.CharField(max_length=6)

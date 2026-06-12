@@ -50,7 +50,7 @@ class ExternalAgentResource(BaseResource):
 @admin.register(Investor)
 class InvestorAdmin(ImportExportModelAdmin):
     resource_class = InvestorResource
-    list_display = ('compCode', 'custCode', 'fullNameEn', 'projects', 'status')
+    list_display = ('compCode', 'user','custCode', 'fullNameEn', 'projects', 'status')
     list_filter = ('projects', 'status')
     search_fields = ('compCode', 'custCode', 'fullNameEn')
     actions = ['send_statement_report']
@@ -316,5 +316,93 @@ class MFTransactionAdmin(ImportExportModelAdmin):
             'default_date': yesterday,
         }
         return TemplateResponse(request, "admin/invest/run_etl_form.html", context)
+
+
+# --- Custom Admin Sidebar Grouping ---
+original_get_app_list = admin.AdminSite.get_app_list
+
+def custom_get_app_list(self, request, app_label=None):
+    app_list = original_get_app_list(self, request, app_label)
+    
+    # Locate 'invest' app to extract models
+    invest_app = None
+    for app in app_list:
+        if app['app_label'] == 'invest':
+            invest_app = app
+            break
+            
+    if invest_app:
+        investment_models = []
+        mf_models = []
+        bond_models = []
+        pf_models = []
+        other_models = []
+        
+        for model in invest_app['models']:
+            model_name = model['object_name']
+            if model_name in ['BondAccount']:
+                bond_models.append(model)
+            elif model_name in ['PrivateFundAccount', 'PrivateFundBalance']:
+                pf_models.append(model)
+            elif model_name in ['InvestorAccount', 'AccountBalance', 'MFTransaction']:
+                mf_models.append(model)
+            elif model_name in ['ExternalAgent','Investor','Marketing','MarketingGroup']:
+                investment_models.append(model)
+            else:
+                other_models.append(model)
+                
+        # Keep only core invest models in the default group
+        invest_app['models'] = other_models
+        
+        # Create 'Investment Data' group if there are mutual fund models
+        if investment_models:
+            investment_app = {
+                'name': 'Investment Data',
+                'app_label': 'investment_group',
+                'app_url': '',
+                'has_module_perms': True,
+                'models': investment_models,
+            }
+            app_list.append(investment_app)
+        # Create 'LBDU' group if there are mutual fund models
+        if mf_models:
+            mf_app = {
+                'name': 'LBDU',
+                'app_label': 'mf_group',
+                'app_url': '',
+                'has_module_perms': True,
+                'models': mf_models,
+            }
+            app_list.append(mf_app)
+
+        # Create 'Private Fund' group if there are private fund models
+        if pf_models:
+            pf_app = {
+                'name': 'Private Fund',
+                'app_label': 'private_fund_group',
+                'app_url': '',
+                'has_module_perms': True,
+                'models': pf_models,
+            }
+            app_list.append(pf_app)
+
+        # Create 'BOND' group if there are bond models
+        if bond_models:
+            bond_app = {
+                'name': 'BOND',
+                'app_label': 'bond_group',
+                'app_url': '',
+                'has_module_perms': True,
+                'models': bond_models,
+            }
+            app_list.append(bond_app)
+            
+        
+
+        
+            
+    return app_list
+
+admin.AdminSite.get_app_list = custom_get_app_list
 
 

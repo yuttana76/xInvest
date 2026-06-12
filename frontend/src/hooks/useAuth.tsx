@@ -103,7 +103,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       } else if (role === 'agent') {
         router.push('/agent');
-
+      } else if (role  === "investor") {
+        router.push('/dashboard-inv');
       } else {
         router.push('/');
       }

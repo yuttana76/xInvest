@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import OTP, UserActivityLog
+from .models import OTP, UserActivityLog, determine_user_role
 from .serializers import (
     LoginSerializer, VerifyOTPSerializer, TokenRefreshSerializer,
     PasswordResetRequestSerializer, PasswordResetConfirmSerializer, RegisterSerializer
@@ -122,19 +122,8 @@ class APIVerifyOTPView(APIView):
                     otp.otpSuccess_DT = timezone.now()
                     otp.save()
                     
-                    # Determine role
-                    if user.is_staff or user.is_superuser:
-                        role = "admin"
-                    elif user.groups.filter(name="operator").exists():
-                        role = "operator"
-                    elif user.groups.filter(name="marketing").exists():
-                        role = "marketing"
-                    elif user.groups.filter(name="agent").exists():
-                        role = "agent"
-                    elif hasattr(user, 'investor_profile'):
-                        role = "investor"
-                    else:
-                        role = "guest" # Or some other default
+                    # Determine role using shared function
+                    role = determine_user_role(user)
 
                     # Add custom claims to the token payload
                     refresh['username'] = user.username
