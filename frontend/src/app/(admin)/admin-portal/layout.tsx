@@ -13,13 +13,16 @@ export default function AdminLayout({
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
+  const userRoles = Array.isArray(user?.role) ? user.role : user?.role ? [user.role] : [];
+  const hasAccess = userRoles.some(r => ['ADMIN', 'IT'].includes(r.toUpperCase()));
+
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || user?.role !== 'admin')) {
+    if (!isLoading && (!isAuthenticated || !hasAccess)) {
       router.push('/login');
     }
-  }, [isAuthenticated, user, isLoading, router]);
+  }, [isAuthenticated, hasAccess, isLoading, router]);
 
-  if (isLoading || !isAuthenticated || user?.role !== 'admin') {
+  if (isLoading || !isAuthenticated || !hasAccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>

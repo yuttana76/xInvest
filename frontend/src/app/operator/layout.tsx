@@ -10,13 +10,17 @@ export default function OperatorLayout({ children }: { children: React.ReactNode
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
+  console.log("this is user" ,user)
+
   React.useEffect(() => {
-    if (!isLoading && (!user || user.role !== 'operator')) {
+    if (!isLoading && (!user )) {
       router.push('/login');
     }
   }, [user, isLoading, router]);
 
-  if (isLoading || !user || user.role !== 'operator') {
+  if (isLoading || !user 
+    // || user.role !== 'operator'
+  ) {
     return <div className="flex h-screen items-center justify-center bg-slate-950 text-white">Loading...</div>;
   }
 

@@ -92,18 +92,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log('*Role:', role);
       console.log('*Profile:', profile);
 
-      if (role === 'admin') {
+      const hasRole = (r: string) => {
+        if (Array.isArray(role)) {
+          return role.map(x => x.toUpperCase()).includes(r.toUpperCase());
+        }
+        return role.toUpperCase() === r.toUpperCase();
+      };
+
+      if (hasRole('admin') || hasRole('IT')) {
         router.push('/admin-portal');
-
-      } else if (role === 'operator') {
+      } else if (hasRole('operator') || hasRole('cp-risk')) {
         router.push('/operator');
-
-      } else if (role === 'marketing') {
+      } else if (hasRole('marketing') || hasRole('ceo')) {
         router.push('/marketing');
-
-      } else if (role === 'agent') {
+      } else if (hasRole('agent')) {
         router.push('/agent');
-      } else if (role  === "investor") {
+      } else if (hasRole('investor')) {
         router.push('/dashboard-inv');
       } else {
         router.push('/');

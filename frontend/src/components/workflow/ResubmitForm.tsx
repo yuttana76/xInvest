@@ -75,10 +75,12 @@ export const ResubmitForm: React.FC<ResubmitFormProps> = ({ request, onSuccess }
           <label className="block text-sm font-medium mb-1 text-orange-600">
             Revision Notes <span className="text-red-500">*</span>
           </label>
-          <Input 
+          <textarea
             value={comment} 
             onChange={(e) => setComment(e.target.value)} 
             placeholder="Explain what you have revised"
+            className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+            rows={3}
             required 
           />
         </div>

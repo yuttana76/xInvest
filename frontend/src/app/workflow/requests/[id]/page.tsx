@@ -104,8 +104,16 @@ export default function RequestDetailPage() {
                       rel="noopener noreferrer"
                       className="flex items-center justify-between p-3 rounded-xl border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
                     >
-                      <span className="text-xs font-medium truncate max-w-[150px]">{file.filename}</span>
-                      <Download className="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors" />
+                      <div className="flex items-center space-x-2 min-w-0">
+                        <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span 
+                          className="text-xs font-medium truncate max-w-[200px] md:max-w-[300px]" 
+                          title={file.file_name || file.filename || file.file.split('/').pop()}
+                        >
+                          {file.file_name || file.filename || file.file.split('/').pop()}
+                        </span>
+                      </div>
+                      <Download className="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors flex-shrink-0 ml-2" />
                     </a>
                   ))}
                 </div>

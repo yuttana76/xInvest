@@ -136,8 +136,15 @@ class ApprovalLog(models.Model):
 class RequestFile(models.Model):
     request = models.ForeignKey(Request, on_delete=models.CASCADE, related_name='files')
     file = models.FileField(upload_to='workflow/requests/%Y/%m/%d/')
+    file_name = models.CharField(max_length=255, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     description = models.CharField(max_length=255, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.file_name and self.file:
+            import os
+            self.file_name = os.path.basename(self.file.name)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"File for {self.request.title}"

@@ -31,7 +31,7 @@ class ApprovalLogSerializer(serializers.ModelSerializer):
 class RequestFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = RequestFile
-        fields = ['id', 'file', 'uploaded_at', 'description']
+        fields = ['id', 'file', 'file_name', 'uploaded_at', 'description']
 
 class RequestSerializer(serializers.ModelSerializer):
     creator_name = serializers.ReadOnlyField(source='creator.get_full_name')

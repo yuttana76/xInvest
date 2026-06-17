@@ -13,7 +13,7 @@ export const authApi = axios.create({
 export interface UserProfile {
   username: string;
   email: string;
-  role: 'admin' | 'investor' | 'operator' | 'marketing' | 'agent' | 'guest';
+  role: string | string[];
 }
 
 export const setTokens = (access: string, refresh: string) => {

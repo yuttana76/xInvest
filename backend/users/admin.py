@@ -15,19 +15,25 @@ class UserAdmin(BaseUserAdmin):
     list_display = BaseUserAdmin.list_display + ('get_groups', 'get_role')
 
     def get_queryset(self, request):
-        from django.db.models import Case, When, Value, CharField, Q
+        from django.db.models import Case, When, Value, CharField, Q, Subquery, OuterRef, F
+        from django.contrib.auth.models import Group
         qs = super().get_queryset(request)
+        
+        group_subquery = Subquery(
+            Group.objects.filter(user=OuterRef('pk')).values('name')[:1]
+        )
+        
         return qs.annotate(
+            first_group_name=group_subquery
+        ).annotate(
             annotated_role=Case(
                 When(Q(is_staff=True) | Q(is_superuser=True), then=Value('admin')),
-                When(groups__name='operator', then=Value('operator')),
-                When(groups__name='marketing', then=Value('marketing')),
-                When(groups__name='agent', then=Value('agent')),
+                When(first_group_name__isnull=False, then=F('first_group_name')),
                 When(investor_profile__isnull=False, then=Value('investor')),
                 default=Value('guest'),
                 output_field=CharField(),
             )
-        ).distinct()
+        )
 
     def get_groups(self, obj):
         return ", ".join([group.name for group in obj.groups.all()])

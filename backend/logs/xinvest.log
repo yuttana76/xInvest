@@ -15674,3 +15674,169 @@ INFO 2026-06-12 09:43:33,933 services 15 281473787151552 * Welcome to Asset Allo
 INFO 2026-06-12 09:43:35,452 tasks 21 281473787151552 Finished scheduled news fetch. Saved 20 new articles.
 INFO 2026-06-12 09:44:32,477 services 15 281473787151552 Successfully processed 945619 Asset Allocations.
 INFO 2026-06-12 09:44:32,936 tasks 15 281473787151552 FundConnext AssetAllocation ETL completed successfully for 20260611
+INFO 2026-06-15 11:52:52,693 tasks 21 281473850172608 Starting FundConnext ETL for business date: 20260614
+INFO 2026-06-15 11:52:52,693 tasks 22 281473850172608 Starting FundConnext ETL for business date: 20260614
+INFO 2026-06-15 11:52:52,694 fundconnext 22 281473850172608 FC_API_USER: API_MPS01
+INFO 2026-06-15 11:52:52,694 fundconnext 21 281473850172608 FC_API_USER: API_MPS01
+INFO 2026-06-15 11:52:52,695 tasks 22 281473850172608 Authenticating with FundConnext...
+INFO 2026-06-15 11:52:52,695 tasks 21 281473850172608 Authenticating with FundConnext...
+INFO 2026-06-15 11:52:52,696 tasks 15 281473850172608 Starting FundConnext ETL for business date: 20260614
+INFO 2026-06-15 11:52:52,696 tasks 16 281473850172608 Starting scheduled news fetch...
+INFO 2026-06-15 11:52:52,697 fundconnext 15 281473850172608 FC_API_USER: API_MPS01
+INFO 2026-06-15 11:52:52,697 tasks 17 281473850172608 Starting FundConnext FundProfile ETL for business date: 20260614
+INFO 2026-06-15 11:52:52,698 tasks 15 281473850172608 Authenticating with FundConnext...
+INFO 2026-06-15 11:52:52,698 fundconnext 17 281473850172608 FC_API_USER: API_MPS01
+INFO 2026-06-15 11:52:52,698 tasks 17 281473850172608 Authenticating with FundConnext...
+INFO 2026-06-15 11:52:52,698 tasks 18 281473850172608 Starting FundConnext ETL for FundPerformance: 20260614
+INFO 2026-06-15 11:52:52,700 fundconnext 18 281473850172608 FC_API_USER: API_MPS01
+INFO 2026-06-15 11:52:52,700 tasks 18 281473850172608 Authenticating with FundConnext...
+INFO 2026-06-15 11:52:52,701 tasks 19 281473850172608 Starting FundConnext ETL for AssetAllocation: 20260614
+INFO 2026-06-15 11:52:52,702 fundconnext 19 281473850172608 FC_API_USER: API_MPS01
+INFO 2026-06-15 11:52:52,703 tasks 19 281473850172608 Authenticating with FundConnext...
+INFO 2026-06-15 11:52:54,609 tasks 18 281473850172608 Downloading FundPerformance for 20260614...
+INFO 2026-06-15 11:52:54,728 tasks 21 281473850172608 Downloading AllottedTransactions for 20260614...
+INFO 2026-06-15 11:52:54,725 tasks 19 281473850172608 Downloading AssetAllocation for 20260614...
+INFO 2026-06-15 11:52:54,726 tasks 15 281473850172608 Downloading UnitholderBalance for 20260614...
+INFO 2026-06-15 11:52:54,725 tasks 17 281473850172608 Downloading FundProfile for 20260614...
+INFO 2026-06-15 11:52:54,730 tasks 22 281473850172608 Downloading CurrentUnitholderBalance for 20260614...
+ERROR 2026-06-15 11:52:54,954 fundconnext 18 281473850172608 Failed to download FundPerformance for date 20260614: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/FundPerformance.zip
+ERROR 2026-06-15 11:52:54,954 tasks 18 281473850172608 Failed to process FundPerformance: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/FundPerformance.zip
+ERROR 2026-06-15 11:52:54,955 tasks 18 281473850172608 FundConnext FundPerformance ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/FundPerformance.zip
+ERROR 2026-06-15 11:52:55,008 fundconnext 19 281473850172608 Failed to download AssetAllocation for date 20260614: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/AssetAllocation.zip
+ERROR 2026-06-15 11:52:55,009 tasks 19 281473850172608 Failed to process AssetAllocation: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/AssetAllocation.zip
+ERROR 2026-06-15 11:52:55,009 tasks 19 281473850172608 FundConnext AssetAllocation ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/AssetAllocation.zip
+ERROR 2026-06-15 11:52:55,016 fundconnext 21 281473850172608 Failed to download AllottedTransactions for date 20260614: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/AllottedTransactions.zip
+ERROR 2026-06-15 11:52:55,017 tasks 21 281473850172608 Failed to process AllottedTransactions: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/AllottedTransactions.zip
+ERROR 2026-06-15 11:52:55,017 tasks 21 281473850172608 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/AllottedTransactions.zip
+ERROR 2026-06-15 11:52:55,025 fundconnext 17 281473850172608 Failed to download FundProfile for date 20260614: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/FundProfile.zip
+ERROR 2026-06-15 11:52:55,026 tasks 17 281473850172608 Failed to process FundProfile: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/FundProfile.zip
+ERROR 2026-06-15 11:52:55,026 tasks 17 281473850172608 FundConnext FundProfile ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/FundProfile.zip
+ERROR 2026-06-15 11:52:55,035 fundconnext 22 281473850172608 Failed to download UnitholderBalance for date 20260614: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/UnitholderBalance.zip
+ERROR 2026-06-15 11:52:55,036 tasks 22 281473850172608 Failed to process CurrentUnitholderBalance: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/UnitholderBalance.zip
+ERROR 2026-06-15 11:52:55,036 tasks 22 281473850172608 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/UnitholderBalance.zip
+ERROR 2026-06-15 11:52:55,045 fundconnext 15 281473850172608 Failed to download UnitholderBalance for date 20260614: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/UnitholderBalance.zip
+ERROR 2026-06-15 11:52:55,045 tasks 15 281473850172608 Failed to process UnitholderBalance: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/UnitholderBalance.zip
+ERROR 2026-06-15 11:52:55,046 tasks 15 281473850172608 FundConnext ETL process failed: 422 Client Error: Unprocessable Entity for url: https://www.fundconnext.com/api/files/20260614/UnitholderBalance.zip
+INFO 2026-06-15 11:52:58,233 tasks 16 281473850172608 Finished scheduled news fetch. Saved 20 new articles.
+INFO 2026-06-16 07:38:42,565 tasks 21 281473721005248 Starting scheduled news fetch...
+INFO 2026-06-16 07:38:47,856 tasks 21 281473721005248 Finished scheduled news fetch. Saved 18 new articles.
+INFO 2026-06-16 08:47:04,535 tasks 21 281473721005248 Starting FundConnext FundProfile ETL for business date: 20260615
+INFO 2026-06-16 08:47:04,539 fundconnext 21 281473721005248 FC_API_USER: API_MPS01
+INFO 2026-06-16 08:47:04,540 tasks 21 281473721005248 Authenticating with FundConnext...
+INFO 2026-06-16 08:47:04,544 tasks 22 281473721005248 Starting FundConnext ETL for AssetAllocation: 20260615
+INFO 2026-06-16 08:47:04,552 fundconnext 22 281473721005248 FC_API_USER: API_MPS01
+INFO 2026-06-16 08:47:04,553 tasks 22 281473721005248 Authenticating with FundConnext...
+INFO 2026-06-16 08:47:04,577 tasks 15 281473721005248 Starting FundConnext ETL for FundPerformance: 20260615
+INFO 2026-06-16 08:47:04,586 fundconnext 15 281473721005248 FC_API_USER: API_MPS01
+INFO 2026-06-16 08:47:04,587 tasks 15 281473721005248 Authenticating with FundConnext...
+INFO 2026-06-16 08:47:04,601 tasks 16 281473721005248 Starting FundConnext ETL for business date: 20260615
+INFO 2026-06-16 08:47:04,611 fundconnext 16 281473721005248 FC_API_USER: API_MPS01
+INFO 2026-06-16 08:47:04,613 tasks 16 281473721005248 Authenticating with FundConnext...
+INFO 2026-06-16 08:47:04,614 tasks 18 281473721005248 Starting FundConnext ETL for business date: 20260615
+INFO 2026-06-16 08:47:04,625 fundconnext 18 281473721005248 FC_API_USER: API_MPS01
+INFO 2026-06-16 08:47:04,616 tasks 17 281473721005248 Starting FundConnext ETL for business date: 20260615
+INFO 2026-06-16 08:47:04,626 tasks 18 281473721005248 Authenticating with FundConnext...
+INFO 2026-06-16 08:47:04,627 fundconnext 17 281473721005248 FC_API_USER: API_MPS01
+INFO 2026-06-16 08:47:04,628 tasks 17 281473721005248 Authenticating with FundConnext...
+INFO 2026-06-16 08:47:06,253 tasks 21 281473721005248 Downloading FundProfile for 20260615...
+INFO 2026-06-16 08:47:06,277 tasks 16 281473721005248 Downloading UnitholderBalance for 20260615...
+INFO 2026-06-16 08:47:06,282 tasks 22 281473721005248 Downloading AssetAllocation for 20260615...
+INFO 2026-06-16 08:47:06,283 tasks 18 281473721005248 Downloading AllottedTransactions for 20260615...
+INFO 2026-06-16 08:47:06,286 tasks 15 281473721005248 Downloading FundPerformance for 20260615...
+INFO 2026-06-16 08:47:06,346 tasks 17 281473721005248 Downloading CurrentUnitholderBalance for 20260615...
+INFO 2026-06-16 08:47:06,545 tasks 21 281473721005248 Saved FundProfile to /app/logs/fundconnext/20260615/FundProfile.zip
+INFO 2026-06-16 08:47:06,545 tasks 21 281473721005248 Processing FundProfile...
+INFO 2026-06-16 08:47:06,545 services 21 281473721005248 * Welcome to Fund Profile ETL
+INFO 2026-06-16 08:47:06,574 tasks 18 281473721005248 Saved AllottedTransactions to /app/logs/fundconnext/20260615/AllottedTransactions.zip
+INFO 2026-06-16 08:47:06,575 tasks 18 281473721005248 Processing AllottedTransactions...
+INFO 2026-06-16 08:47:06,575 tasks 16 281473721005248 Saved UnitholderBalance to /app/logs/fundconnext/20260615/UnitholderBalance.zip
+INFO 2026-06-16 08:47:06,575 tasks 16 281473721005248 Processing UnitholderBalance...
+INFO 2026-06-16 08:47:06,576 fundconnext 18 281473721005248 * Welcome to Allotted Transactions
+INFO 2026-06-16 08:47:06,577 fundconnext 16 281473721005248 * Welcome to Unitholder Balance
+INFO 2026-06-16 08:47:06,680 tasks 17 281473721005248 Saved CurrentUnitholderBalance to /app/logs/fundconnext/20260615/CurrentUnitholderBalance.zip
+INFO 2026-06-16 08:47:06,681 tasks 17 281473721005248 Processing CurrentUnitholderBalance...
+INFO 2026-06-16 08:47:06,682 fundconnext 17 281473721005248 * Welcome to Unitholder Balance
+INFO 2026-06-16 08:47:06,699 tasks 15 281473721005248 Saved FundPerformance to /app/logs/fundconnext/20260615/FundPerformance.zip
+INFO 2026-06-16 08:47:06,700 tasks 15 281473721005248 Processing FundPerformance...
+INFO 2026-06-16 08:47:06,701 services 15 281473721005248 * Welcome to Fund Performance
+WARNING 2026-06-16 08:47:06,797 fundconnext 18 281473721005248 Skipped 553 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-06-16 08:47:06,797 fundconnext 18 281473721005248 Parsing finished, but 0 brand new transactions were created.
+INFO 2026-06-16 08:47:06,797 tasks 18 281473721005248 FundConnext ETL completed successfully for 20260615
+INFO 2026-06-16 08:47:07,005 services 15 281473721005248 Successfully processed 3365 Fund Performances.
+INFO 2026-06-16 08:47:07,006 tasks 15 281473721005248 FundConnext FundPerformance ETL completed successfully for 20260615
+WARNING 2026-06-16 08:47:07,352 fundconnext 16 281473721005248 Skipped 2701 UnitholderBalance records because InvestorAccount does not exist in DB.
+INFO 2026-06-16 08:47:07,382 fundconnext 16 281473721005248 Successfully processed 18 Unitholder Balances.
+INFO 2026-06-16 08:47:07,384 tasks 16 281473721005248 FundConnext ETL completed successfully for 20260615
+WARNING 2026-06-16 08:47:07,423 fundconnext 17 281473721005248 Skipped(X) 2701 UnitholderBalance records because InvestorAccount does not exist in DB.
+INFO 2026-06-16 08:47:07,423 fundconnext 17 281473721005248 Processing 18 Unitholder Balances.
+INFO 2026-06-16 08:47:07,448 fundconnext 17 281473721005248 Successfully processed 18 Unitholder Balances.
+INFO 2026-06-16 08:47:07,448 tasks 17 281473721005248 FundConnext ETL completed successfully for 20260615
+INFO 2026-06-16 08:47:07,500 services 21 281473721005248 Successfully processed 3675 Fund Profiles.
+INFO 2026-06-16 08:47:07,503 tasks 21 281473721005248 FundConnext FundProfile ETL completed successfully for 20260615
+INFO 2026-06-16 08:47:09,260 tasks 22 281473721005248 Saved AssetAllocation to /app/logs/fundconnext/20260615/AssetAllocation.zip
+INFO 2026-06-16 08:47:09,260 tasks 22 281473721005248 Processing AssetAllocation...
+INFO 2026-06-16 08:47:09,261 services 22 281473721005248 * Welcome to Asset Allocation
+INFO 2026-06-16 09:03:02,533 services 22 281473721005248 Successfully processed 945619 Asset Allocations.
+INFO 2026-06-16 09:03:02,800 tasks 22 281473721005248 FundConnext AssetAllocation ETL completed successfully for 20260615
+INFO 2026-06-17 07:41:32,633 tasks 21 281473721005248 Starting scheduled news fetch...
+ERROR 2026-06-17 07:41:32,660 news_service 21 281473721005248 Error fetching from RSS Yahoo Finance: HTTPSConnectionPool(host='finance.yahoo.com', port=443): Max retries exceeded with url: /rss/topstories (Caused by NameResolutionError("HTTPSConnection(host='finance.yahoo.com', port=443): Failed to resolve 'finance.yahoo.com' ([Errno -2] Name or service not known)"))
+ERROR 2026-06-17 07:41:34,671 news_service 21 281473721005248 Error fetching from RSS Google News: HTTPSConnectionPool(host='news.google.com', port=443): Max retries exceeded with url: /rss/search?q=finance+when:24h&hl=en-US&gl=US&ceid=US:en (Caused by NameResolutionError("HTTPSConnection(host='news.google.com', port=443): Failed to resolve 'news.google.com' ([Errno -2] Name or service not known)"))
+INFO 2026-06-17 07:41:36,674 tasks 21 281473721005248 Finished scheduled news fetch. Saved 0 new articles.
+INFO 2026-06-17 09:07:25,892 tasks 21 281473721005248 Starting FundConnext ETL for AssetAllocation: 20260616
+INFO 2026-06-17 09:07:25,898 fundconnext 21 281473721005248 FC_API_USER: API_MPS01
+INFO 2026-06-17 09:07:25,901 tasks 21 281473721005248 Authenticating with FundConnext...
+INFO 2026-06-17 09:07:25,931 tasks 17 281473721005248 Starting FundConnext ETL for business date: 20260616
+INFO 2026-06-17 09:07:25,936 fundconnext 17 281473721005248 FC_API_USER: API_MPS01
+INFO 2026-06-17 09:07:25,937 tasks 17 281473721005248 Authenticating with FundConnext...
+INFO 2026-06-17 09:07:25,931 tasks 22 281473721005248 Starting FundConnext ETL for FundPerformance: 20260616
+INFO 2026-06-17 09:07:25,933 tasks 18 281473721005248 Starting FundConnext FundProfile ETL for business date: 20260616
+INFO 2026-06-17 09:07:25,940 fundconnext 18 281473721005248 FC_API_USER: API_MPS01
+INFO 2026-06-17 09:07:25,941 fundconnext 22 281473721005248 FC_API_USER: API_MPS01
+INFO 2026-06-17 09:07:25,942 tasks 18 281473721005248 Authenticating with FundConnext...
+INFO 2026-06-17 09:07:25,943 tasks 22 281473721005248 Authenticating with FundConnext...
+INFO 2026-06-17 09:07:25,938 tasks 15 281473721005248 Starting FundConnext ETL for business date: 20260616
+INFO 2026-06-17 09:07:25,948 fundconnext 15 281473721005248 FC_API_USER: API_MPS01
+INFO 2026-06-17 09:07:25,950 tasks 15 281473721005248 Authenticating with FundConnext...
+INFO 2026-06-17 09:07:25,961 tasks 16 281473721005248 Starting FundConnext ETL for business date: 20260616
+INFO 2026-06-17 09:07:25,975 fundconnext 16 281473721005248 FC_API_USER: API_MPS01
+INFO 2026-06-17 09:07:25,976 tasks 16 281473721005248 Authenticating with FundConnext...
+INFO 2026-06-17 09:07:28,082 tasks 18 281473721005248 Downloading FundProfile for 20260616...
+INFO 2026-06-17 09:07:28,084 tasks 22 281473721005248 Downloading FundPerformance for 20260616...
+INFO 2026-06-17 09:07:28,109 tasks 16 281473721005248 Downloading AllottedTransactions for 20260616...
+INFO 2026-06-17 09:07:28,113 tasks 17 281473721005248 Downloading CurrentUnitholderBalance for 20260616...
+INFO 2026-06-17 09:07:28,125 tasks 15 281473721005248 Downloading UnitholderBalance for 20260616...
+INFO 2026-06-17 09:07:28,129 tasks 21 281473721005248 Downloading AssetAllocation for 20260616...
+INFO 2026-06-17 09:07:28,563 tasks 16 281473721005248 Saved AllottedTransactions to /app/logs/fundconnext/20260616/AllottedTransactions.zip
+INFO 2026-06-17 09:07:28,564 tasks 16 281473721005248 Processing AllottedTransactions...
+INFO 2026-06-17 09:07:28,565 fundconnext 16 281473721005248 * Welcome to Allotted Transactions
+INFO 2026-06-17 09:07:28,780 tasks 18 281473721005248 Saved FundProfile to /app/logs/fundconnext/20260616/FundProfile.zip
+INFO 2026-06-17 09:07:28,780 tasks 18 281473721005248 Processing FundProfile...
+INFO 2026-06-17 09:07:28,781 services 18 281473721005248 * Welcome to Fund Profile ETL
+INFO 2026-06-17 09:07:28,829 tasks 22 281473721005248 Saved FundPerformance to /app/logs/fundconnext/20260616/FundPerformance.zip
+INFO 2026-06-17 09:07:28,830 tasks 22 281473721005248 Processing FundPerformance...
+INFO 2026-06-17 09:07:28,830 services 22 281473721005248 * Welcome to Fund Performance
+WARNING 2026-06-17 09:07:28,887 fundconnext 16 281473721005248 Skipped 810 Allotted Transaction records because InvestorAccount does not exist in DB.
+INFO 2026-06-17 09:07:28,902 fundconnext 16 281473721005248 Successfully processed 2 Allotted Transactions.
+INFO 2026-06-17 09:07:28,902 tasks 16 281473721005248 FundConnext ETL completed successfully for 20260616
+INFO 2026-06-17 09:07:29,631 tasks 17 281473721005248 Saved CurrentUnitholderBalance to /app/logs/fundconnext/20260616/CurrentUnitholderBalance.zip
+INFO 2026-06-17 09:07:29,631 tasks 17 281473721005248 Processing CurrentUnitholderBalance...
+INFO 2026-06-17 09:07:29,634 fundconnext 17 281473721005248 * Welcome to Unitholder Balance
+INFO 2026-06-17 09:07:29,648 services 18 281473721005248 Successfully processed 3680 Fund Profiles.
+INFO 2026-06-17 09:07:29,658 tasks 18 281473721005248 FundConnext FundProfile ETL completed successfully for 20260616
+INFO 2026-06-17 09:07:30,506 tasks 15 281473721005248 Saved UnitholderBalance to /app/logs/fundconnext/20260616/UnitholderBalance.zip
+INFO 2026-06-17 09:07:30,506 tasks 15 281473721005248 Processing UnitholderBalance...
+INFO 2026-06-17 09:07:30,506 fundconnext 15 281473721005248 * Welcome to Unitholder Balance
+WARNING 2026-06-17 09:07:31,086 fundconnext 17 281473721005248 Skipped(X) 6825 UnitholderBalance records because InvestorAccount does not exist in DB.
+INFO 2026-06-17 09:07:31,087 fundconnext 17 281473721005248 Processing 39 Unitholder Balances.
+INFO 2026-06-17 09:07:31,099 fundconnext 17 281473721005248 Successfully processed 39 Unitholder Balances.
+INFO 2026-06-17 09:07:31,100 tasks 17 281473721005248 FundConnext ETL completed successfully for 20260616
+INFO 2026-06-17 09:07:31,436 services 22 281473721005248 Successfully processed 3369 Fund Performances.
+INFO 2026-06-17 09:07:31,439 tasks 22 281473721005248 FundConnext FundPerformance ETL completed successfully for 20260616
+WARNING 2026-06-17 09:07:32,113 fundconnext 15 281473721005248 Skipped 6825 UnitholderBalance records because InvestorAccount does not exist in DB.
+INFO 2026-06-17 09:07:32,187 fundconnext 15 281473721005248 Successfully processed 39 Unitholder Balances.
+INFO 2026-06-17 09:07:32,188 tasks 15 281473721005248 FundConnext ETL completed successfully for 20260616
+INFO 2026-06-17 09:07:45,775 tasks 21 281473721005248 Saved AssetAllocation to /app/logs/fundconnext/20260616/AssetAllocation.zip
+INFO 2026-06-17 09:07:45,777 tasks 21 281473721005248 Processing AssetAllocation...
+INFO 2026-06-17 09:07:45,778 services 21 281473721005248 * Welcome to Asset Allocation
+INFO 2026-06-17 09:11:42,400 services 21 281473721005248 Successfully processed 945619 Asset Allocations.
+INFO 2026-06-17 09:11:42,688 tasks 21 281473721005248 FundConnext AssetAllocation ETL completed successfully for 20260616

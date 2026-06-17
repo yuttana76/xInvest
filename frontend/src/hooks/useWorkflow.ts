@@ -41,7 +41,8 @@ export const useWorkflowMutation = () => {
   });
 
   const approveMutation = useMutation({
-    mutationFn: ({ id, comment }: { id: number; comment: string }) => workflowApi.approveRequest(id, comment),
+    mutationFn: ({ id, comment, files }: { id: number; comment: string; files?: File[] }) => 
+      workflowApi.approveRequest(id, comment, files),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['workflow', 'waiting-approval'] });
       queryClient.invalidateQueries({ queryKey: ['workflow', 'request', id] });

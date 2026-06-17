@@ -3,12 +3,13 @@ from rest_framework import viewsets, status, permissions, parsers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
-from .models import WorkflowConfig, WorkflowStep, Request, ApprovalLog
+from .models import WorkflowConfig, WorkflowStep, Request, ApprovalLog, RequestFile
 from .serializers import (
     WorkflowConfigSerializer, WorkflowStepSerializer, RequestSerializer, ApprovalLogSerializer
 )
 from .tasks import task_send_workflow_action_required_email, task_send_workflow_status_update_email
 
+# pyrefly: ignore [missing-import]
 from django.db import models
 
 logger = logging.getLogger(__name__)
@@ -95,6 +96,11 @@ class RequestViewSet(viewsets.ModelViewSet):
             action='APPROVE',
             comment=comment
         )
+
+        # Handle optional file upload during approval
+        uploaded_files = request.FILES.getlist('uploaded_files')
+        for file in uploaded_files:
+            RequestFile.objects.create(request=request_obj, file=file)
 
         # Move to next step
         next_step_number = request_obj.current_step_number + 1
@@ -345,21 +351,16 @@ class RequestViewSet(viewsets.ModelViewSet):
         
         # Find steps that require one of the user's groups
         relevant_steps = WorkflowStep.objects.filter(required_group__in=user_groups)
-        
-        # Get pairs of (workflow_id, step_number) that user can approve
         valid_combinations = relevant_steps.values_list('workflow_id', 'step_number')
-        
-        if not valid_combinations:
-            return Response([])
-
         # Build filter conditions using Q objects
         from django.db.models import Q
         query = Q()
         
         # 1. Groups-based approval
-        for w_id, s_num in valid_combinations:
-            query |= Q(workflow_id=w_id, current_step_number=s_num)
-        
+        if valid_combinations:
+            for w_id, s_num in valid_combinations:
+                query |= Q(workflow_id=w_id, current_step_number=s_num)
+
         # 2. Department Manager-based approval
         # Find requests where current step 'is_department_manager' is True 
         # AND the creator's department manager is the current user
@@ -369,11 +370,17 @@ class RequestViewSet(viewsets.ModelViewSet):
             workflow__steps__is_department_manager=True,
             creator__profile__department__manager=request.user
         )
-        
-        queryset = self.queryset.filter(query | query_mgr, status='PENDING').distinct()
-        
+        # Combine filters: if valid_combinations exists, use both; otherwise just manager query
+        if valid_combinations:
+            filter_query = query | query_mgr
+        else:
+            filter_query = query_mgr
+                
+        queryset = self.queryset.filter(filter_query, status='PENDING').distinct()
+                
         # Apply pagination if needed (optional but good practice)
         page = self.paginate_queryset(queryset)
+        
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
@@ -383,6 +390,7 @@ class RequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def my_requests(self, request):
+        
         queryset = self.queryset.filter(creator=request.user)
         page = self.paginate_queryset(queryset)
         if page is not None:

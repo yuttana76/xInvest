@@ -30,7 +30,8 @@ export interface ApprovalLog {
 export interface WorkflowFile {
   id: number;
   file: string;
-  filename: string;
+  file_name?: string;
+  filename?: string;
   uploaded_at: string;
 }
 
@@ -90,9 +91,19 @@ export const workflowApi = {
     return response.data;
   },
 
-  approveRequest: async (id: number, comment: string): Promise<{ status: string; message: string }> => {
-    const response = await authApi.post(`/api/v1/workflow/requests/${id}/approve/`, { comment });
-    return response.data;
+  approveRequest: async (id: number, comment: string, files?: File[]): Promise<{ status: string; message: string }> => {
+    if (files && files.length > 0) {
+      const formData = new FormData();
+      formData.append('comment', comment);
+      files.forEach((file) => formData.append('uploaded_files', file));
+      const response = await authApi.post(`/api/v1/workflow/requests/${id}/approve/`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
+    } else {
+      const response = await authApi.post(`/api/v1/workflow/requests/${id}/approve/`, { comment });
+      return response.data;
+    }
   },
 
   returnToCreator: async (id: number, comment: string): Promise<{ status: string; message: string }> => {

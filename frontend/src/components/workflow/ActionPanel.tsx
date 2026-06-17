@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/Button';
 import { useWorkflowMutation } from '@/hooks/useWorkflow';
 import { CheckCircle2, XCircle, RotateCcw, Star } from 'lucide-react';
+import { FileUpload } from './FileUpload';
 
 interface ActionPanelProps {
   requestId: number;
@@ -12,14 +13,29 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({ requestId, status }) =
   const [comment, setComment] = useState('');
   const [rating, setRating] = useState(0);
   const [ratingHover, setRatingHover] = useState(0);
+  const [files, setFiles] = useState<File[]>([]);
   const { approveMutation, rejectMutation, returnMutation, completeMutation, rateMutation } = useWorkflowMutation();
 
-  const handleAction = (mutation: { mutate: (args: { id: number; comment: string }) => void }) => {
+  const handleAction = (mutation: any) => {
     if ((mutation === rejectMutation || mutation === returnMutation) && !comment) {
       alert('Please provide a comment for rejection or return.');
       return;
     }
-    mutation.mutate({ id: requestId, comment });
+    
+    if (mutation === approveMutation) {
+      mutation.mutate({ id: requestId, comment, files }, {
+        onSuccess: () => {
+          setComment('');
+          setFiles([]);
+        }
+      });
+    } else {
+      mutation.mutate({ id: requestId, comment }, {
+        onSuccess: () => {
+          setComment('');
+        }
+      });
+    }
   };
 
   const handleCompleteWithRating = async () => {
@@ -93,6 +109,15 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({ requestId, status }) =
             rows={3}
           />
         </div>
+
+        {status !== 'APPROVED' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Attach Files (Optional)
+            </label>
+            <FileUpload files={files} onChange={setFiles} />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {status === 'APPROVED' ? (
