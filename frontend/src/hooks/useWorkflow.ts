@@ -8,6 +8,13 @@ export const useWorkflowConfigs = () => {
   });
 };
 
+export const useWorkflowSubjects = (workflowId?: number) => {
+  return useQuery({
+    queryKey: ['workflow', 'subjects', workflowId ?? 'all'],
+    queryFn: () => workflowApi.getSubjects(workflowId),
+  });
+};
+
 export const useMyRequests = () => {
   return useQuery({
     queryKey: ['workflow', 'my-requests'],

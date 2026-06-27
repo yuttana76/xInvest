@@ -29,6 +29,29 @@ class WorkflowStep(models.Model):
     def __str__(self):
         return f"{self.workflow.name} - Step {self.step_number}: {self.step_name}"
 
+class RequestSubject(models.Model):
+    """Selectable IT request subjects, scoped to a specific WorkflowConfig."""
+    workflow = models.ForeignKey(
+        WorkflowConfig,
+        on_delete=models.CASCADE,
+        related_name='subjects',
+        verbose_name='Workflow'
+    )
+    name = models.CharField(max_length=200, verbose_name="Subject Name")
+    code = models.CharField(max_length=50, verbose_name="Code")  # e.g. 'NEW_SYSTEM', 'BUG_FIX'
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'name']
+        unique_together = [('workflow', 'code')]  # code unique per workflow
+        verbose_name = "Request Subject"
+        verbose_name_plural = "Request Subjects"
+
+    def __str__(self):
+        return f"{self.workflow.name} — {self.name}"
+
+
 class Request(models.Model):
     STATUS_CHOICES = [
         ('DRAFT', 'Draft'),
@@ -42,6 +65,26 @@ class Request(models.Model):
     ]
     req_code = models.CharField(max_length=50, unique=True, blank=True, null=True)
     title = models.CharField(max_length=255)
+    
+    #For IT request form
+    # Subject: multi-choice via ManyToMany
+    reqSubject = models.ManyToManyField(
+        RequestSubject,
+        blank=True,
+        related_name='requests',
+        verbose_name='Subject(s)'
+    )
+    # Priority: 1 High, 2 Medium, 3 Low
+    priorify = models.PositiveSmallIntegerField(
+        default=2,
+        choices=[(1, 'High'), (2, 'Medium'), (3, 'Low')],
+        verbose_name='Priority'
+    )
+    # Expected date to complete (user-settable)
+    expectDate = models.DateField(null=True, blank=True, verbose_name='Expected Completion Date')
+    # auditFlag: true / false — marks if this case is important for IT audit
+    auditFlag = models.BooleanField(default=False, verbose_name='Audit Flag')
+
     description = models.TextField(blank=True)
     workflow = models.ForeignKey(WorkflowConfig, on_delete=models.PROTECT)
 

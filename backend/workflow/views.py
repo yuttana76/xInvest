@@ -3,9 +3,10 @@ from rest_framework import viewsets, status, permissions, parsers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
-from .models import WorkflowConfig, WorkflowStep, Request, ApprovalLog, RequestFile
+from .models import WorkflowConfig, WorkflowStep, Request, ApprovalLog, RequestFile, RequestSubject
 from .serializers import (
-    WorkflowConfigSerializer, WorkflowStepSerializer, RequestSerializer, ApprovalLogSerializer
+    WorkflowConfigSerializer, WorkflowStepSerializer, RequestSerializer, ApprovalLogSerializer,
+    RequestSubjectSerializer
 )
 from .tasks import task_send_workflow_action_required_email, task_send_workflow_status_update_email
 
@@ -18,6 +19,22 @@ class WorkflowConfigViewSet(viewsets.ModelViewSet):
     queryset = WorkflowConfig.objects.all()
     serializer_class = WorkflowConfigSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+class RequestSubjectViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Read-only list of active request subjects.
+    Filter by workflow: /api/v1/workflow/subjects/?workflow=<id>
+    """
+    serializer_class = RequestSubjectSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = RequestSubject.objects.filter(is_active=True)
+        workflow_id = self.request.query_params.get('workflow')
+        if workflow_id:
+            queryset = queryset.filter(workflow_id=workflow_id)
+        return queryset
 
 class RequestViewSet(viewsets.ModelViewSet):
     queryset = Request.objects.all()

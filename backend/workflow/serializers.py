@@ -1,11 +1,13 @@
 from rest_framework import serializers
 from django.contrib.auth.models import Group
-from .models import WorkflowConfig, WorkflowStep, Request, ApprovalLog, RequestFile
+from .models import WorkflowConfig, WorkflowStep, Request, ApprovalLog, RequestFile, RequestSubject
+
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ['id', 'name']
+
 
 class WorkflowStepSerializer(serializers.ModelSerializer):
     required_group_name = serializers.ReadOnlyField(source='required_group.name')
@@ -14,12 +16,26 @@ class WorkflowStepSerializer(serializers.ModelSerializer):
         model = WorkflowStep
         fields = ['id', 'step_number', 'step_name', 'required_group', 'required_group_name']
 
+
+class RequestSubjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RequestSubject
+        fields = ['id', 'name', 'code', 'workflow']
+
+
 class WorkflowConfigSerializer(serializers.ModelSerializer):
     steps = WorkflowStepSerializer(many=True, read_only=True)
+    subjects = serializers.SerializerMethodField()
 
     class Meta:
         model = WorkflowConfig
-        fields = ['id', 'name', 'category', 'description', 'steps']
+        fields = ['id', 'name', 'category', 'description', 'steps', 'subjects']
+
+    def get_subjects(self, obj):
+        """Return only active subjects for this workflow."""
+        active_subjects = obj.subjects.filter(is_active=True)
+        return RequestSubjectSerializer(active_subjects, many=True).data
+
 
 class ApprovalLogSerializer(serializers.ModelSerializer):
     approver_name = serializers.ReadOnlyField(source='approver.get_full_name')
@@ -28,10 +44,12 @@ class ApprovalLogSerializer(serializers.ModelSerializer):
         model = ApprovalLog
         fields = ['id', 'approver', 'approver_name', 'step_number', 'step_name', 'action', 'comment', 'created_at']
 
+
 class RequestFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = RequestFile
         fields = ['id', 'file', 'file_name', 'uploaded_at', 'description']
+
 
 class RequestSerializer(serializers.ModelSerializer):
     creator_name = serializers.ReadOnlyField(source='creator.get_full_name')
@@ -47,15 +65,25 @@ class RequestSerializer(serializers.ModelSerializer):
         required=False
     )
 
+    # reqSubject: write with list of IDs, read back as full objects via reqSubject_details
+    reqSubject = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=RequestSubject.objects.filter(is_active=True),
+        required=False
+    )
+    reqSubject_details = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Request
         fields = [
             'id', 'req_code', 'title', 'description', 'workflow', 'workflow_name', 'workflow_steps',
             'creator', 'creator_name', 'creator_username', 'create_department',
-            'current_step_number', 'status', 
-            'assigned_to', 'created_at', 'updated_at', 'completed_at', 
+            'current_step_number', 'status',
+            'assigned_to', 'created_at', 'updated_at', 'completed_at',
             'logs', 'files', 'current_step_info', 'uploaded_files',
-            'rating', 'rating_comment'
+            'rating', 'rating_comment',
+            # IT request fields
+            'reqSubject', 'reqSubject_details', 'priorify', 'expectDate', 'auditFlag',
         ]
         read_only_fields = ['creator', 'current_step_number', 'status', 'created_at', 'updated_at', 'completed_at']
 
@@ -65,9 +93,28 @@ class RequestSerializer(serializers.ModelSerializer):
             return WorkflowStepSerializer(step).data
         return None
 
+    def get_reqSubject_details(self, obj):
+        return [
+            {'id': s.id, 'name': s.name, 'code': s.code}
+            for s in obj.reqSubject.all()
+        ]
+
     def create(self, validated_data):
         uploaded_files = validated_data.pop('uploaded_files', [])
+        req_subjects = validated_data.pop('reqSubject', [])
         request_obj = Request.objects.create(**validated_data)
+        if req_subjects:
+            request_obj.reqSubject.set(req_subjects)
         for file in uploaded_files:
             RequestFile.objects.create(request=request_obj, file=file)
         return request_obj
+
+    def update(self, instance, validated_data):
+        uploaded_files = validated_data.pop('uploaded_files', [])
+        req_subjects = validated_data.pop('reqSubject', None)
+        instance = super().update(instance, validated_data)
+        if req_subjects is not None:
+            instance.reqSubject.set(req_subjects)
+        for file in uploaded_files:
+            RequestFile.objects.create(request=instance, file=file)
+        return instance

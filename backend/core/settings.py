@@ -208,10 +208,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'invest.tasks.run_daily_fundconnext_etl_current_mf_balance',
         'schedule': crontab(hour=8, minute=0),
     },
-    'fetch-news-every-morning': {
-        'task': 'fundDecision.tasks.fetch_daily_news',
-        'schedule': crontab(hour=7, minute=0),
-    },
+    # 'fetch-news-every-morning': {
+    #     'task': 'fundDecision.tasks.fetch_daily_news',
+    #     'schedule': crontab(hour=7, minute=0),
+    # },
     'daily-fundconnext-etl-fund-profile': {
         'task': 'stt_fundconnext.tasks.run_daily_fundconnext_etl_fund_profile',
         'schedule': crontab(hour=8, minute=0),

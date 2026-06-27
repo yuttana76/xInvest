@@ -101,7 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (hasRole('admin') || hasRole('IT')) {
         router.push('/admin-portal');
-      } else if (hasRole('operator') || hasRole('cp-risk')) {
+      } else if (hasRole('operator') || hasRole('cp-risk') || hasRole('officer')) {
         router.push('/operator');
       } else if (hasRole('marketing') || hasRole('ceo')) {
         router.push('/marketing');

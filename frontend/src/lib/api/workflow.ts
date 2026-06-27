@@ -2,11 +2,14 @@ import { authApi } from '@/lib/auth';
 
 export type RequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'RETURNED' | 'IN_PROGRESS' | 'COMPLETED';
 
+export type PriorityLevel = 1 | 2 | 3; // 1=High, 2=Medium, 3=Low
+
 export interface WorkflowConfig {
   id: number;
   name: string;
   description: string;
   steps: WorkflowStep[];
+  subjects: RequestSubject[];  // active subjects for this workflow
 }
 
 export interface WorkflowStep {
@@ -35,6 +38,12 @@ export interface WorkflowFile {
   uploaded_at: string;
 }
 
+export interface RequestSubject {
+  id: number;
+  name: string;
+  code: string;
+}
+
 export interface WorkflowRequest {
   id: number;
   req_code: string | null;
@@ -56,11 +65,25 @@ export interface WorkflowRequest {
   files: WorkflowFile[];
   rating: number | null;
   rating_comment: string | null;
+  // IT request fields
+  reqSubject: number[];                  // writable: list of subject IDs
+  reqSubject_details: RequestSubject[];  // readable: full subject objects
+  priorify: PriorityLevel;
+  expectDate: string | null;             // ISO date string (YYYY-MM-DD)
+  auditFlag: boolean;
 }
 
 export const workflowApi = {
   getConfigs: async (): Promise<WorkflowConfig[]> => {
     const response = await authApi.get('/api/v1/workflow/configs/');
+    return response.data;
+  },
+
+  getSubjects: async (workflowId?: number): Promise<RequestSubject[]> => {
+    const url = workflowId
+      ? `/api/v1/workflow/subjects/?workflow=${workflowId}`
+      : '/api/v1/workflow/subjects/';
+    const response = await authApi.get(url);
     return response.data;
   },
 
@@ -117,10 +140,10 @@ export const workflowApi = {
   },
 
   completeRequest: async (id: number, comment: string, rating?: number, rating_comment?: string): Promise<{ status: string; message: string }> => {
-    const response = await authApi.post(`/api/v1/workflow/requests/${id}/complete/`, { 
-      comment, 
-      rating, 
-      rating_comment 
+    const response = await authApi.post(`/api/v1/workflow/requests/${id}/complete/`, {
+      comment,
+      rating,
+      rating_comment
     });
     return response.data;
   },
@@ -131,7 +154,7 @@ export const workflowApi = {
     });
     return response.data;
   },
-  
+
   rateRequest: async (id: number, rating: number, comment: string): Promise<WorkflowRequest> => {
     const response = await authApi.post(`/api/v1/workflow/requests/${id}/rate/`, { rating, rating_comment: comment });
     return response.data;
