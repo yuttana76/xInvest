@@ -27,6 +27,7 @@ export interface ApprovalLog {
   created_at: string;
   user_display: string;
   approver_name: string;
+  approver_username?: string;
   step_number: number;
 }
 

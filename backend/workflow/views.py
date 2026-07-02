@@ -15,6 +15,19 @@ from django.db import models
 
 logger = logging.getLogger(__name__)
 
+from rest_framework.pagination import PageNumberPagination
+
+class OptionalPageNumberPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+    def paginate_queryset(self, queryset, request, view=None):
+        if 'page' not in request.query_params:
+            return None
+        return super().paginate_queryset(queryset, request, view)
+
+
 class WorkflowConfigViewSet(viewsets.ModelViewSet):
     queryset = WorkflowConfig.objects.all()
     serializer_class = WorkflowConfigSerializer
@@ -39,6 +52,7 @@ class RequestSubjectViewSet(viewsets.ReadOnlyModelViewSet):
 class RequestViewSet(viewsets.ModelViewSet):
     queryset = Request.objects.all()
     serializer_class = RequestSerializer
+    pagination_class = OptionalPageNumberPagination
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]
 

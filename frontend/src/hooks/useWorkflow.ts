@@ -29,6 +29,13 @@ export const useWaitingApproval = () => {
   });
 };
 
+export const useAllRequests = () => {
+  return useQuery({
+    queryKey: ['workflow', 'all-requests'],
+    queryFn: workflowApi.getRequests,
+  });
+};
+
 export const useRequestDetail = (id: number) => {
   return useQuery({
     queryKey: ['workflow', 'request', id],

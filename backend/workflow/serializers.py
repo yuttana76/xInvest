@@ -39,10 +39,11 @@ class WorkflowConfigSerializer(serializers.ModelSerializer):
 
 class ApprovalLogSerializer(serializers.ModelSerializer):
     approver_name = serializers.ReadOnlyField(source='approver.get_full_name')
+    approver_username = serializers.ReadOnlyField(source='approver.username')
 
     class Meta:
         model = ApprovalLog
-        fields = ['id', 'approver', 'approver_name', 'step_number', 'step_name', 'action', 'comment', 'created_at']
+        fields = ['id', 'approver', 'approver_name', 'approver_username', 'step_number', 'step_name', 'action', 'comment', 'created_at']
 
 
 class RequestFileSerializer(serializers.ModelSerializer):

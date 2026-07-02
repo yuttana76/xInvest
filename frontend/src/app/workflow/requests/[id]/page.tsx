@@ -168,7 +168,7 @@ export default function RequestDetailPage() {
                 <span className="text-xs text-gray-500 block mb-1">Created By</span>
                 <span className="text-sm font-medium flex items-center">
                   <User className="w-3.5 h-3.5 mr-1.5 opacity-60" />
-                  {request.creator_name}
+                  {request.creator_name && request.creator_name.trim() !== '' ? request.creator_name : request.creator_username}
                 </span>
               </div>
               <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
