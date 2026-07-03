@@ -10,7 +10,7 @@ import { Input } from '@/components/Input';
 import { cn } from '@/utils/cn';
 
 export default function OperatorCustomers() {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const router = useRouter();
   const [investors, setInvestors] = useState<MarketingInvestor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,11 +34,11 @@ export default function OperatorCustomers() {
   }, [statusFilter, search]);
 
   useEffect(() => {
-    if (user && user.role === 'operator') {
+    if (user && hasRole('operator')) {
       const timer = setTimeout(() => fetchInvestors(1), 300);
       return () => clearTimeout(timer);
     }
-  }, [fetchInvestors, user]);
+  }, [fetchInvestors, user, hasRole]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();

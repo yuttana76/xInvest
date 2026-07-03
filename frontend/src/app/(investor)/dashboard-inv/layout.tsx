@@ -13,22 +13,24 @@ export default function InvestorLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout, hasRole } = useAuth();
   const router = useRouter();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
+  const isInvestor = hasRole('investor');
+
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || user?.role !== 'investor')) {
+    if (!isLoading && (!isAuthenticated || !isInvestor)) {
       router.push('/login');
     }
-  }, [isAuthenticated, user, isLoading, router]);
+  }, [isAuthenticated, isInvestor, isLoading, router]);
 
   const handleLogout = () => {
     setIsLogoutModalOpen(false);
     logout();
   };
 
-  if (isLoading || !isAuthenticated || user?.role !== 'investor') {
+  if (isLoading || !isAuthenticated || !isInvestor) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>

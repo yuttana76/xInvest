@@ -11,20 +11,18 @@ export default function MarketingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, hasRole } = useAuth();
   const router = useRouter();
 
+  const isMarketing = hasRole(['marketing', 'ceo']);
+
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated 
-      // || user?.role !== 'marketing'
-    )) {
+    if (!isLoading && (!isAuthenticated || !isMarketing)) {
       router.push('/login');
     }
-  }, [isAuthenticated, user, isLoading, router]);
+  }, [isAuthenticated, isMarketing, isLoading, router]);
 
-  if (isLoading || !isAuthenticated 
-    // || user?.role !== 'marketing'
-  ) {
+  if (isLoading || !isAuthenticated || !isMarketing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>

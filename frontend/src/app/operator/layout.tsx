@@ -7,20 +7,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 
 export default function OperatorLayout({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, hasRole } = useAuth();
   const router = useRouter();
 
-  console.log("this is user" ,user)
+  const isOperator = hasRole(['operator', 'cp-risk', 'officer']);
 
   React.useEffect(() => {
-    if (!isLoading && (!user )) {
+    if (!isLoading && (!user || !isOperator)) {
       router.push('/login');
     }
-  }, [user, isLoading, router]);
+  }, [user, isOperator, isLoading, router]);
 
-  if (isLoading || !user 
-    // || user.role !== 'operator'
-  ) {
+  if (isLoading || !user || !isOperator) {
     return <div className="flex h-screen items-center justify-center bg-slate-950 text-white">Loading...</div>;
   }
 

@@ -21,6 +21,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<{ otp_ref: string }>;
   verifyOTP: (username: string, otp_code: string) => Promise<UserProfile>;
   logout: () => void;
+  hasRole: (r: string | string[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,6 +30,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+
+  const hasRole = (r: string | string[]) => {
+    if (!user || !user.role) return false;
+    const rolesToCheck = Array.isArray(r) ? r.map(x => x.toUpperCase()) : [r.toUpperCase()];
+    const userRoles = Array.isArray(user.role) ? user.role.map(x => x.toUpperCase()) : [user.role.toUpperCase()];
+    return rolesToCheck.some(role => userRoles.includes(role));
+  };
 
   useEffect(() => {
     const initAuth = () => {
@@ -92,22 +100,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log('*Role:', role);
       console.log('*Profile:', profile);
 
-      const hasRole = (r: string) => {
-        if (Array.isArray(role)) {
-          return role.map(x => x.toUpperCase()).includes(r.toUpperCase());
-        }
-        return role.toUpperCase() === r.toUpperCase();
+      const hasRoleLocal = (r: string | string[]) => {
+        const rolesToCheck = Array.isArray(r) ? r.map(x => x.toUpperCase()) : [r.toUpperCase()];
+        const userRoles = Array.isArray(role) ? role.map(x => x.toUpperCase()) : [role.toUpperCase()];
+        return rolesToCheck.some(rol => userRoles.includes(rol));
       };
 
-      if (hasRole('admin') || hasRole('IT')) {
+      if (hasRoleLocal('admin') || hasRoleLocal('IT')) {
         router.push('/admin-portal');
-      } else if (hasRole('operator') || hasRole('cp-risk') || hasRole('officer')) {
+      } else if (hasRoleLocal(['operator', 'cp-risk', 'officer'])) {
         router.push('/operator');
-      } else if (hasRole('marketing') || hasRole('ceo')) {
+      } else if (hasRoleLocal(['marketing', 'ceo'])) {
         router.push('/marketing');
-      } else if (hasRole('agent')) {
+      } else if (hasRoleLocal('agent')) {
         router.push('/agent');
-      } else if (hasRole('investor')) {
+      } else if (hasRoleLocal('investor')) {
         router.push('/dashboard-inv');
       } else {
         router.push('/');
@@ -129,7 +136,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, verifyOTP, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, verifyOTP, logout, hasRole }}>
       {children}
     </AuthContext.Provider>
   );

@@ -34,7 +34,7 @@ const SidebarItem = ({ icon, label, href }: SidebarItemProps) => {
 };
 
 export const Sidebar: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, hasRole } = useAuth();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const handleLogout = () => {
@@ -43,36 +43,45 @@ export const Sidebar: React.FC = () => {
   };
 
   const getMenuItems = () => {
-    const role = user?.role;
     const workflowItems = [
       { icon: <ClipboardList size={20} />, label: "My Requests", href: "/workflow/my-requests" },
       { icon: <InboxIcon size={20} />, label: "Approval Inbox", href: "/workflow/inbox" },
     ];
 
-    if (role === 'operator') {
-      return [
-        { icon: <LayoutDashboard size={20} />, label: "Dashboard", href: "/operator/dashboard" },
-        { icon: <Users size={20} />, label: "Customers", href: "/operator/customers" },
-        { icon: <BarChart3 size={20} />, label: "Reports", href: "/operator/reports" },
-        ...workflowItems,
-      ];
-    } else if (role === 'marketing') {
-      return [
-        { icon: <LayoutDashboard size={20} />, label: "Marketing Stats", href: "/marketing/dashboard" },
-        { icon: <Users size={20} />, label: "My Investors", href: "/marketing/investors" },
-        ...workflowItems,
-      ];
-    } else if (role === 'agent') {
-      return [
-        { icon: <LayoutDashboard size={20} />, label: "Performance", href: "/agent/dashboard" },
-        { icon: <Users size={20} />, label: "My Clients", href: "/agent/investors" },
-        ...workflowItems,
-      ];
-    } else {
+    console.log("this is role", user?.role)
+
+    if (hasRole('admin')) {
       return [
         { icon: <LayoutDashboard size={20} />, label: "Overview", href: "/admin-portal" },
-        { icon: <Users size={20} />, label: "Customers", href: "/admin-portal/customers" },
-        { icon: <Settings size={20} />, label: "Settings", href: "/admin-portal/settings" },
+        ...workflowItems,
+      ];
+    } else if (hasRole('operator')) {
+      return [
+        { icon: <LayoutDashboard size={20} />, label: "Dashboard", href: "/operator/dashboard" },
+        // { icon: <Users size={20} />, label: "Customers", href: "/operator/customers" },
+        // { icon: <BarChart3 size={20} />, label: "Reports", href: "/operator/reports" },
+        ...workflowItems,
+      ];
+    } 
+    else if (hasRole('marketing')) {
+      return [
+        { icon: <LayoutDashboard size={20} />, label: "Dashboard", href: "/marketing/dashboard" },
+        // { icon: <Users size={20} />, label: "My Investors", href: "/marketing/investors" },
+        ...workflowItems,
+      ];
+    } 
+    // else if (hasRole('agent')) {
+    //   return [
+    //     { icon: <LayoutDashboard size={20} />, label: "Performance", href: "/agent/dashboard" },
+    //     { icon: <Users size={20} />, label: "My Clients", href: "/agent/investors" },
+    //     ...workflowItems,
+    //   ];
+    // } 
+    else {
+    return [
+        // { icon: <LayoutDashboard size={20} />, label: "Overview", href: "/admin-portal" },
+        // { icon: <Users size={20} />, label: "Customers", href: "/admin-portal/customers" },
+        // { icon: <Settings size={20} />, label: "Settings", href: "/admin-portal/settings" },
         ...workflowItems,
       ];
     }
@@ -81,10 +90,9 @@ export const Sidebar: React.FC = () => {
   const menuItems = getMenuItems();
 
   const getPortalName = () => {
-    const role = user?.role;
-    if (role === 'operator') return 'Operator';
-    if (role === 'marketing') return 'Marketing';
-    if (role === 'agent') return 'Agent';
+    if (hasRole('operator')) return 'Operator';
+    if (hasRole('marketing')) return 'Marketing';
+    if (hasRole('agent')) return 'Agent';
     return 'Admin';
   };
 

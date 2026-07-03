@@ -11,16 +11,18 @@ export default function AgentLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, hasRole } = useAuth();
   const router = useRouter();
 
+  const isAgent = hasRole('agent');
+
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || user?.role !== 'agent')) {
+    if (!isLoading && (!isAuthenticated || !isAgent)) {
       router.push('/login');
     }
-  }, [isAuthenticated, user, isLoading, router]);
+  }, [isAuthenticated, isAgent, isLoading, router]);
 
-  if (isLoading || !isAuthenticated || user?.role !== 'agent') {
+  if (isLoading || !isAuthenticated || !isAgent) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
