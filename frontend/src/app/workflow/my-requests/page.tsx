@@ -18,6 +18,13 @@ const PRIORITY_MAP: Record<number, { label: string; className: string }> = {
 export default function MyRequestsPage() {
   const { data: requests, isLoading, error } = useMyRequests();
 
+  const sortedRequests = React.useMemo(() => {
+    if (!requests) return requests;
+    return [...requests].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }, [requests]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -65,7 +72,7 @@ export default function MyRequestsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {requests?.length === 0 ? (
+              {sortedRequests?.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center text-gray-500 italic">
                     <FileText className="w-12 h-12 mx-auto mb-3 opacity-20" />
@@ -73,7 +80,7 @@ export default function MyRequestsPage() {
                   </td>
                 </tr>
               ) : (
-                requests?.map((req) => (
+                sortedRequests?.map((req) => (
                   <tr key={req.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900 dark:text-white">

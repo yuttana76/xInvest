@@ -6,6 +6,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 import { MFDetailsProps, ExtendedBalance } from './types';
 import { ProductNewsTab } from '@/components/fund/ProductNewsTab';
 import { Balance } from '@/lib/api/investor';
+import { APP_NAME } from '@/lib/branding';
 
 // ─── AI Insight card — matches news-headline card style ───────────────────────
 type FundAnalysis = NonNullable<Balance['fund_analysis']>;

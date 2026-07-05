@@ -10,6 +10,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import axios from 'axios';
+import { APP_NAME, APP_NAME_BADGE } from '@/lib/branding';
 
 // Import our new components
 import { FundHeader } from '@/components/fund/FundHeader';

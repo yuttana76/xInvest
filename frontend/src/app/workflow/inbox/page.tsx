@@ -43,19 +43,29 @@ export default function ApprovalInboxPage() {
   const isLoading = isPendingLoading || (activeTab === 'history' && isAllLoading);
   const error = pendingError || (activeTab === 'history' && allRequestsError);
 
+  // Sort pending approvals by create date (newest first)
+  const sortedRequests = React.useMemo(() => {
+    if (!requests) return requests;
+    return [...requests].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }, [requests]);
+
   // Filter requests for history tab (only show requests the current user has approved or completed)
   const historyRequests = React.useMemo(() => {
     if (!allRequests || !user?.username) return [];
-    return allRequests.filter(req => {
-      const matchesWorkflow = selectedWorkflow === 'all' || req.workflow === Number(selectedWorkflow);
-      if (!matchesWorkflow) return false;
+    return allRequests
+      .filter(req => {
+        const matchesWorkflow = selectedWorkflow === 'all' || req.workflow === Number(selectedWorkflow);
+        if (!matchesWorkflow) return false;
 
-      // Check if the current user has approved/completed this request in the logs
-      const hasUserApproved = req.logs?.some(
-        log => (log.action === 'APPROVE' || log.action === 'COMPLETE') && log.approver_username === user.username
-      );
-      return hasUserApproved;
-    });
+        // Check if the current user has approved/completed this request in the logs
+        const hasUserApproved = req.logs?.some(
+          log => (log.action === 'APPROVE' || log.action === 'COMPLETE') && log.approver_username === user.username
+        );
+        return hasUserApproved;
+      })
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [allRequests, selectedWorkflow, user]);
 
   // Handle tab switching (reset pagination)
@@ -197,7 +207,7 @@ export default function ApprovalInboxPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                    {requests.map((req) => (
+                    {sortedRequests!.map((req) => (
                       <tr key={req.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
                         <td className="px-6 py-4">
                           <div className="font-medium text-gray-900 dark:text-white">

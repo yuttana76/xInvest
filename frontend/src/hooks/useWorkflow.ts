@@ -55,10 +55,11 @@ export const useWorkflowMutation = () => {
   });
 
   const approveMutation = useMutation({
-    mutationFn: ({ id, comment, files }: { id: number; comment: string; files?: File[] }) => 
+    mutationFn: ({ id, comment, files }: { id: number; comment: string; files?: File[] }) =>
       workflowApi.approveRequest(id, comment, files),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['workflow', 'waiting-approval'] });
+      queryClient.invalidateQueries({ queryKey: ['workflow', 'all-requests'] });
       queryClient.invalidateQueries({ queryKey: ['workflow', 'request', id] });
     },
   });
@@ -67,6 +68,7 @@ export const useWorkflowMutation = () => {
     mutationFn: ({ id, comment }: { id: number; comment: string }) => workflowApi.returnToCreator(id, comment),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['workflow', 'waiting-approval'] });
+      queryClient.invalidateQueries({ queryKey: ['workflow', 'all-requests'] });
       queryClient.invalidateQueries({ queryKey: ['workflow', 'request', id] });
     },
   });
@@ -75,6 +77,7 @@ export const useWorkflowMutation = () => {
     mutationFn: ({ id, comment }: { id: number; comment: string }) => workflowApi.rejectRequest(id, comment),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['workflow', 'waiting-approval'] });
+      queryClient.invalidateQueries({ queryKey: ['workflow', 'all-requests'] });
       queryClient.invalidateQueries({ queryKey: ['workflow', 'request', id] });
     },
   });
@@ -83,24 +86,27 @@ export const useWorkflowMutation = () => {
     mutationFn: ({ id, formData }: { id: number; formData: FormData }) => workflowApi.resubmitRequest(id, formData),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['workflow', 'my-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['workflow', 'all-requests'] });
       queryClient.invalidateQueries({ queryKey: ['workflow', 'request', id] });
     },
   });
 
   const completeMutation = useMutation({
-    mutationFn: ({ id, comment, rating, rating_comment }: { id: number; comment: string; rating?: number; rating_comment?: string }) => 
+    mutationFn: ({ id, comment, rating, rating_comment }: { id: number; comment: string; rating?: number; rating_comment?: string }) =>
       workflowApi.completeRequest(id, comment, rating, rating_comment),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['workflow', 'my-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['workflow', 'all-requests'] });
       queryClient.invalidateQueries({ queryKey: ['workflow', 'request', id] });
     },
   });
 
   const rateMutation = useMutation({
-    mutationFn: ({ id, rating, comment }: { id: number; rating: number; comment: string }) => 
+    mutationFn: ({ id, rating, comment }: { id: number; rating: number; comment: string }) =>
       workflowApi.rateRequest(id, rating, comment),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['workflow', 'my-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['workflow', 'all-requests'] });
       queryClient.invalidateQueries({ queryKey: ['workflow', 'request', id] });
     },
   });

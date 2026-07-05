@@ -3,6 +3,7 @@ import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/Button';
 import { FundSearchBox } from '@/components/FundSearchBox';
 import Link from 'next/link';
+import { APP_NAME, APP_NAME_BADGE, APP_NAME_REST } from '@/lib/branding';
 
 export default function LandingPage() {
   return (
