@@ -6,8 +6,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     env_file:
       - .env.production
-    ports:
-      - "5432:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
       interval: 5s
@@ -81,6 +79,21 @@ services:
     depends_on:
       - backend
       - frontend
+
+  db_backup_cron:
+    image: postgres:15-alpine
+    volumes:
+      - ./backups:/backups
+      - ./scripts/cron-entrypoint.sh:/scripts/cron-entrypoint.sh
+    env_file:
+      - .env.production
+    environment:
+      - BACKUP_SCHEDULE=59 23 * * *
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: /scripts/cron-entrypoint.sh
+    restart: always
 
 volumes:
   postgres_data:
