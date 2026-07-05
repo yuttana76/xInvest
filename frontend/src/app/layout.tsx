@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import QueryProvider from "@/providers/QueryProvider";
 import { AppApolloProvider } from "@/providers/ApolloProvider";
+import { APP_NAME, APP_TAGLINE } from "@/lib/branding";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -12,7 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "xInvest | Smart Investment Intelligence",
+  title: `${APP_NAME} | ${APP_TAGLINE}`,
   description: "Optimize your portfolio with AI-driven insights and real-time analytics.",
 };
 

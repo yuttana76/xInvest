@@ -9,6 +9,7 @@ import axios from 'axios';
 import { authApi } from '@/lib/auth';
 import { z } from 'zod';
 import Link from 'next/link';
+import { APP_NAME, APP_NAME_BADGE, APP_NAME_REST } from '@/lib/branding';
 
 // Define Zod Validation Schema for Registration Form
 const registerSchema = z.object({
@@ -195,16 +196,16 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-              <span className="text-white font-bold text-xl text-center">x</span>
+              <span className="text-white font-bold text-xl text-center">{APP_NAME_BADGE}</span>
             </div>
-            <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Invest</span>
+            <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{APP_NAME_REST}</span>
           </Link>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
             {step === 1 ? 'Create Account' : step === 2 ? 'Email Verification' : 'Registration Complete!'}
           </h1>
           <p className="text-slate-600 dark:text-slate-400">
             {step === 1 
-              ? 'Join xInvest to optimize your wealth portfolio' 
+              ? `Join ${APP_NAME} to optimize your wealth portfolio`
               : step === 2 
                 ? `Enter the code sent to your email (Ref: ${otpRef})`
                 : 'Your email has been verified successfully.'}

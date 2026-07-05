@@ -70,7 +70,7 @@ function AiRecommendCard({ analysis }: { analysis: FundAnalysis }) {
           {analysis.updated_at && (
             <span>Updated {timeAgo(analysis.updated_at)} · </span>
           )}
-          Powered by xInvest
+          Powered by {APP_NAME}
         </span>
         {ic && (
           <span className={`flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider border rounded-full px-2.5 py-0.5 ${ic.pill}`}>

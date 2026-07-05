@@ -197,11 +197,11 @@ export default function FundDetailPage({ params }: { params: Promise<{ code: str
       <footer className="py-12 border-t border-white/5 bg-slate-950/50 backdrop-blur-xl">
          <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-3">
-               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold">X</div>
-               <span className="text-sm font-bold tracking-tighter">xInvest Intelligence</span>
+               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold">{APP_NAME_BADGE.toUpperCase()}</div>
+               <span className="text-sm font-bold tracking-tighter">{APP_NAME} Intelligence</span>
             </div>
             <p className="text-xs text-slate-500 font-medium tracking-wide">
-               &copy; 2026 xInvest. Market data provided &quot;as-is&quot; for informational purposes.
+               &copy; 2026 {APP_NAME}. Market data provided &quot;as-is&quot; for informational purposes.
             </p>
          </div>
       </footer>

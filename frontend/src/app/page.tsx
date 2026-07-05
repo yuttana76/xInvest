@@ -108,13 +108,13 @@ export default function LandingPage() {
         <div className="flex items-center justify-center gap-2 mb-4 opacity-50">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
-              <span className="text-white font-bold text-sm">x</span>
+              <span className="text-white font-bold text-sm">{APP_NAME_BADGE}</span>
             </div>
-            <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Invest</span>
+            <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">{APP_NAME_REST}</span>
           </div>
         </div>
         <p className="text-sm text-slate-500">
-          © 2026 xInvest Technologies. All rights reserved. <br className="md:hidden" />
+          © 2026 {APP_NAME} Technologies. All rights reserved. <br className="md:hidden" />
           <span className="hidden md:inline"> | </span>
           Smart Investing for Everyone.
         </p>

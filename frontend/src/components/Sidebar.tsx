@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { LogoutConfirmModal } from './LogoutConfirmModal';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { APP_NAME_BADGE } from '@/lib/branding';
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -101,7 +102,7 @@ export const Sidebar: React.FC = () => {
       <div className="flex items-center gap-2 mb-10 px-2 shrink-0">
         <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center rotate-12">
-                <span className="text-white font-bold text-lg -rotate-12">x</span>
+                <span className="text-white font-bold text-lg -rotate-12">{APP_NAME_BADGE}</span>
             </div>
             <span className="text-xl font-bold tracking-tight">
                 {getPortalName()}

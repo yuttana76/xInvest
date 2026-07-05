@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { User, LogOut } from 'lucide-react';
 import { LogoutConfirmModal } from './LogoutConfirmModal';
+import { APP_NAME_BADGE, APP_NAME_REST } from '@/lib/branding';
 
 export const Navbar: React.FC = () => {
     const { isAuthenticated, user, logout } = useAuth();
@@ -23,9 +24,9 @@ export const Navbar: React.FC = () => {
                 <div className="flex justify-between items-center h-20">
                     <Link href="/" className="flex items-center gap-2">
                         <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 rotate-12">
-                            <span className="text-white font-bold text-2xl -rotate-12">x</span>
+                            <span className="text-white font-bold text-2xl -rotate-12">{APP_NAME_BADGE}</span>
                         </div>
-                        <span className="text-2xl font-bold tracking-tight text-foreground transition-colors">Invest</span>
+                        <span className="text-2xl font-bold tracking-tight text-foreground transition-colors">{APP_NAME_REST}</span>
                     </Link>
 
                     <div className="hidden md:flex items-center gap-8">
