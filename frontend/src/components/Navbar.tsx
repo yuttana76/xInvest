@@ -38,6 +38,8 @@ export const Navbar: React.FC = () => {
                             <Link href={`/${user.role}`} className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-foreground transition-colors">Dashboard</Link>
                         ) : isAuthenticated && user?.role === 'investor' ? (
                             <Link href="/dashboard" className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-foreground transition-colors">Dashboard</Link>
+                        ) : isAuthenticated ?  (
+                            <Link href="/workflow/inbox" className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-foreground transition-colors">Workflow</Link>
                         ) : null}
                         {/* <Link href="/" className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-foreground transition-colors">Home</Link> */}
                         {!isAuthenticated && (

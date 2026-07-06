@@ -1,4 +1,9 @@
 from django.contrib import admin
+from django.http import HttpResponse
+from django.utils import timezone
+from django.utils.formats import date_format
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
 from .models import WorkflowConfig, WorkflowStep, Request, ApprovalLog, RequestFile, RequestSubject
 
 
@@ -48,6 +53,7 @@ class RequestAdmin(admin.ModelAdmin):
     inlines = [ApprovalLogInline, RequestFileInline]
     readonly_fields = ('creator', 'created_at', 'updated_at', 'completed_at')
     filter_horizontal = ('reqSubject',)
+    actions = ['export_as_excel']
 
     def get_current_step(self, obj):
         step = obj.get_current_step_info()
@@ -55,6 +61,56 @@ class RequestAdmin(admin.ModelAdmin):
             return f"Step {obj.current_step_number}: {step.step_name}"
         return f"Step {obj.current_step_number}"
     get_current_step.short_description = 'Current Step'
+
+    def export_as_excel(self, request, queryset):
+        headers = [
+            'Req code', 'Title', 'Workflow', 'Creator', 'Department', 'Status',
+            'Priority', 'Expected Completion Date', 'Audit Flag', 'Current Step',
+            'Created at', 'Approval logs',
+        ]
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = 'Requests'
+        ws.append(headers)
+
+        queryset = queryset.select_related('workflow', 'creator').prefetch_related('logs__approver')
+        for req in queryset:
+            step_info = req.get_current_step_info()
+            current_step = f"Step {req.current_step_number}: {step_info.step_name}" if step_info else f"Step {req.current_step_number}"
+
+            approval_logs = ''.join(
+                f"{log.step_number}:{log.approver if log.approver else '-'}:{log.get_action_display()};"
+                for log in req.logs.order_by('step_number')
+            )
+
+            created_at_local = timezone.localtime(req.created_at) if req.created_at else None
+
+            ws.append([
+                req.req_code,
+                req.title,
+                req.workflow.name if req.workflow else '',
+                str(req.creator) if req.creator else '',
+                req.create_department or '',
+                req.get_status_display(),
+                req.get_priorify_display(),
+                req.expectDate.strftime('%d-%b-%y') if req.expectDate else '',
+                'TRUE' if req.auditFlag else 'FALSE',
+                current_step,
+                date_format(created_at_local, 'DATETIME_FORMAT') if created_at_local else '',
+                approval_logs,
+            ])
+
+        for i in range(1, len(headers) + 1):
+            ws.column_dimensions[get_column_letter(i)].width = 24
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="workflow_requests.xlsx"'
+        wb.save(response)
+        return response
+    export_as_excel.short_description = 'Export selected requests to Excel'
 
 
 @admin.register(ApprovalLog)
