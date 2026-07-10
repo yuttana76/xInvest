@@ -6,6 +6,23 @@ from .email_utils import send_workflow_action_required_email, send_workflow_stat
 
 logger = logging.getLogger(__name__)
 
+
+def dispatch_workflow_action_required_email(request_id: int, group_id: int = None, user_id: int = None):
+    try:
+        task_send_workflow_action_required_email.delay(request_id, group_id=group_id, user_id=user_id)
+    except Exception as exc:
+        logger.warning(f"Celery unavailable for workflow action email, running synchronously: {exc}")
+        task_send_workflow_action_required_email(request_id, group_id=group_id, user_id=user_id)
+
+
+def dispatch_workflow_status_update_email(request_id: int, comment: str, action_by_name: str):
+    try:
+        task_send_workflow_status_update_email.delay(request_id, comment, action_by_name)
+    except Exception as exc:
+        logger.warning(f"Celery unavailable for workflow status email, running synchronously: {exc}")
+        task_send_workflow_status_update_email(request_id, comment, action_by_name)
+
+
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def task_send_workflow_action_required_email(self, request_id: int, group_id: int = None, user_id: int = None):
     try:

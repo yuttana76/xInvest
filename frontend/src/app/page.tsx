@@ -157,7 +157,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4">
+      {/* <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto text-center glass rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl p-12">
           <h2 className="text-2xl md:text-3xl font-bold mb-3 text-slate-900 dark:text-white">Bring order to your company&apos;s approvals</h2>
           <p className="text-slate-600 dark:text-slate-400 mb-8">
@@ -168,7 +168,7 @@ export default function LandingPage() {
             <Link href="/workflow/my-requests"><Button variant="outline" size="lg">View My Requests</Button></Link>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Footer */}
       <footer className="py-12 border-t border-slate-200 dark:border-white/5 px-4 text-center">

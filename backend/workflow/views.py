@@ -1,19 +1,29 @@
 import logging
+from urllib.parse import urlencode
 from rest_framework import viewsets, status, permissions, parsers
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
+from django.db import transaction
+from django.shortcuts import redirect, render
 from django.utils import timezone
 from .models import WorkflowConfig, WorkflowStep, Request, ApprovalLog, RequestFile, RequestSubject
 from .serializers import (
     WorkflowConfigSerializer, WorkflowStepSerializer, RequestSerializer, ApprovalLogSerializer,
     RequestSubjectSerializer
 )
-from .tasks import task_send_workflow_action_required_email, task_send_workflow_status_update_email
+from .tasks import (
+    dispatch_workflow_action_required_email,
+    dispatch_workflow_status_update_email,
+)
 
 # pyrefly: ignore [missing-import]
 from django.db import models
 
 logger = logging.getLogger(__name__)
+User = get_user_model()
 
 from rest_framework.pagination import PageNumberPagination
 
@@ -56,6 +66,11 @@ class RequestViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]
 
+    def get_permissions(self):
+        if self.action in ('approve_via_email', 'decide_via_email'):
+            return [permissions.AllowAny()]
+        return super().get_permissions()
+
     def perform_create(self, serializer):
         # Determine the creator's department if available
         user_profile = getattr(self.request.user, 'profile', None)
@@ -86,13 +101,204 @@ class RequestViewSet(viewsets.ModelViewSet):
             if current_step.is_department_manager:
                 manager = getattr(request_obj.creator.profile.department, 'manager', None) if hasattr(request_obj.creator, 'profile') and request_obj.creator.profile.department else None
                 if manager:
-                    task_send_workflow_action_required_email.delay(request_obj.id, user_id=manager.id)
+                    dispatch_workflow_action_required_email(request_obj.id, user_id=manager.id)
                 else:
                     logger.warning(f"No department manager found for creator {request_obj.creator.username}")
             elif current_step.required_group:
-                task_send_workflow_action_required_email.delay(request_obj.id, group_id=current_step.required_group.id)
+                dispatch_workflow_action_required_email(request_obj.id, group_id=current_step.required_group.id)
         else:
             logger.warning(f"No current step found for request {request_obj.id} at step 1")
+
+    def _build_email_redirect_url(self, request_obj, *, success=None, error=None):
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
+        params = {}
+        if success:
+            params['email_action'] = success
+        if error:
+            params['email_error'] = error
+        query_string = urlencode(params)
+        path = f"/workflow/requests/{request_obj.id}"
+        return f"{frontend_url}{path}" if not query_string else f"{frontend_url}{path}?{query_string}"
+
+    def _resolve_email_action_token(self, request_obj, token, expected_action='approve'):
+        """
+        Validate a signed email-action token end to end.
+        Returns (approver, current_step) on success, or (None, error_code) on failure.
+        Re-checking authorization here (rather than trusting the token payload) means a
+        forged/tampered token is rejected by the signature, and a stale-but-validly-signed
+        token (e.g. request has since moved to another step, or the approver lost access)
+        is rejected by the live checks below.
+        """
+        if not token:
+            return None, 'missing_token'
+
+        signer = TimestampSigner(salt='workflow-approval-email')
+        try:
+            payload = signer.unsign_object(token, max_age=60 * 60 * 24 * 7)
+        except (BadSignature, SignatureExpired):
+            return None, 'invalid_token'
+
+        if payload.get('request_id') != request_obj.id or payload.get('action') != expected_action:
+            return None, 'invalid_token'
+
+        # The token is bound to the step it was issued for. If the request has since
+        # advanced (or been sent back), the link is stale and must not be honored -
+        # this also makes each token effectively single-use for its step.
+        if payload.get('step_number') != request_obj.current_step_number:
+            return None, 'stale_token'
+
+        approver_id = payload.get('user_id')
+        if not approver_id:
+            return None, 'invalid_token'
+
+        try:
+            approver = User.objects.get(id=approver_id, is_active=True)
+        except User.DoesNotExist:
+            return None, 'invalid_token'
+
+        current_step = request_obj.get_current_step_info()
+        if not current_step:
+            return None, 'no_current_step'
+
+        is_authorized = False
+        if current_step.is_department_manager:
+            manager = getattr(request_obj.creator.profile.department, 'manager', None) if hasattr(request_obj.creator, 'profile') and request_obj.creator.profile.department else None
+            if manager and approver == manager:
+                is_authorized = True
+
+        if not is_authorized and current_step.required_group:
+            if approver.groups.filter(id=current_step.required_group.id).exists():
+                is_authorized = True
+
+        if not is_authorized:
+            return None, 'not_authorized'
+
+        return approver, current_step
+
+    @action(detail=True, methods=['get'])
+    def approve_via_email(self, request, pk=None):
+        """
+        GET is intentionally side-effect free: it only validates the token and renders a
+        decision page where the approver picks Approve / Reject / Return and can leave a
+        comment. This protects against corporate email/link-scanners that prefetch links
+        in emails, which would otherwise silently trigger a state change. The actual
+        mutation happens in decide_via_email (POST) below.
+        """
+        request_obj = self.get_object()
+        token = request.query_params.get('token', '')
+        approver, result = self._resolve_email_action_token(request_obj, token, expected_action='review')
+
+        if approver is None:
+            return redirect(self._build_email_redirect_url(request_obj, error=result))
+
+        current_step = result
+        return render(request, 'workflow/email_decision.html', {
+            'request_obj': request_obj,
+            'approver': approver,
+            'current_step': current_step,
+            'token': token,
+            'FRONTEND_URL': getattr(settings, 'FRONTEND_URL', 'http://localhost:3000'),
+        })
+
+    # Maps the decision chosen on the email decision page to the ApprovalLog action code
+    # and the past-tense label used in the frontend redirect / success message.
+    _EMAIL_DECISION_LOG_ACTIONS = {'approve': 'APPROVE', 'reject': 'REJECT', 'return': 'RETURN'}
+    _EMAIL_DECISION_SUCCESS_LABELS = {'approve': 'approved', 'reject': 'rejected', 'return': 'returned'}
+
+    @action(detail=True, methods=['post'])
+    def decide_via_email(self, request, pk=None):
+        token = request.data.get('token') or request.query_params.get('token', '')
+        decision = request.data.get('decision', '')
+        comment = (request.data.get('comment') or '').strip()
+
+        log_action = self._EMAIL_DECISION_LOG_ACTIONS.get(decision)
+        if not log_action:
+            return Response({"error": "Invalid decision."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # select_for_update() locks the Request row for the duration of the transaction,
+        # so a double-click / retried form submit that arrives while the first request is
+        # still in flight blocks here instead of racing past the "already logged" check
+        # below - without this, both requests could read "not yet actioned", both create
+        # an ApprovalLog, and both dispatch a notification.
+        with transaction.atomic():
+            try:
+                request_obj = Request.objects.select_for_update().get(pk=pk)
+            except Request.DoesNotExist:
+                return Response({"error": "Request not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            if decision == 'return' and not comment:
+                return redirect(self._build_email_redirect_url(request_obj, error='comment_required'))
+
+            approver, result = self._resolve_email_action_token(request_obj, token, expected_action='review')
+
+            if approver is None:
+                return redirect(self._build_email_redirect_url(request_obj, error=result))
+
+            current_step = result
+
+            already_logged = ApprovalLog.objects.filter(
+                request=request_obj,
+                step_number=request_obj.current_step_number,
+                approver=approver,
+                action=log_action,
+            ).exists()
+            if already_logged:
+                return redirect(self._build_email_redirect_url(request_obj, error='already_actioned'))
+
+            ApprovalLog.objects.create(
+                request=request_obj,
+                approver=approver,
+                step_number=request_obj.current_step_number,
+                step_name=current_step.step_name,
+                action=log_action,
+                comment=comment or f'{decision.capitalize()}d via email link',
+            )
+
+            if decision == 'approve':
+                next_step_number = request_obj.current_step_number + 1
+                has_next_step = request_obj.workflow.steps.filter(step_number=next_step_number).exists()
+                if has_next_step:
+                    request_obj.current_step_number = next_step_number
+                    request_obj.status = 'PENDING'
+                else:
+                    request_obj.status = 'APPROVED'
+            elif decision == 'reject':
+                request_obj.status = 'REJECTED'
+            else:  # return
+                request_obj.status = 'RETURNED'
+
+            request_obj.save()
+
+            # Notifications are dispatched only once the transaction actually commits,
+            # so a rolled-back request never fires an email for a state change that didn't happen.
+            transaction.on_commit(
+                lambda: self._notify_after_email_decision(request_obj, approver, decision, comment)
+            )
+
+        return redirect(self._build_email_redirect_url(
+            request_obj, success=self._EMAIL_DECISION_SUCCESS_LABELS[decision]
+        ))
+
+    def _notify_after_email_decision(self, request_obj, approver, decision, comment):
+        approver_name = approver.get_full_name() or approver.username
+
+        if decision == 'approve' and request_obj.status == 'PENDING':
+            next_step = request_obj.get_current_step_info()
+            if next_step:
+                if next_step.is_department_manager:
+                    manager = getattr(request_obj.creator.profile.department, 'manager', None) if hasattr(request_obj.creator, 'profile') and request_obj.creator.profile.department else None
+                    if manager:
+                        dispatch_workflow_action_required_email(request_obj.id, user_id=manager.id)
+                elif next_step.required_group:
+                    dispatch_workflow_action_required_email(request_obj.id, group_id=next_step.required_group.id)
+        else:
+            # Final decision on the request (APPROVED at the last step, REJECTED, or
+            # RETURNED) - notify the creator.
+            dispatch_workflow_status_update_email(
+                request_obj.id,
+                comment or f'{decision.capitalize()}d via email link',
+                approver_name,
+            )
 
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
@@ -154,12 +360,12 @@ class RequestViewSet(viewsets.ModelViewSet):
                 if next_step.is_department_manager:
                     manager = getattr(request_obj.creator.profile.department, 'manager', None) if hasattr(request_obj.creator, 'profile') and request_obj.creator.profile.department else None
                     if manager:
-                        task_send_workflow_action_required_email.delay(request_obj.id, user_id=manager.id)
+                        dispatch_workflow_action_required_email(request_obj.id, user_id=manager.id)
                 elif next_step.required_group:
-                    task_send_workflow_action_required_email.delay(request_obj.id, group_id=next_step.required_group.id)
+                    dispatch_workflow_action_required_email(request_obj.id, group_id=next_step.required_group.id)
         elif request_obj.status == 'APPROVED':
             # Notify creator that it's fully approved
-            task_send_workflow_status_update_email.delay(
+            dispatch_workflow_status_update_email(
                 request_obj.id, 
                 comment, 
                 request.user.get_full_name() or request.user.username
@@ -204,7 +410,7 @@ class RequestViewSet(viewsets.ModelViewSet):
         request_obj.save()
 
         # Notify creator
-        task_send_workflow_status_update_email.delay(
+        dispatch_workflow_status_update_email(
             request_obj.id, 
             comment, 
             request.user.get_full_name() or request.user.username
@@ -247,7 +453,7 @@ class RequestViewSet(viewsets.ModelViewSet):
         request_obj.save()
 
         # Notify creator
-        task_send_workflow_status_update_email.delay(
+        dispatch_workflow_status_update_email(
             request_obj.id, 
             comment, 
             request.user.get_full_name() or request.user.username
@@ -295,7 +501,7 @@ class RequestViewSet(viewsets.ModelViewSet):
         request_obj.save()
 
         # Notify creator
-        task_send_workflow_status_update_email.delay(
+        dispatch_workflow_status_update_email(
             request_obj.id, 
             comment, 
             request.user.get_full_name() or request.user.username
@@ -348,9 +554,9 @@ class RequestViewSet(viewsets.ModelViewSet):
             if current_step.is_department_manager:
                 manager = getattr(request_obj.creator.profile.department, 'manager', None) if hasattr(request_obj.creator, 'profile') and request_obj.creator.profile.department else None
                 if manager:
-                    task_send_workflow_action_required_email.delay(request_obj.id, user_id=manager.id)
+                    dispatch_workflow_action_required_email(request_obj.id, user_id=manager.id)
             elif current_step.required_group:
-                task_send_workflow_action_required_email.delay(request_obj.id, group_id=current_step.required_group.id)
+                dispatch_workflow_action_required_email(request_obj.id, group_id=current_step.required_group.id)
 
         return Response(RequestSerializer(request_obj).data)
 

@@ -5,6 +5,7 @@ from django.utils.formats import date_format
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from .models import WorkflowConfig, WorkflowStep, Request, ApprovalLog, RequestFile, RequestSubject
+from .tasks import dispatch_workflow_action_required_email
 
 
 class WorkflowStepInline(admin.TabularInline):
@@ -53,7 +54,7 @@ class RequestAdmin(admin.ModelAdmin):
     inlines = [ApprovalLogInline, RequestFileInline]
     readonly_fields = ('creator', 'created_at', 'updated_at', 'completed_at')
     filter_horizontal = ('reqSubject',)
-    actions = ['export_as_excel']
+    actions = ['export_as_excel', 'resend_approval_email']
 
     def get_current_step(self, obj):
         step = obj.get_current_step_info()
@@ -61,6 +62,30 @@ class RequestAdmin(admin.ModelAdmin):
             return f"Step {obj.current_step_number}: {step.step_name}"
         return f"Step {obj.current_step_number}"
     get_current_step.short_description = 'Current Step'
+
+    def resend_approval_email(self, request, queryset):
+        for req in queryset:
+            current_step = req.get_current_step_info()
+            if not current_step:
+                self.message_user(request, f"Request {req.req_code or req.id} has no current step to notify.", level='warning')
+                continue
+
+            if current_step.is_department_manager:
+                manager = None
+                if hasattr(req.creator, 'profile') and req.creator.profile.department:
+                    manager = req.creator.profile.department.manager
+                if manager:
+                    dispatch_workflow_action_required_email(req.id, user_id=manager.id)
+                else:
+                    self.message_user(request, f"No department manager found for request {req.req_code or req.id}.", level='warning')
+            elif current_step.required_group:
+                dispatch_workflow_action_required_email(req.id, group_id=current_step.required_group.id)
+            else:
+                self.message_user(request, f"No approver group configured for request {req.req_code or req.id}.", level='warning')
+
+        self.message_user(request, f"Approval reminder emails queued for {queryset.count()} request(s).", level='success')
+
+    resend_approval_email.short_description = 'Resend approval email'
 
     def export_as_excel(self, request, queryset):
         headers = [
