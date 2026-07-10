@@ -13,7 +13,7 @@ class TokenRefreshSerializer(serializers.Serializer):
 
 class PasswordResetRequestSerializer(serializers.Serializer):
     username = serializers.CharField()
-    email = serializers.EmailField()
+    email = serializers.EmailField(required=False, allow_blank=True)
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     uidb64 = serializers.CharField()

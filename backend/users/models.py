@@ -49,7 +49,6 @@ class OTP(models.Model):
         OTP = pyotp.HOTP(key)  # HOTP Model for OTP is created
         OTP_Code = OTP.at(6)  # OTP Code length 6 digit
         OTP_expiry = timezone.now() + timezone.timedelta(minutes=OTP_LIFE_MIN)
-        max_otp_try = int(self.max_otp_try) - 1
 
         # client.otp = OTP_Code
         # client.otp_ref = OTP_Ref
@@ -61,7 +60,6 @@ class OTP(models.Model):
         self.otp_code = OTP_Code
         self.otp_ref = OTP_Ref
         self.otp_expiry = OTP_expiry
-        self.max_otp_try = max_otp_try
         self.created_at = timezone.now()
         self.save()
         # Return otp_ref and otp_code

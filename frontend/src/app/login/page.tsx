@@ -47,7 +47,13 @@ export default function LoginPage() {
       await verifyOTP(username, otpCode);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || 'Verification failed');
+        const apiError = err.response?.data?.error || 'Verification failed';
+        setError(apiError);
+        if (err.response?.status === 429) {
+          setOtpCode('');
+          setOtpRef('');
+          setStep(1);
+        }
       } else if (typeof err === 'string') {
         setError(err);
       } else {

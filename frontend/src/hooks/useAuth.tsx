@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return response.data;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        throw error.response?.data?.error || 'Login failed';
+        throw error;
       }
       throw 'Login failed';
     }
@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return profile;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        throw error.response?.data?.error || 'OTP verification failed';
+        throw error;
       }
       throw 'OTP verification failed';
     }

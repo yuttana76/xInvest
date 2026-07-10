@@ -81,9 +81,9 @@ authApi.interceptors.response.use(
   }
 );
 
-export const requestPasswordReset = async (username: string, email: string) => {
+export const requestPasswordReset = async (username: string, email?: string) => {
   try {
-    const response = await authApi.post('/api/v1/auth/password-reset/', { username, email });
+    const response = await authApi.post('/api/v1/auth/password-reset/', { username, ...(email ? { email } : {}) });
     return response.data;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {

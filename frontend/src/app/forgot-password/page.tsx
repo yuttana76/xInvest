@@ -3,13 +3,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
-import { Mail, ArrowLeft, Send, User } from 'lucide-react';
+import { ArrowLeft, Send, User } from 'lucide-react';
 import Link from 'next/link';
 import { requestPasswordReset } from '@/lib/auth';
 
 export default function ForgotPasswordPage() {
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
 
@@ -19,7 +18,7 @@ export default function ForgotPasswordPage() {
     setMessage('');
 
     try {
-      const data = await requestPasswordReset(username, email);
+      const data = await requestPasswordReset(username);
       setStatus('success');
       setMessage(data.message);
     } catch (err: unknown) {
@@ -40,7 +39,7 @@ export default function ForgotPasswordPage() {
             Back to Login
           </Link>
           <h1 className="text-3xl font-bold text-white mb-2">Forgot Password?</h1>
-          <p className="text-slate-400">Enter your username and email and we&apos;ll send you a link to reset your password.</p>
+          <p className="text-slate-400">Enter your username and we&apos;ll send you a link to reset your password.</p>
         </div>
 
         <div className="glass p-8 rounded-3xl border border-white/10 shadow-2xl">
@@ -71,21 +70,6 @@ export default function ForgotPasswordPage() {
                     className="pl-12 bg-white/5 border-white/10 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-primary/20 transition-all"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    required
-                    disabled={status === 'loading'}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 ml-1">Email Address</label>
-                <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-primary transition-colors" />
-                  <Input
-                    type="email"
-                    placeholder="name@example.com"
-                    className="pl-12 bg-white/5 border-white/10 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-primary/20 transition-all"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={status === 'loading'}
                   />
