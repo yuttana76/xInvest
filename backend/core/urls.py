@@ -29,6 +29,7 @@ urlpatterns = [
     path("api/v1/invest/", include("invest.urls")),
     path("api/v1/fundDecision/", include("fundDecision.urls")),
     path("api/v1/workflow/", include("workflow.urls")),
+    path("api/v1/payment/", include("payment.urls")),
     
     # GraphQL
     path("graphql", csrf_exempt(GraphQLView.as_view(graphiql=True))),

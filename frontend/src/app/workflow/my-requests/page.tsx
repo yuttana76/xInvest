@@ -130,7 +130,9 @@ export default function MyRequestsPage() {
                     {/* Audit */}
                     <td className="px-6 py-4 text-center">
                       {req.auditFlag && (
-                        <ShieldCheck className="w-4 h-4 text-amber-500 mx-auto" title="Audit Case" />
+                        <span title="Audit Case" className="inline-flex mx-auto">
+                          <ShieldCheck className="w-4 h-4 text-amber-500" />
+                        </span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">

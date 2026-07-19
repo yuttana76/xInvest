@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "fundDecision.apps.FunddecisionConfig",
     "workflow.apps.WorkflowConfig",
     "stt_fundconnext.apps.SttFundconnextConfig",
+    "payment.apps.PaymentConfig",
     "graphene_django",
 ]
 
