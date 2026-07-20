@@ -35,3 +35,9 @@ x_mobile_app/.pub/
 x_mobile_app/.stitch/
 
 media/*
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfvars
