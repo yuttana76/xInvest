@@ -102,3 +102,9 @@ docker compose exec backend python manage.py migrate
 
 
 ## CI/CD
+สิ่งที่ต้องมีบน EC2 ก่อน workflow นี้จะรันผ่านจริง (ยังไม่ได้ทำ ไม่ใช่ปัญหาโค้ด):
+
+ติดตั้ง aws CLI บนเครื่อง EC2 (script เรียก aws ecr get-login-password)
+IAM credentials/role บน EC2 ที่มีสิทธิ์ ecr:GetAuthorizationToken + pull
+.env และ .env.production ต้องมีอยู่แล้วที่ DEPLOY_PATH (ตามที่คุยกันไว้ตอนแรก)
+GitHub Secrets ครบตามที่เคยสรุปไว้ (AWS_*, EC2_*, DEPLOY_PATH, NEXT_PUBLIC_API_URL)
