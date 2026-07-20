@@ -270,88 +270,94 @@ class FactSheetAIService:
         logger.error("All AI analysis models failed or quota exhausted for factsheet analysis.")
         return None
 
-class SmartFundAIService:
-    # Class-level model cache — load once, reuse across requests
-    _model = None
-    _model_name = "intfloat/multilingual-e5-base"  # 768 dims, supports Thai
-    
-    @classmethod
-    def _get_model(cls):
-        if cls._model is None:
-            from sentence_transformers import SentenceTransformer
-            logger.info(f"Loading embedding model: {cls._model_name}")
-            cls._model = SentenceTransformer(cls._model_name)
-            logger.info(f"Embedding model loaded. Dimension: {cls._model.get_sentence_embedding_dimension()}")
-        return cls._model
-    
-    def __init__(self):
-        # Determine AI Provider from environment (default: GEMINI)
-        import os
-        ai_provider = os.environ.get('AI_PROVIDER', 'GEMINI').upper()
-        
-        if ai_provider == 'OLLAMA':
-            try:
-                from langchain_ollama import ChatOllama
-                ollama_base_url = os.environ.get('OLLAMA_BASE_URL', 'http://ollama:11434')
-                ollama_model = os.environ.get('OLLAMA_MODEL', 'llama3')
-                
-                logger.info(f"SmartFundAIService: Selecting OLLAMA provider (Model: {ollama_model}, URL: {ollama_base_url})")
-                self.llm = ChatOllama(
-                    model=ollama_model,
-                    base_url=ollama_base_url,
-                    temperature=0
-                )
-            except Exception as e:
-                logger.error(f"Error initializing Ollama: {e}. Ensure langchain-ollama is installed.")
-                self.llm = None
-        else:
-            api_key = getattr(settings, 'GEMINI_API_KEY', None)
-            if not api_key:
-                logger.error("GEMINI_API_KEY not found (needed for LLM, not embeddings)")
-                self.llm = None
-            else:
-                try:
-                    import google.generativeai as genai
-                    genai.configure(api_key=api_key)
-                    
-                    # Priority list for models
-                    priority_list = [
-                        "gemini-1.5-flash",
-                        "gemini-1.5-flash-latest",
-                        "gemini-2.0-flash",
-                        "gemini-pro",
-                        "gemini-1.5-pro",
-                    ]
-                    
-                    available_models = [m.name.replace("models/", "") for m in genai.list_models() 
-                                       if "generateContent" in m.supported_generation_methods]
-                    
-                    selected_model = None
-                    for model_candidate in priority_list:
-                        if model_candidate in available_models:
-                            selected_model = model_candidate
-                            break
-                    
-                    if not selected_model and available_models:
-                        selected_model = available_models[0]
-                    
-                    if selected_model:
-                        logger.info(f"SmartFundAIService: Selected model: {selected_model}")
-                        self.llm = ChatGoogleGenerativeAI(
-                            model=selected_model,
-                            google_api_key=api_key,
-                            temperature=0,
-                        )
-                    else:
-                        logger.error("No available Gemini models found.")
-                        self.llm = None
-                except Exception as e:
-                    logger.error(f"Error initializing LLM in SmartFundAIService: {e}")
-                    # Safe fallback
-                    self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=api_key)
-        
-        # Local embedding model (no API key needed)
-        self.model = self._get_model()
+# SmartFundAIService disabled: depended on sentence-transformers (local embedding
+# model, pulls in torch — multi-GB) for RAG vector search over fund factsheets.
+# Removed from requirements.txt to shrink the backend image. Re-enable by
+# restoring sentence-transformers/torch and uncommenting this class, plus the
+# call sites in views.py (SmartFundChatView), tasks.py (ingest_factsheet_to_vector_db)
+# and urls.py (the 'chat/' route).
+# class SmartFundAIService:
+#     # Class-level model cache — load once, reuse across requests
+#     _model = None
+#     _model_name = "intfloat/multilingual-e5-base"  # 768 dims, supports Thai
+#
+#     @classmethod
+#     def _get_model(cls):
+#         if cls._model is None:
+#             from sentence_transformers import SentenceTransformer
+#             logger.info(f"Loading embedding model: {cls._model_name}")
+#             cls._model = SentenceTransformer(cls._model_name)
+#             logger.info(f"Embedding model loaded. Dimension: {cls._model.get_sentence_embedding_dimension()}")
+#         return cls._model
+#
+#     def __init__(self):
+#         # Determine AI Provider from environment (default: GEMINI)
+#         import os
+#         ai_provider = os.environ.get('AI_PROVIDER', 'GEMINI').upper()
+#
+#         if ai_provider == 'OLLAMA':
+#             try:
+#                 from langchain_ollama import ChatOllama
+#                 ollama_base_url = os.environ.get('OLLAMA_BASE_URL', 'http://ollama:11434')
+#                 ollama_model = os.environ.get('OLLAMA_MODEL', 'llama3')
+#
+#                 logger.info(f"SmartFundAIService: Selecting OLLAMA provider (Model: {ollama_model}, URL: {ollama_base_url})")
+#                 self.llm = ChatOllama(
+#                     model=ollama_model,
+#                     base_url=ollama_base_url,
+#                     temperature=0
+#                 )
+#             except Exception as e:
+#                 logger.error(f"Error initializing Ollama: {e}. Ensure langchain-ollama is installed.")
+#                 self.llm = None
+#         else:
+#             api_key = getattr(settings, 'GEMINI_API_KEY', None)
+#             if not api_key:
+#                 logger.error("GEMINI_API_KEY not found (needed for LLM, not embeddings)")
+#                 self.llm = None
+#             else:
+#                 try:
+#                     import google.generativeai as genai
+#                     genai.configure(api_key=api_key)
+#
+#                     # Priority list for models
+#                     priority_list = [
+#                         "gemini-1.5-flash",
+#                         "gemini-1.5-flash-latest",
+#                         "gemini-2.0-flash",
+#                         "gemini-pro",
+#                         "gemini-1.5-pro",
+#                     ]
+#
+#                     available_models = [m.name.replace("models/", "") for m in genai.list_models()
+#                                        if "generateContent" in m.supported_generation_methods]
+#
+#                     selected_model = None
+#                     for model_candidate in priority_list:
+#                         if model_candidate in available_models:
+#                             selected_model = model_candidate
+#                             break
+#
+#                     if not selected_model and available_models:
+#                         selected_model = available_models[0]
+#
+#                     if selected_model:
+#                         logger.info(f"SmartFundAIService: Selected model: {selected_model}")
+#                         self.llm = ChatGoogleGenerativeAI(
+#                             model=selected_model,
+#                             google_api_key=api_key,
+#                             temperature=0,
+#                         )
+#                     else:
+#                         logger.error("No available Gemini models found.")
+#                         self.llm = None
+#                 except Exception as e:
+#                     logger.error(f"Error initializing LLM in SmartFundAIService: {e}")
+#                     # Safe fallback
+#                     self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=api_key)
+#
+#         # Local embedding model (no API key needed)
+#         self.model = self._get_model()
 
     # def ingest_pdf(self, fund_code: str, pdf_path: str):
     #     """วิเคราะห์ PDF, แบ่งเป็นส่วนๆ และเก็บลง Vector DB (ใช้ local embedding — ไม่มี rate limit)
@@ -414,116 +420,116 @@ class SmartFundAIService:
     #     
     #     logger.info(f"Successfully ingested {len(chunks_to_create)} chunks for {fund_code} (replaced {deleted_count} old chunks)")
 
-    def ingest_factsheet_data(self, fund_code: str):
-        """วิเคราะห์และเก็บข้อมูล FundFactSheet ลง Vector DB (ใช้ข้อมูลจาก database field แทน PDF)"""
-        logger.info(f"Ingesting factsheet data from DB fields for fund {fund_code}")
+#     def ingest_factsheet_data(self, fund_code: str):
+#         """วิเคราะห์และเก็บข้อมูล FundFactSheet ลง Vector DB (ใช้ข้อมูลจาก database field แทน PDF)"""
+#         logger.info(f"Ingesting factsheet data from DB fields for fund {fund_code}")
         
-        from .models import FundFactSheet, FundDocumentChunk
-        from django.db import transaction
-        import json
+#         from .models import FundFactSheet, FundDocumentChunk
+#         from django.db import transaction
+#         import json
         
-        try:
-            factsheet = FundFactSheet.objects.get(fund_code=fund_code)
-        except FundFactSheet.DoesNotExist:
-            logger.error(f"FundFactSheet not found for {fund_code}")
-            return
+#         try:
+#             factsheet = FundFactSheet.objects.get(fund_code=fund_code)
+#         except FundFactSheet.DoesNotExist:
+#             logger.error(f"FundFactSheet not found for {fund_code}")
+#             return
             
-        chunks_text = []
+#         chunks_text = []
         
-        # 1. ข้อมูลพื้นฐาน
-        basic_info = f"รหัสกองทุน: {factsheet.fund_code}\nชื่อกองทุน: {factsheet.fund_name_th or 'ไม่ระบุ'}\nระดับความเสี่ยง: {factsheet.risk_level or 'ไม่ระบุ'}\nประเภทกลุ่มกองทุน: {factsheet.fund_category or 'ไม่ระบุ'}\nกลยุทธ์การลงทุน: {factsheet.investment_strategy or 'ไม่ระบุ'}\nดัชนีชี้วัดเปรียบเทียบ: {factsheet.benchmark or 'ไม่ระบุ'}"
-        chunks_text.append(basic_info)
+#         # 1. ข้อมูลพื้นฐาน
+#         basic_info = f"รหัสกองทุน: {factsheet.fund_code}\nชื่อกองทุน: {factsheet.fund_name_th or 'ไม่ระบุ'}\nระดับความเสี่ยง: {factsheet.risk_level or 'ไม่ระบุ'}\nประเภทกลุ่มกองทุน: {factsheet.fund_category or 'ไม่ระบุ'}\nกลยุทธ์การลงทุน: {factsheet.investment_strategy or 'ไม่ระบุ'}\nดัชนีชี้วัดเปรียบเทียบ: {factsheet.benchmark or 'ไม่ระบุ'}"
+#         chunks_text.append(basic_info)
         
-        # 2. ข้อมูลนโยบายป้องกันความเสี่ยงค่าเงิน
-        hedging_info = f"รหัสกองทุน: {factsheet.fund_code}\nมีการป้องกันความเสี่ยงค่าเงิน (Hedged): {'ใช่' if factsheet.is_hedged else 'ไม่ใช่'}\nนโยบายป้องกันความเสี่ยงค่าเงินเพิ่มเติม: {factsheet.hedging_policy or 'ไม่ระบุ'}\nรายละเอียดการป้องกันความเสี่ยง: {factsheet.currency_hedging or 'ไม่ระบุ'}"
-        chunks_text.append(hedging_info)
+#         # 2. ข้อมูลนโยบายป้องกันความเสี่ยงค่าเงิน
+#         hedging_info = f"รหัสกองทุน: {factsheet.fund_code}\nมีการป้องกันความเสี่ยงค่าเงิน (Hedged): {'ใช่' if factsheet.is_hedged else 'ไม่ใช่'}\nนโยบายป้องกันความเสี่ยงค่าเงินเพิ่มเติม: {factsheet.hedging_policy or 'ไม่ระบุ'}\nรายละเอียดการป้องกันความเสี่ยง: {factsheet.currency_hedging or 'ไม่ระบุ'}"
+#         chunks_text.append(hedging_info)
         
-        # 3. ข้อมูลการถือครองทรัพย์สิน (Holdings)
-        if factsheet.holdings_data:
-            holdings_str = f"รหัสกองทุน: {factsheet.fund_code}\nสินทรัพย์ที่ลงทุนสูงสุด (Top Holdings):\n"
-            if isinstance(factsheet.holdings_data, list):
-                for item in factsheet.holdings_data:
-                    name = item.get('name', 'Unknown')
-                    ratio = item.get('ratio', 'ไม่ระบุ')
-                    holdings_str += f"- {name} ({ratio}%)\n"
-            else:
-                holdings_str += str(factsheet.holdings_data)
-            chunks_text.append(holdings_str)
+#         # 3. ข้อมูลการถือครองทรัพย์สิน (Holdings)
+#         if factsheet.holdings_data:
+#             holdings_str = f"รหัสกองทุน: {factsheet.fund_code}\nสินทรัพย์ที่ลงทุนสูงสุด (Top Holdings):\n"
+#             if isinstance(factsheet.holdings_data, list):
+#                 for item in factsheet.holdings_data:
+#                     name = item.get('name', 'Unknown')
+#                     ratio = item.get('ratio', 'ไม่ระบุ')
+#                     holdings_str += f"- {name} ({ratio}%)\n"
+#             else:
+#                 holdings_str += str(factsheet.holdings_data)
+#             chunks_text.append(holdings_str)
             
-        # 4. สัดส่วนกลุ่มอุตสาหกรรม (Sector Allocation)
-        if factsheet.sector_allocation:
-            sectors_str = f"รหัสกองทุน: {factsheet.fund_code}\nสัดส่วนอุตสาหกรรมที่ลงทุน (Sector Allocation):\n"
-            if isinstance(factsheet.sector_allocation, list):
-                for item in factsheet.sector_allocation:
-                    sector_name = item.get('sector_name', 'Unknown')
-                    ratio = item.get('ratio', 'ไม่ระบุ')
-                    sectors_str += f"- {sector_name} ({ratio}%)\n"
-            else:
-                sectors_str += str(factsheet.sector_allocation)
-            chunks_text.append(sectors_str)
+#         # 4. สัดส่วนกลุ่มอุตสาหกรรม (Sector Allocation)
+#         if factsheet.sector_allocation:
+#             sectors_str = f"รหัสกองทุน: {factsheet.fund_code}\nสัดส่วนอุตสาหกรรมที่ลงทุน (Sector Allocation):\n"
+#             if isinstance(factsheet.sector_allocation, list):
+#                 for item in factsheet.sector_allocation:
+#                     sector_name = item.get('sector_name', 'Unknown')
+#                     ratio = item.get('ratio', 'ไม่ระบุ')
+#                     sectors_str += f"- {sector_name} ({ratio}%)\n"
+#             else:
+#                 sectors_str += str(factsheet.sector_allocation)
+#             chunks_text.append(sectors_str)
             
-        # 5. Embed ทั้งหมดในครั้งเดียว (local)
-        prefixed_chunks = [f"passage: {text}" for text in chunks_text]
-        all_vectors = self.model.encode(prefixed_chunks, show_progress_bar=True).tolist()
+#         # 5. Embed ทั้งหมดในครั้งเดียว (local)
+#         prefixed_chunks = [f"passage: {text}" for text in chunks_text]
+#         all_vectors = self.model.encode(prefixed_chunks, show_progress_bar=True).tolist()
         
-        logger.info(f"Embedding complete. {len(all_vectors)} vectors generated for {fund_code}.")
+#         logger.info(f"Embedding complete. {len(all_vectors)} vectors generated for {fund_code}.")
         
-        # 6. ลบข้อมูลเก่า + Bulk create in transaction
-        chunks_to_create = [
-            FundDocumentChunk(
-                fund_code=fund_code,
-                content=chunks_text[i],
-                embedding=all_vectors[i],
-                page_number=1, # Default value required instead of PDF page
-                metadata={"source": "database_fields", "section_index": i},
-            )
-            for i in range(len(all_vectors))
-        ]
+#         # 6. ลบข้อมูลเก่า + Bulk create in transaction
+#         chunks_to_create = [
+#             FundDocumentChunk(
+#                 fund_code=fund_code,
+#                 content=chunks_text[i],
+#                 embedding=all_vectors[i],
+#                 page_number=1, # Default value required instead of PDF page
+#                 metadata={"source": "database_fields", "section_index": i},
+#             )
+#             for i in range(len(all_vectors))
+#         ]
         
-        with transaction.atomic():
-            deleted_count, _ = FundDocumentChunk.objects.filter(fund_code=fund_code).delete()
-            FundDocumentChunk.objects.bulk_create(chunks_to_create)
+#         with transaction.atomic():
+#             deleted_count, _ = FundDocumentChunk.objects.filter(fund_code=fund_code).delete()
+#             FundDocumentChunk.objects.bulk_create(chunks_to_create)
         
-        logger.info(f"Successfully ingested {len(chunks_to_create)} field-based chunks for {fund_code} (replaced {deleted_count} old chunks)")
+#         logger.info(f"Successfully ingested {len(chunks_to_create)} field-based chunks for {fund_code} (replaced {deleted_count} old chunks)")
 
-    def query_fund(self, query: str, fund_code: str = None):
-        """ค้นหาข้อมูลที่เกี่ยวข้องและตอบคำถามแบบ RAG"""
-        if not self.llm:
-            return "AI Service not available"
+#     def query_fund(self, query: str, fund_code: str = None):
+#         """ค้นหาข้อมูลที่เกี่ยวข้องและตอบคำถามแบบ RAG"""
+#         if not self.llm:
+#             return "AI Service not available"
             
-        # 1. เข้ารหัสคำถาม (E5 ต้องเติม prefix "query: " สำหรับ search query)
-        query_vector = self.model.encode(f"query: {query}").tolist()
+#         # 1. เข้ารหัสคำถาม (E5 ต้องเติม prefix "query: " สำหรับ search query)
+#         query_vector = self.model.encode(f"query: {query}").tolist()
         
-        # 2. ค้นหา Vector (ใช้ pgvector L2 distance / Cosine similarity)
-        # Note: pgvector django wrapper allows <-> or <=> operator
-        from pgvector.django import L2Distance
+#         # 2. ค้นหา Vector (ใช้ pgvector L2 distance / Cosine similarity)
+#         # Note: pgvector django wrapper allows <-> or <=> operator
+#         from pgvector.django import L2Distance
         
-        qs = FundDocumentChunk.objects.all()
-        if fund_code:
-            qs = qs.filter(fund_code=fund_code)
+#         qs = FundDocumentChunk.objects.all()
+#         if fund_code:
+#             qs = qs.filter(fund_code=fund_code)
             
-        related_chunks = qs.annotate(
-            distance=L2Distance('embedding', query_vector)
-        ).order_by('distance')[:5]
+#         related_chunks = qs.annotate(
+#             distance=L2Distance('embedding', query_vector)
+#         ).order_by('distance')[:5]
         
-        if not related_chunks:
-            return "ไม่พบข้อมูลที่เกี่ยวข้องในระบบ"
+#         if not related_chunks:
+#             return "ไม่พบข้อมูลที่เกี่ยวข้องในระบบ"
             
-        # 3. สร้าง Context
-        context = "\n\n".join([f"Source (Page {c.page_number}): {c.content}" for c in related_chunks])
+#         # 3. สร้าง Context
+#         context = "\n\n".join([f"Source (Page {c.page_number}): {c.content}" for c in related_chunks])
         
-        # 4. ส่งให้ LLM ตอบ
-        prompt = (
-            "คุณคือผู้ช่วยอัจฉริยะด้านการลงทุน (xInvest Smart Assistant) "
-            "กรุณาตอบคำถามของผู้ใช้งานโดยใช้ข้อมูลที่ให้มาด้านล่างนี้เท่านั้น "
-            "หากข้อมูลไม่เพียงพอ ให้ตอบว่าไม่พบข้อมูลที่ชัดเจนในเอกสาร "
-            "ระบุแหล่งที่มา (เลขหน้า) เสมอในการตอบ\n\n"
-            f"Context:\n{context}\n\n"
-            f"User Question: {query}"
-        )
+#         # 4. ส่งให้ LLM ตอบ
+#         prompt = (
+#             "คุณคือผู้ช่วยอัจฉริยะด้านการลงทุน (xInvest Smart Assistant) "
+#             "กรุณาตอบคำถามของผู้ใช้งานโดยใช้ข้อมูลที่ให้มาด้านล่างนี้เท่านั้น "
+#             "หากข้อมูลไม่เพียงพอ ให้ตอบว่าไม่พบข้อมูลที่ชัดเจนในเอกสาร "
+#             "ระบุแหล่งที่มา (เลขหน้า) เสมอในการตอบ\n\n"
+#             f"Context:\n{context}\n\n"
+#             f"User Question: {query}"
+#         )
         
-        response = self.llm.invoke([HumanMessage(content=prompt)])
-        return response.content
+#         response = self.llm.invoke([HumanMessage(content=prompt)])
+#         return response.content
 
 class FundImpactAnalysisResult(BaseModel):
     sentiment_score: float = Field(description="Overall sentiment score between -1.0 (very negative) and 1.0 (very positive)")

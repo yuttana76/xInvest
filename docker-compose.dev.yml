@@ -89,14 +89,16 @@ services:
     restart: always
 
   flower:
-    build: ./backend
-    command: celery -A core flower --port=5555
+    # Official lightweight image — Flower only talks to the Redis broker,
+    # it doesn't need the Django app/backend image at all.
+    # Note: broker must be set via CELERY_BROKER_URL env var — a --broker
+    # CLI flag is silently ignored by this image's entrypoint.
+    image: mher/flower:2.0
     ports:
       - "5555:5555"
-    env_file:
-      - .env.dev
     environment:
       - TZ=Asia/Bangkok
+      - CELERY_BROKER_URL=redis://redis:6379/0
     depends_on:
       redis:
         condition: service_started

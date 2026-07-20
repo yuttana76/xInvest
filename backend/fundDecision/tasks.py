@@ -1,7 +1,8 @@
 from celery import shared_task
 from .news_service import NewsFetcher
 from .models import NewsArticle, AIInsight
-from .ai_service import NewsAIService, SmartFundAIService
+from .ai_service import NewsAIService
+# from .ai_service import SmartFundAIService  # disabled, see ai_service.py
 from .graph_service import NewsGraphService
 import logging
 
@@ -183,10 +184,10 @@ def analyze_factsheet_task(factsheet_id):
             factsheet.ai_error_message = ""
             factsheet.save()
             
-            # Trigger Vector Ingestion for RAG
-            ingest_factsheet_to_vector_db.delay(factsheet.fund_code)
-            
-            logger.info(f"Successfully analyzed factsheet {factsheet_id} and queued vector ingestion.")
+            # Vector ingestion for RAG disabled along with SmartFundAIService (see ai_service.py)
+            # ingest_factsheet_to_vector_db.delay(factsheet.fund_code)
+
+            logger.info(f"Successfully analyzed factsheet {factsheet_id}.")
         else:
             factsheet.ai_analysis_status = 'FAILED'
             factsheet.ai_error_message = "AI extraction failed or returned no result."
@@ -225,19 +226,20 @@ def analyze_factsheet_task(factsheet_id):
 #     except Exception as e:
 #         logger.error(f"Error in ingest_factsheet_to_vector_db for {fund_code}: {e}")
 
-@shared_task(bind=True, max_retries=2, default_retry_delay=120)
-def ingest_factsheet_to_vector_db(self, fund_code):
-    """Task to index a fund's database fields into the vector database for RAG (replacing PDF extraction)."""
-    try:
-        smart_ai = SmartFundAIService()
-        smart_ai.ingest_factsheet_data(fund_code)
-        logger.info(f"Vector ingestion from fields complete for {fund_code}")
-    except RuntimeError as e:
-        logger.error(f"Vector ingestion FAILED for {fund_code}: {e}")
-        # Retry the task after 2 minutes
-        raise self.retry(exc=e)
-    except Exception as e:
-        logger.error(f"Error in ingest_factsheet_to_vector_db for {fund_code}: {e}")
+# ingest_factsheet_to_vector_db disabled along with SmartFundAIService (see ai_service.py)
+# @shared_task(bind=True, max_retries=2, default_retry_delay=120)
+# def ingest_factsheet_to_vector_db(self, fund_code):
+#     """Task to index a fund's database fields into the vector database for RAG (replacing PDF extraction)."""
+#     try:
+#         smart_ai = SmartFundAIService()
+#         smart_ai.ingest_factsheet_data(fund_code)
+#         logger.info(f"Vector ingestion from fields complete for {fund_code}")
+#     except RuntimeError as e:
+#         logger.error(f"Vector ingestion FAILED for {fund_code}: {e}")
+#         # Retry the task after 2 minutes
+#         raise self.retry(exc=e)
+#     except Exception as e:
+#         logger.error(f"Error in ingest_factsheet_to_vector_db for {fund_code}: {e}")
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=60, retry_backoff_max=3600, retry_jitter=True, max_retries=10)
 def summarize_fund_impact_task(self, fund_code, insight_ids):

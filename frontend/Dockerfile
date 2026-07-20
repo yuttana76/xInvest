@@ -12,6 +12,16 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Disable telemetry during the build
 ENV NEXT_TELEMETRY_DISABLED 1
+
+# NEXT_PUBLIC_* vars are baked in at build time, not read from env_file at
+# runtime — must be passed as --build-arg by CI.
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_APP_NAME
+ARG NEXT_PUBLIC_APP_TAGLINE
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME}
+ENV NEXT_PUBLIC_APP_TAGLINE=${NEXT_PUBLIC_APP_TAGLINE}
+
 RUN npm run build
 
 # Stage 3: Runner

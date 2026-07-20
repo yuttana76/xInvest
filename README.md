@@ -99,3 +99,6 @@ docker compose exec backend python manage.py migrate
 
 ---
 *Created as part of the xInvest project portfolio.*
+
+
+## CI/CD

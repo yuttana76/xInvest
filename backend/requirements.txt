@@ -1,5 +1,5 @@
---extra-index-url https://download.pytorch.org/whl/cpu
-torch
+# --extra-index-url https://download.pytorch.org/whl/cpu
+# torch  # disabled: only needed by sentence-transformers (SmartFundAIService RAG chat), see below
 Django>=5.2,<5.3
 djangorestframework
 dj-database-url
@@ -7,11 +7,11 @@ django-cors-headers
 djangorestframework-simplejwt
 pandas
 numpy
-PyPortfolioOpt
+# PyPortfolioOpt  # disabled: unused, not imported anywhere in the codebase (also drops its cvxpy/osqp/scs/qdldl/clarabel/highspy/scikit-learn solver stack)
 psycopg2-binary
 celery
 redis
-yfinance
+# yfinance  # disabled: unused, not imported anywhere in the codebase
 gunicorn
 uvicorn
 whitenoise
@@ -21,7 +21,7 @@ drf-spectacular
 google-generativeai
 langchain
 langchain-google-genai
-langchain-community
+# langchain-community  # disabled: unused, not imported anywhere in the codebase (also drops langchain-classic/sqlalchemy)
 flower
 django-redis
 openpyxl
@@ -30,6 +30,6 @@ langgraph
 reportlab
 pypdf
 pgvector
-langchain-postgres
-sentence-transformers
+# langchain-postgres  # disabled: unused, not imported anywhere in the codebase (also drops asyncpg/psycopg-v3)
+# sentence-transformers  # disabled: local embedding model for SmartFundAIService RAG chat (fundDecision) — pulls in torch, ~1GB+
 langchain-ollama
