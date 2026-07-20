@@ -17,15 +17,28 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from graphene_django.views import GraphQLView
+from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/auth/", include("users.urls")),
     path("api/v1/invest/", include("invest.urls")),
-    path("api/v1/smartNews/", include("smartNews.urls")),
+    path("api/v1/fundDecision/", include("fundDecision.urls")),
+    path("api/v1/workflow/", include("workflow.urls")),
+    path("api/v1/payment/", include("payment.urls")),
+    
+    # GraphQL
+    path("graphql", csrf_exempt(GraphQLView.as_view(graphiql=True))),
+
     # API Schema and Documentation
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

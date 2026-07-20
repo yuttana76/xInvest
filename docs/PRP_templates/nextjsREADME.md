@@ -1,0 +1,6 @@
+- **Framework:** Next.js 14+ (App Router, TypeScript).
+- **State Management:** Zustand (Global) + TanStack Query (Server State).
+- **UI:** Tailwind CSS + Shadcn UI + Recharts (for Financial Charts).
+- **File Size Management:** - 🛑 **MAX 500 LINES:** ห้ามแต่ละไฟล์เกิน 500 บรรทัดเด็ดขาด
+  - **Modular Design:** หากไฟล์เริ่มยาว ให้แยก Logic ออกเป็น Sub-components หรือ Helper functions/Services.
+    - Frontend: Prettier, ESLint (Strict Mode), TypeScript `strict: true`.

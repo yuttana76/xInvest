@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Review Request - {{ request_obj.title }}</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 32px 16px;
+      background: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #1e293b;
+    }
+    .card {
+      max-width: 520px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      padding: 32px;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+    }
+    h1 { font-size: 20px; margin: 0 0 16px; color: #1e293b; }
+    .details { background: #f8fafc; border-radius: 8px; padding: 16px; margin-bottom: 24px; font-size: 14px; }
+    .details div { padding: 4px 0; }
+    .label { color: #94a3b8; display: inline-block; min-width: 110px; }
+    .value { font-weight: 600; color: #1e293b; }
+    label.field-label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 80px;
+      margin-bottom: 6px;
+    }
+    .hint { font-size: 12px; color: #94a3b8; margin: 0 0 20px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    button {
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      border: none;
+      cursor: pointer;
+    }
+    .approve { background: #16a34a; color: #ffffff; }
+    .return { background: #f59e0b; color: #ffffff; }
+    .reject { background: #dc2626; color: #ffffff; }
+    a.cancel { display: block; text-align: center; margin-top: 16px; font-size: 13px; color: #64748b; text-decoration: none; }
+  </style>
+  <script>
+    function setDecision(value) {
+      document.getElementById('decision-input').value = value;
+      var comment = document.getElementById('comment');
+      if (value === 'return' && !comment.value.trim()) {
+        comment.focus();
+        alert('Please add a comment explaining why this request is being returned.');
+        return false;
+      }
+      return true;
+    }
+  </script>
+</head>
+<body>
+  <div class="card">
+    <h1>Review this request</h1>
+    <p style="color:#475569;font-size:14px;line-height:1.5;">
+      You are reviewing this request as <strong>{{ approver.get_full_name|default:approver.username }}</strong>.
+    </p>
+    <div class="details">
+      <div><span class="label">Request</span><span class="value">{{ request_obj.title }}</span></div>
+      <div><span class="label">Workflow</span><span class="value">{{ request_obj.workflow.name }}</span></div>
+      <div><span class="label">Current Step</span><span class="value">{{ current_step.step_name }}</span></div>
+    </div>
+
+    <form method="post" action="{% url 'request-decide-via-email' pk=request_obj.pk %}" onsubmit="return this.dataset.submitted ? false : (this.dataset.submitted = true);">
+      {% csrf_token %}
+      <input type="hidden" name="token" value="{{ token }}" />
+      <input type="hidden" name="decision" id="decision-input" value="" />
+
+      <label class="field-label" for="comment">Comment</label>
+      <textarea id="comment" name="comment" placeholder="Add a comment (required if returning this request)"></textarea>
+      <p class="hint">A comment is required when returning a request for revision.</p>
+
+      <div class="actions">
+        <button type="submit" class="approve" onclick="return setDecision('approve');">Approve</button>
+        <button type="submit" class="return" onclick="return setDecision('return');">Return</button>
+        <button type="submit" class="reject" onclick="return setDecision('reject');">Reject</button>
+      </div>
+    </form>
+    <a class="cancel" href="{{ FRONTEND_URL }}/workflow/requests/{{ request_obj.id }}">Cancel and open in app instead</a>
+  </div>
+</body>
+</html>

@@ -1,13 +1,15 @@
 # Production xInvest Compose
 services:
   db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file:
       - .env.production
     ports:
-      - "5432:5432"
+      # Loopback-only — reachable via `ssh -L 5432:127.0.0.1:5432 <host>` for
+      # DB clients (DBeaver etc), never exposed to the public internet.
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
       interval: 5s
@@ -17,7 +19,32 @@ services:
   redis:
     image: redis:7-alpine
 
+  migrate:
+    image: ${ECR_REGISTRY}/xinvest-backend:${IMAGE_TAG:-latest}
+    build: ./backend
+    command: python manage.py migrate --noinput
+    env_file:
+      - .env.production
+    depends_on:
+      db:
+        condition: service_healthy
+
+  seed:
+    image: ${ECR_REGISTRY}/xinvest-backend:${IMAGE_TAG:-latest}
+    build: ./backend
+    # DJANGO_SUPERUSER_USERNAME/EMAIL/PASSWORD must be set in .env.production;
+    # createsuperuser --noinput is a no-op (exits 0) if that username already exists.
+    command: >
+      sh -c "python manage.py seed_workflows &&
+             (python manage.py createsuperuser --noinput || true)"
+    env_file:
+      - .env.production
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
   backend:
+    image: ${ECR_REGISTRY}/xinvest-backend:${IMAGE_TAG:-latest}
     build: ./backend
     expose:
       - "8000"
@@ -28,9 +55,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      seed:
+        condition: service_completed_successfully
     restart: always
 
   celery_worker:
+    image: ${ECR_REGISTRY}/xinvest-backend:${IMAGE_TAG:-latest}
     build: ./backend
     command: celery -A core worker -l info
     env_file:
@@ -40,9 +70,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      seed:
+        condition: service_completed_successfully
     restart: always
 
   celery_beat:
+    image: ${ECR_REGISTRY}/xinvest-backend:${IMAGE_TAG:-latest}
     build: ./backend
     command: celery -A core beat -l info
     env_file:
@@ -52,9 +85,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      seed:
+        condition: service_completed_successfully
     restart: always
 
   frontend:
+    image: ${ECR_REGISTRY}/xinvest-frontend:${IMAGE_TAG:-latest}
     build: ./frontend
     ports:
       - "3000:3000"
@@ -81,6 +117,21 @@ services:
     depends_on:
       - backend
       - frontend
+
+  db_backup_cron:
+    image: postgres:15-alpine
+    volumes:
+      - ./backups:/backups
+      - ./scripts/cron-entrypoint.sh:/scripts/cron-entrypoint.sh
+    env_file:
+      - .env.production
+    environment:
+      - BACKUP_SCHEDULE=59 23 * * *
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: /scripts/cron-entrypoint.sh
+    restart: always
 
 volumes:
   postgres_data:

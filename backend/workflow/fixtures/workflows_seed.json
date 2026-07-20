@@ -1,0 +1,22 @@
+{
+  "_comment": "Example spec — replace with your real production workflows before deploying. Loaded by `python manage.py seed_workflows`.",
+  "groups": ["Department_Manager", "IT_Manager", "IT_Staff"],
+  "workflows": [
+    {
+      "name": "IT System Change Flow",
+      "category": "IT",
+      "prefix": "ITR",
+      "description": "Example workflow for IT change requests.",
+      "steps": [
+        {"step_number": 1, "step_name": "หัวหน้าแผนกอนุมัติ", "is_department_manager": true},
+        {"step_number": 2, "step_name": "IT Manager อนุมัติ", "required_group": "IT_Manager"},
+        {"step_number": 3, "step_name": "IT Staff ดำเนินการ", "required_group": "IT_Staff"}
+      ],
+      "subjects": [
+        {"code": "NEW_SYSTEM", "name": "ขอระบบใหม่", "order": 1},
+        {"code": "BUG_FIX", "name": "แจ้งปัญหา/บั๊ก", "order": 2},
+        {"code": "ACCESS_REQUEST", "name": "ขอสิทธิ์เข้าถึงระบบ", "order": 3}
+      ]
+    }
+  ]
+}

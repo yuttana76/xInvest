@@ -9,6 +9,19 @@ import random
 from random import choice
 import string
 
+def determine_user_role(user):
+    if user.is_staff or user.is_superuser:
+        return ["admin"]
+    
+    groups = list(user.groups.values_list('name', flat=True))
+    if groups:
+        return groups
+        
+    if hasattr(user, 'investor_profile'):
+        return ["investor"]
+        
+    return ["guest"]
+
 class OTP(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="otp")
     otp_ref = models.CharField(max_length=6)
@@ -19,14 +32,14 @@ class OTP(models.Model):
     otpSuccess_DT = models.DateTimeField(blank=True, null=True)
     
     def is_valid(self):
-        # OTP is valid for 10 minutes
-        expiry_time = self.created_at + timezone.timedelta(minutes=10)
+        # OTP is valid for 60 minutes
+        expiry_time = self.created_at + timezone.timedelta(minutes=60)
         return timezone.now() <= expiry_time
 
     def generate_code(self):
 
         # # New Generate OTP & OTP Reference
-        OTP_LIFE_MIN=10  # OTP life in 10 minutes
+        OTP_LIFE_MIN=60  # OTP life in 60 minutes
         MAX_OTP_TRY=3
 
         keygen = generateKey()
@@ -36,7 +49,6 @@ class OTP(models.Model):
         OTP = pyotp.HOTP(key)  # HOTP Model for OTP is created
         OTP_Code = OTP.at(6)  # OTP Code length 6 digit
         OTP_expiry = timezone.now() + timezone.timedelta(minutes=OTP_LIFE_MIN)
-        max_otp_try = int(self.max_otp_try) - 1
 
         # client.otp = OTP_Code
         # client.otp_ref = OTP_Ref
@@ -48,7 +60,6 @@ class OTP(models.Model):
         self.otp_code = OTP_Code
         self.otp_ref = OTP_Ref
         self.otp_expiry = OTP_expiry
-        self.max_otp_try = max_otp_try
         self.created_at = timezone.now()
         self.save()
         # Return otp_ref and otp_code
@@ -88,3 +99,19 @@ class UserActivityLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.activity_type} at {self.created_at}"
+
+class Department(models.Model):
+    name = models.CharField(max_length=100)
+    manager = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='managed_departments')
+
+    def __str__(self):
+        return self.name
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='members')
+    mobile_number = models.CharField(max_length=15, unique=True, blank=True, null=True)
+    is_email_verified = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"

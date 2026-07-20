@@ -1,0 +1,14 @@
+{
+  "projectId": "14314693463246181763",
+  "screens": {
+    "login": "f54051133fc54a52a084aff3a4524bd2",
+    "otp": "994d91688a954494b161fdde4971d317",
+    "home": "fee488ecefcf43cfa6860e520389ba7c",
+    "portfolio": "71139c66213a4b97bbe3783e317cc8a4",
+    "discovery": "009696683e6846fb936f73352f2737da",
+    "detail": "d38bf540f35f4ba799eec8370fa6f15a",
+    "profile": "ed4cc1a163174154a4317f39c12d2b72"
+  },
+  "currentScreen": "detail",
+  "history": []
+}

@@ -1,0 +1,53 @@
+{% extends "workflow/emails/base_workflow_email.html" %}
+
+{% block title %}Request Status Update: {{ request_title }}{% endblock %}
+
+{% block content %}
+  <h2 style="margin:0 0 16px;font-size:24px;color:#1e293b;font-weight:700;">
+    {% if status == 'COMPLETED' %}
+      Request Completed
+    {% elif status == 'RETURNED' %}
+      Request Returned for Revision
+    {% elif status == 'REJECTED' %}
+      Request Rejected
+    {% else %}
+      Status Update
+    {% endif %}
+  </h2>
+  
+  <p style="margin:0 0 24px;font-size:16px;color:#475569;line-height:1.6;">
+    Your request for <strong>{{ request_title }}</strong> has been updated to 
+    <span style="font-weight:700;color:{% if status == 'COMPLETED' %}#059669{% elif status == 'RETURNED' %}#d97706{% elif status == 'REJECTED' %}#dc2626{% else %}#2563eb{% endif %};">
+      {{ status }}
+    </span>.
+  </p>
+
+  {% if request_description %}
+  <div style="margin-bottom:24px;color:#475569;font-size:15px;line-height:1.6;border-left:4px solid #e2e8f0;padding-left:16px;">
+    <strong>Description:</strong><br/>
+    {{ request_description|linebreaksbr }}
+  </div>
+  {% endif %}
+
+  {% if comment %}
+  <div style="background:#f8fafc;border-left:4px solid #cbd5e1;padding:20px;margin-bottom:32px;">
+    <p style="margin:0 0 8px;font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:600;">
+      Action by: {{ action_by }}
+    </p>
+    <p style="margin:0;font-size:15px;color:#475569;line-height:1.6;font-style:italic;">
+      &ldquo;{{ comment }}&rdquo;
+    </p>
+  </div>
+  {% endif %}
+
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center">
+        <a href="{{ action_url }}" 
+           style="background:#1e293b;color:#ffffff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;display:inline-block;font-size:14px;">
+           View Request Details
+        </a>
+      </td>
+    </tr>
+  </table>
+{% endblock %}

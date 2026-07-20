@@ -1,0 +1,605 @@
+from typing import List, Optional
+from pydantic import BaseModel, Field
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.messages import HumanMessage
+from django.conf import settings
+import logging
+import json
+import os
+from .models import FundDocumentChunk
+
+logger = logging.getLogger(__name__)
+
+class NewsAnalysisResult(BaseModel):
+    related_sectors: List[str] = Field(description="List of investment sectors related to the news. Choices: Tech, Energy, Healthcare, Finance, Consumer, Industrials, Materials, Utilities, Real Estate, Telecommunications")
+    ai_sentiment_score: float = Field(description="Sentiment score between -1.0 (very negative) and 1.0 (very positive)")
+    ai_summary: str = Field(description="A concise summary (in Thai) of how this news impacts investment")
+    ai_impact_level: str = Field(description="Impact level on the market. Choices: LOW, MED, HIGH")
+    ai_model: str = Field(description="Model used for analysis")
+
+class NewsAIService:
+    def __init__(self):
+        api_key = getattr(settings, 'GEMINI_API_KEY', None)
+        if not api_key:
+            logger.error("GEMINI_API_KEY not found in settings")
+            self.llm = None
+        else:
+            logger.info("GEMINI_API_KEY found, searching for available models...")
+            try:
+                import google.generativeai as genai
+                genai.configure(api_key=api_key)
+                
+                # Priority list for models
+                priority_list = [
+                    "gemini-1.5-flash",
+                    "gemini-1.5-flash-latest",
+                    "gemini-2.0-flash",
+                    "gemini-pro",
+                    "gemini-1.5-pro",
+                ]
+                
+                available_models = [m.name.replace("models/", "") for m in genai.list_models() 
+                                   if "generateContent" in m.supported_generation_methods]
+                
+                selected_model = None
+                for model_candidate in priority_list:
+                    if model_candidate in available_models:
+                        selected_model = model_candidate
+                        break
+                
+                if not selected_model and available_models:
+                    # Fallback to first available model if none of the priority ones are found
+                    selected_model = available_models[0]
+                    logger.warning(f"No priority models found. Falling back to: {selected_model}")
+                
+                if selected_model:
+                    logger.info(f"Selected model for analysis: {selected_model}")
+                    self.llm = ChatGoogleGenerativeAI(
+                        model=selected_model,
+                        google_api_key=api_key,
+                        temperature=0,
+                    )
+                else:
+                    logger.error("No available Gemini models found for this API key.")
+                    self.llm = None
+                    
+            except Exception as e:
+                logger.error(f"Error during dynamic model discovery: {e}")
+                # Fallback to a safe default if listing fails
+                self.llm = ChatGoogleGenerativeAI(
+                    model="gemini-1.5-flash",
+                    google_api_key=api_key,
+                    temperature=0,
+                )
+        
+        self.parser = PydanticOutputParser(pydantic_object=NewsAnalysisResult)
+        
+        self.prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are an expert financial analyst. Analyze the provided news article and extract investment insights. "
+                        "Return the results in the specified JSON format.\n{format_instructions}"),
+            ("user", "Title: {title}\n\nContent: {content}")
+        ]).partial(format_instructions=self.parser.get_format_instructions())
+
+    def analyze_news(self, title: str, content: str) -> Optional[NewsAnalysisResult]:
+        logger.info(f"Analyzing news: {title[:100]}...")
+        if not self.llm:
+            logger.error("LLM not initialized. Check GEMINI_API_KEY.")
+            return None
+            
+        # List of models to try if the first one fails due to quota (429)
+        # We start with the one already selected during __init__
+        models_to_try = [self.llm.model]
+        
+        # Add other potential models if not already in the list
+        for m in ["gemini-pro", "gemini-1.5-flash", "gemini-flash-latest"]:
+            if m not in models_to_try:
+                models_to_try.append(m)
+
+        for current_model in models_to_try:
+            try:
+                # Update LLM if we are retrying with a different model
+                if self.llm.model != current_model:
+                    logger.info(f"Retrying analysis with fallback model: {current_model}")
+                    self.llm.model = current_model
+
+                # Token optimization: Truncate long content
+                processed_content = content
+                max_chars = 10000
+                if processed_content and len(processed_content) > max_chars:
+                    logger.info(f"Truncating content from {len(processed_content)} to {max_chars} characters.")
+                    processed_content = processed_content[:max_chars] + "..."
+
+                logger.info(f"Calling Gemini API ({current_model}) to analyze news: {title[:50]}...")
+                
+                # Step 1: Generate response from LLM
+                prompt_val = self.prompt.invoke({"title": title, "content": processed_content})
+                logger.info(f"Prompt: {prompt_val}")
+                raw_response = self.llm.invoke(prompt_val)
+                
+                # Log raw response content
+                content_str = raw_response.content
+                if isinstance(content_str, list):
+                    # Handle multi-part content
+                    content_str = " ".join([part.get("text", "") if isinstance(part, dict) else str(part) for part in content_str])
+                
+                # logger.info(f"Raw AI Response from {current_model}: {content_str[:200]}...")
+                
+                if not content_str:
+                    logger.warning(f"Empty content received from {current_model}")
+                    continue # Try next model
+                    
+                # Step 2: Parse response
+                try:
+                    result = self.parser.parse(content_str)
+                    result.ai_model = current_model
+                    if result:
+                        logger.info(f"AI Analysis successful with {current_model}")
+                        return result
+                except Exception as parse_err:
+                    logger.error(f"Failed to parse response from {current_model}: {parse_err}")
+                    continue # Try next model
+                
+            except Exception as e:
+                error_msg = str(e)
+                if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                    logger.warning(f"Quota exceeded (429) for model {current_model}. Trying next fallback...")
+                    continue
+                elif "404" in error_msg or "NOT_FOUND" in error_msg:
+                    logger.warning(f"Model {current_model} not found (404). Trying next fallback...")
+                    continue
+                else:
+                    logger.error(f"Unexpected error during AI news analysis with {current_model}: {e}")
+                    # For critical errors, we might want to stop, but for now let's try next model
+                    continue
+                    
+        logger.error("All AI analysis models failed or quota exhausted.")
+        return None
+
+class FactSheetAnalysisResult(BaseModel):
+    fund_code: str = Field(description="รหัสย่อกองทุน")
+    fund_name_th: str = Field(description="ชื่อเต็มกองทุนภาษาไทย")
+    risk_level: int = Field(description="ระดับความเสี่ยง (เลข 1-8)")
+    fund_category: str = Field(description="ประเภทกลุ่มกองทุน ")
+    investment_strategy: str = Field(description="กลยุทธ์การลงทุน (Active หรือ Passive)")
+    top_5_holdings: List[dict] = Field(description="รายชื่อสินทรัพย์ 5 อันดับแรก (name, ticker, ratio)")
+    sector_allocation: List[dict] = Field(description="สัดส่วนกลุ่มอุตสาหกรรม 5 อันดับแรก (sector_name, ratio)")
+    currency_hedging: str = Field(description="นโยบายการป้องกันความเสี่ยงค่าเงิน (None/Partial/Fully/Discretionary)")
+    benchmark: str = Field(description="ดัชนีชี้วัดที่ใช้เปรียบเทียบ")
+    as_of_date: str = Field(description="วันที่ของข้อมูลพอร์ตล่าสุด (YYYY-MM-DD)")
+
+class FactSheetAIService:
+    def __init__(self):
+        # Reuse existing LLM setup logic from NewsAIService
+        news_service = NewsAIService()
+        self.llm = news_service.llm
+        self.parser = PydanticOutputParser(pydantic_object=FactSheetAnalysisResult)
+        
+        self.system_prompt = (
+            "คุณคือนักวิเคราะห์ข้อมูลการเงินที่มีหน้าที่สกัดข้อมูลจาก PDF Fund Fact Sheet ของกองทุนไทย "
+            "กรุณาอ่านเอกสารที่แนบมาและตอบกลับเป็นรูปแบบ JSON บริสุทธิ์ (Pure JSON) เท่านั้น "
+            "ห้ามมีข้อความเกริ่นนำหรือคำอธิบายเพิ่มเติม ข้อมูลต้องแม่นยำตามที่ปรากฏในเอกสาร"
+        )
+        
+        self.user_prompt_template = (
+            "วิเคราะห์ไฟล์ PDF นี้และสกัดข้อมูลเข้าสู่โครงสร้าง JSON ดังนี้:\n\n"
+            "1. fund_code: รหัสย่อกองทุน\n"
+            "2. fund_name_th: ชื่อเต็มกองทุนภาษาไทย\n"
+            "3. risk_level: ระดับความเสี่ยง (เลข 1-8)\n"
+            "4. fund_category: ประเภทกลุ่มกองทุน\n"
+            "5. investment_strategy: กลยุทธ์การลงทุน (ตอบเฉพาะ \"Active\" หรือ \"Passive\")\n"
+            "6. top_5_holdings: รายชื่อสินทรัพย์ 5 อันดับแรก (ระบุ name, ticker ถ้ามี, และ ratio เป็นตัวเลข %)\n"
+            "7. sector_allocation: สัดส่วนกลุ่มอุตสาหกรรม 5 อันดับแรก (ระบุ sector_name และ ratio %)\n"
+            "8. currency_hedging: นโยบายการป้องกันความเสี่ยงค่าเงิน (None/Partial/Fully/Discretionary)\n"
+            "9. benchmark: ดัชนีชี้วัดที่ใช้เปรียบเทียบ\n"
+            "10. as_of_date: วันที่ของข้อมูลพอร์ตล่าสุดในเอกสาร (รูปแบบ YYYY-MM-DD)\n\n"
+            "{format_instructions}\n\n"
+            "Content from PDF:\n{pdf_text}"
+        )
+        
+        self.prompt = ChatPromptTemplate.from_messages([
+            ("system", self.system_prompt),
+            ("user", self.user_prompt_template)
+        ]).partial(format_instructions=self.parser.get_format_instructions())
+
+    def extract_text_from_pdf(self, pdf_file_path: str) -> str:
+        """Extract text from PDF using pypdf."""
+        try:
+            logger.info(f"*AI extract_text_from_pdf() PDF: {pdf_file_path}")
+            from pypdf import PdfReader
+            reader = PdfReader(pdf_file_path)
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text() + "\n"
+            return text
+        except Exception as e:
+            logger.error(f"Error extracting text from PDF: {e}")
+            return ""
+
+    def analyze_factsheet(self, pdf_file_path: str) -> Optional[FactSheetAnalysisResult]:
+        """Analyzes a Fund Fact Sheet PDF and returns the extracted data."""
+        logger.info(f"*AI analyze_factsheet() PDF: {pdf_file_path}")
+        if not self.llm:
+            logger.error("LLM not initialized")
+            return None
+            
+        pdf_text = self.extract_text_from_pdf(pdf_file_path)
+        if not pdf_text:
+            logger.error("Failed to extract text from PDF")
+            return None
+            
+        # List of models to try if the first one fails
+        models_to_try = [self.llm.model]
+        for m in ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-pro", "gemini-2.0-flash"]:
+            if m not in models_to_try:
+                models_to_try.append(m)
+
+        for current_model in models_to_try:
+            try:
+                # Update LLM if retrying
+                if self.llm.model != current_model:
+                    logger.info(f"Retrying factsheet analysis with fallback model: {current_model}")
+                    self.llm.model = current_model
+
+                # Token optimization
+                max_chars = 30000 
+                processed_text = pdf_text
+                if len(processed_text) > max_chars:
+                    processed_text = processed_text[:max_chars] + "..."
+                    
+                prompt_val = self.prompt.invoke({"pdf_text": processed_text})
+                raw_response = self.llm.invoke(prompt_val)
+                
+                content_str = raw_response.content
+                if isinstance(content_str, list):
+                    content_str = " ".join([part.get("text", "") if isinstance(part, dict) else str(part) for part in content_str])
+                
+                logger.info(f"** Raw FactSheet AI Response from {current_model}: {content_str[:200]}...")
+                
+                return self.parser.parse(content_str)
+            except Exception as e:
+                error_msg = str(e)
+                if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                    logger.warning(f"Quota exceeded (429) for model {current_model} during factsheet analysis. Trying next fallback...")
+                    continue
+                else:
+                    logger.error(f"Unexpected error during FactSheet AI analysis with {current_model}: {e}")
+                    continue
+                    
+        logger.error("All AI analysis models failed or quota exhausted for factsheet analysis.")
+        return None
+
+# SmartFundAIService disabled: depended on sentence-transformers (local embedding
+# model, pulls in torch — multi-GB) for RAG vector search over fund factsheets.
+# Removed from requirements.txt to shrink the backend image. Re-enable by
+# restoring sentence-transformers/torch and uncommenting this class, plus the
+# call sites in views.py (SmartFundChatView), tasks.py (ingest_factsheet_to_vector_db)
+# and urls.py (the 'chat/' route).
+# class SmartFundAIService:
+#     # Class-level model cache — load once, reuse across requests
+#     _model = None
+#     _model_name = "intfloat/multilingual-e5-base"  # 768 dims, supports Thai
+#
+#     @classmethod
+#     def _get_model(cls):
+#         if cls._model is None:
+#             from sentence_transformers import SentenceTransformer
+#             logger.info(f"Loading embedding model: {cls._model_name}")
+#             cls._model = SentenceTransformer(cls._model_name)
+#             logger.info(f"Embedding model loaded. Dimension: {cls._model.get_sentence_embedding_dimension()}")
+#         return cls._model
+#
+#     def __init__(self):
+#         # Determine AI Provider from environment (default: GEMINI)
+#         import os
+#         ai_provider = os.environ.get('AI_PROVIDER', 'GEMINI').upper()
+#
+#         if ai_provider == 'OLLAMA':
+#             try:
+#                 from langchain_ollama import ChatOllama
+#                 ollama_base_url = os.environ.get('OLLAMA_BASE_URL', 'http://ollama:11434')
+#                 ollama_model = os.environ.get('OLLAMA_MODEL', 'llama3')
+#
+#                 logger.info(f"SmartFundAIService: Selecting OLLAMA provider (Model: {ollama_model}, URL: {ollama_base_url})")
+#                 self.llm = ChatOllama(
+#                     model=ollama_model,
+#                     base_url=ollama_base_url,
+#                     temperature=0
+#                 )
+#             except Exception as e:
+#                 logger.error(f"Error initializing Ollama: {e}. Ensure langchain-ollama is installed.")
+#                 self.llm = None
+#         else:
+#             api_key = getattr(settings, 'GEMINI_API_KEY', None)
+#             if not api_key:
+#                 logger.error("GEMINI_API_KEY not found (needed for LLM, not embeddings)")
+#                 self.llm = None
+#             else:
+#                 try:
+#                     import google.generativeai as genai
+#                     genai.configure(api_key=api_key)
+#
+#                     # Priority list for models
+#                     priority_list = [
+#                         "gemini-1.5-flash",
+#                         "gemini-1.5-flash-latest",
+#                         "gemini-2.0-flash",
+#                         "gemini-pro",
+#                         "gemini-1.5-pro",
+#                     ]
+#
+#                     available_models = [m.name.replace("models/", "") for m in genai.list_models()
+#                                        if "generateContent" in m.supported_generation_methods]
+#
+#                     selected_model = None
+#                     for model_candidate in priority_list:
+#                         if model_candidate in available_models:
+#                             selected_model = model_candidate
+#                             break
+#
+#                     if not selected_model and available_models:
+#                         selected_model = available_models[0]
+#
+#                     if selected_model:
+#                         logger.info(f"SmartFundAIService: Selected model: {selected_model}")
+#                         self.llm = ChatGoogleGenerativeAI(
+#                             model=selected_model,
+#                             google_api_key=api_key,
+#                             temperature=0,
+#                         )
+#                     else:
+#                         logger.error("No available Gemini models found.")
+#                         self.llm = None
+#                 except Exception as e:
+#                     logger.error(f"Error initializing LLM in SmartFundAIService: {e}")
+#                     # Safe fallback
+#                     self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=api_key)
+#
+#         # Local embedding model (no API key needed)
+#         self.model = self._get_model()
+
+    # def ingest_pdf(self, fund_code: str, pdf_path: str):
+    #     """วิเคราะห์ PDF, แบ่งเป็นส่วนๆ และเก็บลง Vector DB (ใช้ local embedding — ไม่มี rate limit)
+    #     
+    #     Raises:
+    #         RuntimeError: หาก embedding ล้มเหลว (ข้อมูลเก่าจะไม่ถูกลบ)
+    #     """
+    #     logger.info(f"Ingesting PDF for fund {fund_code}: {pdf_path}")
+    #     
+    #     from pypdf import PdfReader
+    #     reader = PdfReader(pdf_path)
+    #     
+    #     # 1. สกัดข้อความและแบ่ง Chunk (ยังไม่ลบข้อมูลเก่า จนกว่า embed สำเร็จ)
+    #     all_chunks_text = []
+    #     all_chunks_meta = []
+    #     chunk_size = 1000
+    #     
+    #     for i, page in enumerate(reader.pages):
+    #         text = page.extract_text()
+    #         if not text:
+    #             continue
+    #         for start in range(0, len(text), chunk_size):
+    #             chunk_text = text[start:start + chunk_size + 100]
+    #             all_chunks_text.append(chunk_text)
+    #             all_chunks_meta.append({
+    #                 "page_number": i + 1,
+    #                 "source": os.path.basename(pdf_path),
+    #             })
+    #     
+    #     if not all_chunks_text:
+    #         logger.warning(f"No text extracted from PDF for {fund_code}")
+    #         return
+    #     
+    #     logger.info(f"Extracted {len(all_chunks_text)} chunks from PDF. Embedding locally...")
+    #     
+    #     # 2. Embed ทั้งหมดในครั้งเดียว (local — ไม่มี rate limit)
+    #     # E5 models ต้องเติม prefix "passage: " สำหรับ document
+    #     prefixed_chunks = [f"passage: {text}" for text in all_chunks_text]
+    #     all_vectors = self.model.encode(prefixed_chunks, show_progress_bar=True).tolist()
+    #     
+    #     logger.info(f"Embedding complete. {len(all_vectors)} vectors generated.")
+    #     
+    #     # 3. ลบข้อมูลเก่า + Bulk create ใน transaction (atomic)
+    #     from django.db import transaction
+    #     
+    #     chunks_to_create = [
+    #         FundDocumentChunk(
+    #             fund_code=fund_code,
+    #             content=all_chunks_text[i],
+    #             embedding=all_vectors[i],
+    #             page_number=all_chunks_meta[i]["page_number"],
+    #             metadata={"source": all_chunks_meta[i]["source"]},
+    #         )
+    #         for i in range(len(all_vectors))
+    #     ]
+    #     
+    #     with transaction.atomic():
+    #         deleted_count, _ = FundDocumentChunk.objects.filter(fund_code=fund_code).delete()
+    #         FundDocumentChunk.objects.bulk_create(chunks_to_create)
+    #     
+    #     logger.info(f"Successfully ingested {len(chunks_to_create)} chunks for {fund_code} (replaced {deleted_count} old chunks)")
+
+#     def ingest_factsheet_data(self, fund_code: str):
+#         """วิเคราะห์และเก็บข้อมูล FundFactSheet ลง Vector DB (ใช้ข้อมูลจาก database field แทน PDF)"""
+#         logger.info(f"Ingesting factsheet data from DB fields for fund {fund_code}")
+        
+#         from .models import FundFactSheet, FundDocumentChunk
+#         from django.db import transaction
+#         import json
+        
+#         try:
+#             factsheet = FundFactSheet.objects.get(fund_code=fund_code)
+#         except FundFactSheet.DoesNotExist:
+#             logger.error(f"FundFactSheet not found for {fund_code}")
+#             return
+            
+#         chunks_text = []
+        
+#         # 1. ข้อมูลพื้นฐาน
+#         basic_info = f"รหัสกองทุน: {factsheet.fund_code}\nชื่อกองทุน: {factsheet.fund_name_th or 'ไม่ระบุ'}\nระดับความเสี่ยง: {factsheet.risk_level or 'ไม่ระบุ'}\nประเภทกลุ่มกองทุน: {factsheet.fund_category or 'ไม่ระบุ'}\nกลยุทธ์การลงทุน: {factsheet.investment_strategy or 'ไม่ระบุ'}\nดัชนีชี้วัดเปรียบเทียบ: {factsheet.benchmark or 'ไม่ระบุ'}"
+#         chunks_text.append(basic_info)
+        
+#         # 2. ข้อมูลนโยบายป้องกันความเสี่ยงค่าเงิน
+#         hedging_info = f"รหัสกองทุน: {factsheet.fund_code}\nมีการป้องกันความเสี่ยงค่าเงิน (Hedged): {'ใช่' if factsheet.is_hedged else 'ไม่ใช่'}\nนโยบายป้องกันความเสี่ยงค่าเงินเพิ่มเติม: {factsheet.hedging_policy or 'ไม่ระบุ'}\nรายละเอียดการป้องกันความเสี่ยง: {factsheet.currency_hedging or 'ไม่ระบุ'}"
+#         chunks_text.append(hedging_info)
+        
+#         # 3. ข้อมูลการถือครองทรัพย์สิน (Holdings)
+#         if factsheet.holdings_data:
+#             holdings_str = f"รหัสกองทุน: {factsheet.fund_code}\nสินทรัพย์ที่ลงทุนสูงสุด (Top Holdings):\n"
+#             if isinstance(factsheet.holdings_data, list):
+#                 for item in factsheet.holdings_data:
+#                     name = item.get('name', 'Unknown')
+#                     ratio = item.get('ratio', 'ไม่ระบุ')
+#                     holdings_str += f"- {name} ({ratio}%)\n"
+#             else:
+#                 holdings_str += str(factsheet.holdings_data)
+#             chunks_text.append(holdings_str)
+            
+#         # 4. สัดส่วนกลุ่มอุตสาหกรรม (Sector Allocation)
+#         if factsheet.sector_allocation:
+#             sectors_str = f"รหัสกองทุน: {factsheet.fund_code}\nสัดส่วนอุตสาหกรรมที่ลงทุน (Sector Allocation):\n"
+#             if isinstance(factsheet.sector_allocation, list):
+#                 for item in factsheet.sector_allocation:
+#                     sector_name = item.get('sector_name', 'Unknown')
+#                     ratio = item.get('ratio', 'ไม่ระบุ')
+#                     sectors_str += f"- {sector_name} ({ratio}%)\n"
+#             else:
+#                 sectors_str += str(factsheet.sector_allocation)
+#             chunks_text.append(sectors_str)
+            
+#         # 5. Embed ทั้งหมดในครั้งเดียว (local)
+#         prefixed_chunks = [f"passage: {text}" for text in chunks_text]
+#         all_vectors = self.model.encode(prefixed_chunks, show_progress_bar=True).tolist()
+        
+#         logger.info(f"Embedding complete. {len(all_vectors)} vectors generated for {fund_code}.")
+        
+#         # 6. ลบข้อมูลเก่า + Bulk create in transaction
+#         chunks_to_create = [
+#             FundDocumentChunk(
+#                 fund_code=fund_code,
+#                 content=chunks_text[i],
+#                 embedding=all_vectors[i],
+#                 page_number=1, # Default value required instead of PDF page
+#                 metadata={"source": "database_fields", "section_index": i},
+#             )
+#             for i in range(len(all_vectors))
+#         ]
+        
+#         with transaction.atomic():
+#             deleted_count, _ = FundDocumentChunk.objects.filter(fund_code=fund_code).delete()
+#             FundDocumentChunk.objects.bulk_create(chunks_to_create)
+        
+#         logger.info(f"Successfully ingested {len(chunks_to_create)} field-based chunks for {fund_code} (replaced {deleted_count} old chunks)")
+
+#     def query_fund(self, query: str, fund_code: str = None):
+#         """ค้นหาข้อมูลที่เกี่ยวข้องและตอบคำถามแบบ RAG"""
+#         if not self.llm:
+#             return "AI Service not available"
+            
+#         # 1. เข้ารหัสคำถาม (E5 ต้องเติม prefix "query: " สำหรับ search query)
+#         query_vector = self.model.encode(f"query: {query}").tolist()
+        
+#         # 2. ค้นหา Vector (ใช้ pgvector L2 distance / Cosine similarity)
+#         # Note: pgvector django wrapper allows <-> or <=> operator
+#         from pgvector.django import L2Distance
+        
+#         qs = FundDocumentChunk.objects.all()
+#         if fund_code:
+#             qs = qs.filter(fund_code=fund_code)
+            
+#         related_chunks = qs.annotate(
+#             distance=L2Distance('embedding', query_vector)
+#         ).order_by('distance')[:5]
+        
+#         if not related_chunks:
+#             return "ไม่พบข้อมูลที่เกี่ยวข้องในระบบ"
+            
+#         # 3. สร้าง Context
+#         context = "\n\n".join([f"Source (Page {c.page_number}): {c.content}" for c in related_chunks])
+        
+#         # 4. ส่งให้ LLM ตอบ
+#         prompt = (
+#             "คุณคือผู้ช่วยอัจฉริยะด้านการลงทุน (xInvest Smart Assistant) "
+#             "กรุณาตอบคำถามของผู้ใช้งานโดยใช้ข้อมูลที่ให้มาด้านล่างนี้เท่านั้น "
+#             "หากข้อมูลไม่เพียงพอ ให้ตอบว่าไม่พบข้อมูลที่ชัดเจนในเอกสาร "
+#             "ระบุแหล่งที่มา (เลขหน้า) เสมอในการตอบ\n\n"
+#             f"Context:\n{context}\n\n"
+#             f"User Question: {query}"
+#         )
+        
+#         response = self.llm.invoke([HumanMessage(content=prompt)])
+#         return response.content
+
+class FundImpactAnalysisResult(BaseModel):
+    sentiment_score: float = Field(description="Overall sentiment score between -1.0 (very negative) and 1.0 (very positive)")
+    sentiment_summary: str = Field(description="A concise summary (in Thai) of the collective impact on the fund")
+    sentiment_impact_level: str = Field(description="Impact level on the fund. Choices: LOW, MED, HIGH")
+
+class FundImpactAIService:
+    def __init__(self):
+        news_service = NewsAIService()
+        self.llm = news_service.llm
+        self.parser = PydanticOutputParser(pydantic_object=FundImpactAnalysisResult)
+        
+        self.system_prompt = (
+            "คุณคือนักวิเคราะห์ข้อมูลการเงินผู้เชี่ยวชาญ คอยประเมินผลกระทบจากข่าวและข้อมูลเชิงลึกต่างๆ ที่มีต่อกองทุน "
+            "กรุณาอ่านข้อมูลทั้งหมดที่รวบรวมมา แล้วสรุปผลกระทบในภาพรวมต่อกองทุนนั้นๆ "
+            "ตอบกลับเป็นรูปแบบ JSON บริสุทธิ์ (Pure JSON) เท่านั้น\n"
+            "{format_instructions}"
+        )
+        
+        self.user_prompt_template = (
+            "รหัสกองทุน: {fund_code}\n"
+            "ข้อมูลผลกระทบ (Insights) ที่ผ่านมา:\n"
+            "{insights_content}\n"
+        )
+        
+        self.prompt = ChatPromptTemplate.from_messages([
+            ("system", self.system_prompt),
+            ("user", self.user_prompt_template)
+        ]).partial(format_instructions=self.parser.get_format_instructions())
+
+    def summarize_fund_impact(self, fund_code: str, insights_content: str) -> Optional[FundImpactAnalysisResult]:
+        logger.info(f"Summarizing impact for fund: {fund_code}")
+        if not self.llm:
+            logger.error("LLM not initialized for FundImpactAIService")
+            return None
+            
+        max_retries_per_model = 2
+        for attempt in range(max_retries_per_model):
+            try:
+                # Token optimization
+                max_chars = 30000 
+                processed_text = insights_content
+                if len(processed_text) > max_chars:
+                    processed_text = processed_text[:max_chars] + "..."
+                    
+                prompt_val = self.prompt.invoke({"fund_code": fund_code, "insights_content": processed_text})
+                raw_response = self.llm.invoke(prompt_val)
+                
+                content_str = raw_response.content
+                if isinstance(content_str, list):
+                    content_str = " ".join([part.get("text", "") if isinstance(part, dict) else str(part) for part in content_str])
+                
+                logger.debug(f"Raw Fund Impact AI Response from {self.llm.model}: {content_str[:200]}...")
+                
+                return self.parser.parse(content_str)
+            except Exception as e:
+                error_msg = str(e)
+                if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                    if attempt < max_retries_per_model - 1:
+                        logger.warning(f"Quota exceeded (429) for model {self.llm.model}. Sleeping for 20 seconds before retry (Attempt {attempt+1}/{max_retries_per_model})...")
+                        import time
+                        time.sleep(20)
+                        continue
+                    else:
+                        logger.error(f"Quota exhausted for model {self.llm.model} after {max_retries_per_model} attempts. Bubbling up to Celery.")
+                        # Raise to let Celery handles it with a longer backoff
+                        raise e
+                else:
+                    logger.error(f"Unexpected error during Fund Impact AI analysis with {self.llm.model}: {e}")
+                    raise e
+                    
+        return None
+

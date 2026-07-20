@@ -1,7 +1,17 @@
 # Development xInvest Compose
 services:
+
+# 1. บริการ Cloudflare Tunnel Connector
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare_tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --protocol http2
+    env_file:
+      - .env.dev
+
   db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file:
@@ -13,6 +23,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+      
 
   redis:
     image: redis:7-alpine
@@ -20,7 +31,7 @@ services:
       - "6379:6379"
 
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     command: python manage.py runserver 0.0.0.0:8000
@@ -28,13 +39,18 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - huggingface_cache:/root/.cache/huggingface
     env_file:
       - .env.dev
+    environment:
+      - TZ=Asia/Bangkok
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: always
 
   celery_worker:
@@ -42,13 +58,18 @@ services:
     command: celery -A core worker -l info
     volumes:
       - ./backend:/app
+      - huggingface_cache:/root/.cache/huggingface
     env_file:
       - .env.dev
+    environment:
+      - TZ=Asia/Bangkok
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: always
 
   celery_beat:
@@ -58,11 +79,46 @@ services:
       - ./backend:/app
     env_file:
       - .env.dev
+    environment:
+      - TZ=Asia/Bangkok
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_started
+    restart: always
+
+  flower:
+    # Official lightweight image — Flower only talks to the Redis broker,
+    # it doesn't need the Django app/backend image at all.
+    # Note: broker must be set via CELERY_BROKER_URL env var — a --broker
+    # CLI flag is silently ignored by this image's entrypoint.
+    image: mher/flower:2.0
+    ports:
+      - "5555:5555"
+    environment:
+      - TZ=Asia/Bangkok
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_started
+      celery_worker:
+        condition: service_started
+    restart: always
+
+  db_backup_cron:
+    image: postgres:15-alpine
+    volumes:
+      - ./backups:/backups
+      - ./scripts/cron-entrypoint.sh:/scripts/cron-entrypoint.sh
+    env_file:
+      - .env.dev
+    environment:
+      - BACKUP_SCHEDULE=59 23 * * *
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: /scripts/cron-entrypoint.sh
     restart: always
 
   frontend:
@@ -93,3 +149,10 @@ services:
 volumes:
   postgres_data:
   frontend_node_modules:
+  huggingface_cache:
+  # ollama_data:
+
+networks:
+  default:
+    name: xinvest-network
+

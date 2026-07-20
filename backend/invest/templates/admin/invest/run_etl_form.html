@@ -1,0 +1,41 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+    {{ form.media }}
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; {% trans 'Run ETL' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <p>Select the business date for the ETL process.</p>
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <fieldset class="module aligned">
+                <div class="form-row field-business_date">
+                    <div>
+                        <label class="required" for="id_business_date">Business Date:</label>
+                        <input type="text" name="business_date" class="vDateField" size="10" required id="id_business_date" placeholder="YYYYMMDD" value="{{ default_date }}">
+                        <div class="help">Format: YYYYMMDD (e.g., 20240415)</div>
+                    </div>
+                </div>
+            </fieldset>
+            <div class="submit-row">
+                <input type="submit" value="{% trans 'Run ETL' %}" class="default" name="_save">
+                <a href=".." class="button cancel-link">{% trans 'Cancel' %}</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -29,6 +29,11 @@ DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
+CSRF_TRUSTED_ORIGINS = os.environ.get(
+    "CSRF_TRUSTED_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:3000"
+).split(",")
+
 # Frontend URL for password reset links
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 
@@ -50,8 +55,16 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "invest",
     "drf_spectacular",
-    "smartNews.apps.SmartnewsConfig",
+    "fundDecision.apps.FunddecisionConfig",
+    "workflow.apps.WorkflowConfig",
+    "stt_fundconnext.apps.SttFundconnextConfig",
+    "payment.apps.PaymentConfig",
+    "graphene_django",
 ]
+
+GRAPHENE = {
+    "SCHEMA": "core.schema.schema"
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -124,7 +137,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Bangkok"
 
 USE_I18N = True
 
@@ -136,6 +149,9 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "static"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -151,10 +167,8 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # CORS Settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 # Celery Settings
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0")
@@ -163,6 +177,137 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
+
+# Cache Settings
+REDIS_CACHE_URL = os.environ.get("REDIS_CACHE_URL", "redis://redis:6379/1")
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_CACHE_URL,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+# FundConnext API Settings
+FC_API_URL = os.environ.get("FC_API_URL", "https://api.fundconnext.com")
+FC_API_USER = os.environ.get("FC_API_USER", "default_user")
+FC_API_PASSWORD = os.environ.get("FC_API_PASSWORD", "default_password")
+
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    'daily-fundconnext-etl-trans': {
+        'task': 'invest.tasks.run_daily_fundconnext_etl_trans',
+        'schedule': crontab(hour=8, minute=0),
+    },
+    'daily-fundconnext-etl-performance-mf-balance': {
+        'task': 'invest.tasks.run_daily_fundconnext_etl_performance_mf_balance',
+        'schedule': crontab(hour=8, minute=0),
+    },
+    'daily-fundconnext-etl-current-mf-balance': {
+        'task': 'invest.tasks.run_daily_fundconnext_etl_current_mf_balance',
+        'schedule': crontab(hour=8, minute=0),
+    },
+    # 'fetch-news-every-morning': {
+    #     'task': 'fundDecision.tasks.fetch_daily_news',
+    #     'schedule': crontab(hour=7, minute=0),
+    # },
+    'daily-fundconnext-etl-fund-profile': {
+        'task': 'stt_fundconnext.tasks.run_daily_fundconnext_etl_fund_profile',
+        'schedule': crontab(hour=8, minute=0),
+    },
+    'daily-fundconnext-etl-fund-performance': {
+        'task': 'stt_fundconnext.tasks.run_daily_fundconnext_etl_fund_performance',
+        'schedule': crontab(hour=8, minute=0),
+    },
+    'daily-fundconnext-etl-asset-allocation': {
+        'task': 'stt_fundconnext.tasks.run_daily_fundconnext_etl_asset_allocation',
+        'schedule': crontab(hour=8, minute=0),
+    },
+}
+
+
+
+# News API Settings
+NEWS_API_KEY = os.environ.get("NEWS_API_KEY", "")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+
+# Settrade API Settings
+SETTRADE_APP_ID = os.environ.get("SETTRADE_APP_ID", "")
+SETTRADE_APP_SECRET = os.environ.get("SETTRADE_APP_SECRET", "")
+SETTRADE_BROKER_ID = os.environ.get("SETTRADE_BROKER_ID", "SANDBOX")
+SETTRADE_APP_CODE = os.environ.get("SETTRADE_APP_CODE", "SANDBOX")
+
+# --- LOGGING CONFIGURATION ---
+import os
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+os.makedirs(LOGS_DIR, exist_ok=True)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {module} - {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOGS_DIR, 'xinvest.log'),
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'system_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOGS_DIR, 'error.log'),
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'system_file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'invest': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'celery': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'fundDecision': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'stt_fundconnext': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 # REST Framework Settings
 REST_FRAMEWORK = {
@@ -189,9 +334,8 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": False,
-
-    "ALGORITHM": "HS256",
-    "SIGNING_KEY": os.environ.get('DJANGO_SECRET_KEY', 'changeme'),
+    "ALGORITHM": os.environ.get('JWT_ALGORITHM', 'HS256'),
+    "SIGNING_KEY": os.environ.get('JWT_SECRET_KEY', 'changeme'),
     "VERIFYING_KEY": "",
     "AUDIENCE": None,
     "ISSUER": None,
@@ -223,6 +367,18 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
-# Email Settings (Console for development/debugging)
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "noreply@xinvest.com"
+# Email Settings
+# ถ้า EMAIL_HOST_USER ถูกตั้งค่าไว้ → ใช้ Gmail SMTP
+# ถ้าไม่มี → fallback เป็น Console (สำหรับ dev/debug)
+_email_host_user = os.environ.get("EMAIL_HOST_USER", "")
+if _email_host_user:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.gmail.com"
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = _email_host_user
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+    DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", _email_host_user)
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    DEFAULT_FROM_EMAIL = "noreply@xinvest.com"
