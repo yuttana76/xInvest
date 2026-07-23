@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.db import transaction
+from django.http import FileResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from .models import WorkflowConfig, WorkflowStep, Request, ApprovalLog, RequestFile, RequestSubject
@@ -581,6 +582,21 @@ class RequestViewSet(viewsets.ModelViewSet):
         request_obj.save()
 
         return Response(RequestSerializer(request_obj).data)
+
+    @action(detail=True, methods=['get'], url_path='export-pdf')
+    def export_pdf(self, request, pk=None):
+        request_obj = self.get_object()
+
+        if request_obj.workflow.category != 'IT':
+            return Response(
+                {"error": "PDF export is only available for IT Request workflows."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from .pdf_service import generate_it_request_pdf
+        buffer = generate_it_request_pdf(request_obj, exported_by=request.user)
+        filename = f"{request_obj.req_code or request_obj.id}_IT_Request.pdf"
+        return FileResponse(buffer, as_attachment=True, filename=filename)
 
     @action(detail=False, methods=['get'])
     def waiting_approval(self, request):

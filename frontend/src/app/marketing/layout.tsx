@@ -34,7 +34,7 @@ export default function MarketingLayout({
     <div className="min-h-screen bg-background">
       <Navbar />
       <Sidebar />
-      <main className="pl-64 pt-20">
+      <main className="lg:pl-64 pt-20">
         <div className="p-8 max-w-7xl mx-auto">
           {children}
         </div>

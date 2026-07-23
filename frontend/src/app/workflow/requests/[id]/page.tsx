@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useRequestDetail, useWaitingApproval } from '@/hooks/useWorkflow';
 import { useAuth } from '@/hooks/useAuth';
+import { workflowApi } from '@/lib/api/workflow';
 import { WorkflowStatusBadge } from '@/components/workflow/WorkflowStatusBadge';
 import { WorkflowProgress } from '@/components/workflow/WorkflowProgress';
 import { ActionPanel } from '@/components/workflow/ActionPanel';
@@ -12,7 +13,7 @@ import { RatingForm } from '@/components/workflow/RatingForm';
 import { Button } from '@/components/Button';
 import {
   ChevronLeft, FileText, Download, User, Layout,
-  Tag, AlertTriangle, CalendarClock, ShieldCheck,
+  Tag, AlertTriangle, CalendarClock, ShieldCheck, FileDown,
 } from 'lucide-react';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -111,9 +112,31 @@ export default function RequestDetailPage() {
 
   const { data: request, isLoading, error } = useRequestDetail(requestId);
   const { data: waitingList } = useWaitingApproval();
+  const [isExporting, setIsExporting] = useState(false);
 
   const isApprover = waitingList?.some((req) => req.id === requestId);
   const isCreator  = request?.creator_username?.toLowerCase().trim() === user?.username?.toLowerCase().trim();
+
+  const handleExportPdf = async () => {
+    if (!request) return;
+    setIsExporting(true);
+    try {
+      const blob = await workflowApi.exportPdf(request.id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${request.req_code || request.id}_IT_Request.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to export PDF:', err);
+      alert('Failed to export PDF. This export is only available for IT Request workflows.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -137,16 +160,29 @@ export default function RequestDetailPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center space-x-2 min-w-0">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ChevronLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold break-words">
             Request Details {request.req_code ? request.req_code : `#${request.id}`}
           </h1>
         </div>
-        <WorkflowStatusBadge status={request.status} className="px-4 py-1.5 text-sm" />
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {request.workflow_category === 'IT' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportPdf}
+              disabled={isExporting}
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              {isExporting ? 'Exporting...' : 'Export PDF'}
+            </Button>
+          )}
+          <WorkflowStatusBadge status={request.status} className="px-4 py-1.5 text-sm" />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

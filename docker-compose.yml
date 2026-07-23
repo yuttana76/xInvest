@@ -48,6 +48,10 @@ services:
     build: ./backend
     expose:
       - "8000"
+    volumes:
+      # Ops-managed branding assets (PDF_LOGO_PATH etc.) — swap the file on the
+      # host, no image rebuild or code change needed.
+      - ./branding:/app/branding:ro
     env_file:
       - .env.production
     depends_on:

@@ -55,6 +55,7 @@ export interface WorkflowRequest {
   current_step_number: number;
   workflow: number;
   workflow_name: string;
+  workflow_category: string;
   creator: number;
   creator_name: string;
   creator_username: string;
@@ -158,6 +159,13 @@ export const workflowApi = {
 
   rateRequest: async (id: number, rating: number, comment: string): Promise<WorkflowRequest> => {
     const response = await authApi.post(`/api/v1/workflow/requests/${id}/rate/`, { rating, rating_comment: comment });
+    return response.data;
+  },
+
+  exportPdf: async (id: number): Promise<Blob> => {
+    const response = await authApi.get(`/api/v1/workflow/requests/${id}/export-pdf/`, {
+      responseType: 'blob',
+    });
     return response.data;
   },
 };
