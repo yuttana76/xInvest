@@ -52,3 +52,14 @@ body {
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* Hides the scrollbar on horizontally-scrollable elements (e.g. mobile
+   period/filter selectors) while keeping them scrollable via touch/drag. */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}

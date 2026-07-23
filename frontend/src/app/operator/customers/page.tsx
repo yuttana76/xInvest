@@ -238,11 +238,11 @@ export default function OperatorCustomers() {
 
           {/* Pagination Controls */}
           {!loading && totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-white/10 flex items-center justify-between bg-white/5">
+            <div className="px-6 py-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/5">
                 <div className="text-sm text-slate-500">
                     Showing <span className="text-slate-300">{(page - 1) * 20 + 1}</span> to <span className="text-slate-300">{Math.min(page * 20, totalCount)}</span> of <span className="text-slate-300">{totalCount}</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 overflow-x-auto">
                     <Button 
                         variant="outline" 
                         size="sm" 

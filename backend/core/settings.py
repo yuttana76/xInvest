@@ -166,6 +166,15 @@ STORAGES = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# PDF export branding (workflow/pdf_service.py). Set these per-deployment via
+# .env — no code change or rebuild needed, just an env var + container restart.
+# PDF_LOGO_PATH: absolute path to a logo image file readable by the backend
+# container (e.g. mount it alongside the app, or bake it into a custom image
+# layer). Left blank, the PDF header renders as text-only.
+PDF_COMPANY_NAME = os.environ.get("PDF_COMPANY_NAME", "")
+PDF_COMPANY_ADDRESS = os.environ.get("PDF_COMPANY_ADDRESS", "")
+PDF_LOGO_PATH = os.environ.get("PDF_LOGO_PATH", "")
+
 # CORS Settings
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True

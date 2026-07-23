@@ -49,12 +49,12 @@ export default function AgentInvestors() {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Referred Investors</h1>
           <p className="text-slate-400 mt-1">Manage and monitor investors you have referred.</p>
         </div>
-        <div className="flex bg-white/5 rounded-xl p-1 border border-white/10">
+        <div className="flex bg-white/5 rounded-xl p-1 border border-white/10 self-start sm:self-auto">
           <button 
             onClick={() => setViewMode('table')}
             className={cn("p-2 rounded-lg transition-all", viewMode === 'table' ? "bg-primary text-white" : "text-slate-500 hover:text-slate-300")}

@@ -36,6 +36,10 @@ x_mobile_app/.stitch/
 
 media/*
 
+# Branding assets (PDF logo etc.) — ops-managed per deployment, not committed
+branding/*
+!branding/.gitkeep
+
 # Terraform
 terraform/.terraform/
 terraform/*.tfstate

@@ -42,9 +42,9 @@ export default function PaymentLayout({
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       <Navbar />
       <Sidebar />
-      <main className="pl-64 pt-20">
+      <main className="lg:pl-64 pt-20">
         <div className="p-8 max-w-7xl mx-auto">
-          <div className="mb-6 flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-4">
+          <div className="mb-6 flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-4 overflow-x-auto">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const isActive = pathname?.startsWith(item.href);
@@ -52,7 +52,7 @@ export default function PaymentLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors shrink-0 ${
                     isActive
                       ? 'bg-primary/10 text-primary'
                       : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5'

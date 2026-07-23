@@ -56,6 +56,7 @@ class RequestSerializer(serializers.ModelSerializer):
     creator_name = serializers.ReadOnlyField(source='creator.get_full_name')
     creator_username = serializers.ReadOnlyField(source='creator.username')
     workflow_name = serializers.ReadOnlyField(source='workflow.name')
+    workflow_category = serializers.ReadOnlyField(source='workflow.category')
     workflow_steps = WorkflowStepSerializer(source='workflow.steps', many=True, read_only=True)
     logs = ApprovalLogSerializer(many=True, read_only=True)
     files = RequestFileSerializer(many=True, read_only=True)
@@ -77,7 +78,7 @@ class RequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Request
         fields = [
-            'id', 'req_code', 'title', 'description', 'workflow', 'workflow_name', 'workflow_steps',
+            'id', 'req_code', 'title', 'description', 'workflow', 'workflow_name', 'workflow_category', 'workflow_steps',
             'creator', 'creator_name', 'creator_username', 'create_department',
             'current_step_number', 'status',
             'assigned_to', 'created_at', 'updated_at', 'completed_at',

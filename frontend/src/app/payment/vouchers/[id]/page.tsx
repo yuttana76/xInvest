@@ -86,16 +86,16 @@ export default function VoucherDetailPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center space-x-2 min-w-0">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ChevronLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold break-words">
             {voucher.pv_code || `Voucher #${voucher.id}`}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold ${STATUS_STYLES[voucher.status]}`}>
             {voucher.status.replace('_', ' ')}
           </span>
