@@ -146,6 +146,17 @@ services:
         condition: service_healthy
     restart: always
 
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - frontend
+    restart: always
+
 volumes:
   postgres_data:
   frontend_node_modules:
