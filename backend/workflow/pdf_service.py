@@ -9,6 +9,7 @@ each workflow category is expected to get its own template as needed.
 import io
 import logging
 import os
+from xml.sax.saxutils import escape as _xml_escape
 
 from django.conf import settings
 from django.utils import timezone
@@ -57,6 +58,15 @@ def _ensure_thai_font():
 PRIORITY_LABELS = {1: "High", 2: "Medium", 3: "Low"}
 
 
+def _multiline(value) -> str:
+    """Escape XML special chars and turn newlines into <br/> so free-text
+    fields wrap onto multiple lines like they do on the web, instead of
+    ReportLab's Paragraph collapsing them onto a single line."""
+    if not value:
+        return "-"
+    return _xml_escape(str(value)).replace("\n", "<br/>")
+
+
 def generate_it_request_pdf(request_obj, exported_by=None) -> io.BytesIO:
     """Build the IT Request PDF for a workflow `Request` instance and return a
     seeked-to-0 BytesIO buffer ready for FileResponse.
@@ -95,7 +105,7 @@ def generate_it_request_pdf(request_obj, exported_by=None) -> io.BytesIO:
         elements.append(Spacer(1, 6))
 
     # --- Header ---
-    elements.append(Paragraph("IT REQUEST", title_style))
+    elements.append(Paragraph(request_obj.workflow.name, title_style))
     elements.append(Spacer(1, 2))
     # elements.append(Paragraph(request_obj.title, ParagraphStyle(
     #     "subtitle", parent=body, fontName=_THAI_FONT_BOLD, fontSize=11, alignment=1,
@@ -131,7 +141,7 @@ def generate_it_request_pdf(request_obj, exported_by=None) -> io.BytesIO:
     # and won't line up with any hardcoded set of labels.
     # elements.append(Spacer(1, 12))
     elements.append(Paragraph("Title", section_style))
-    elements.append(Paragraph(request_obj.title,body))
+    elements.append(Paragraph(_multiline(request_obj.title), body))
 
     
     elements.append(Paragraph("Subject", section_style))
@@ -142,7 +152,7 @@ def generate_it_request_pdf(request_obj, exported_by=None) -> io.BytesIO:
     # --- Description ---
     elements.append(Paragraph("Description", section_style))
     desc_table = Table(
-        [[Paragraph(request_obj.description or "-", body)]],
+        [[Paragraph(_multiline(request_obj.description), body)]],
         colWidths=[180 * mm],
     )
     desc_table.setStyle(TableStyle([
@@ -186,7 +196,7 @@ def generate_it_request_pdf(request_obj, exported_by=None) -> io.BytesIO:
             Paragraph(approver_name, body),
             Paragraph(action_label, body),
             Paragraph(log_date, body),
-            Paragraph(comment, body),
+            Paragraph(_multiline(comment), body),
         ])
 
     approval_table = Table(
@@ -209,7 +219,7 @@ def generate_it_request_pdf(request_obj, exported_by=None) -> io.BytesIO:
         elements.append(Paragraph("Requestor Rating", section_style))
         elements.append(Paragraph(f"<b>Score:</b> {request_obj.rating} / 5", body))
         if request_obj.rating_comment:
-            elements.append(Paragraph(f"<b>Comment:</b> {request_obj.rating_comment}", body))
+            elements.append(Paragraph(f"<b>Comment:</b> {_multiline(request_obj.rating_comment)}", body))
 
     # --- Footer ---
     elements.append(Spacer(1, 12))
